@@ -36,11 +36,11 @@ export function RoleGuard({
     // KIỂM TRA 1: Xác thực
     // ============================================
     if (!isAuthenticated || !user) {
-        // Chưa đăng nhập → redirect đến login
+        // Chưa đăng nhập → redirect đến trang chủ (EntryPage)
         // Lưu lại đường dẫn hiện tại để redirect sau khi login
         return (
             <Navigate 
-                to="/login" 
+                to="/" 
                 state={{ from: location }} 
                 replace 
             />
@@ -89,7 +89,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     if (!isAuthenticated) {
         return (
             <Navigate 
-                to="/login" 
+                to="/" 
                 state={{ from: location }} 
                 replace 
             />

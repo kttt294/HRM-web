@@ -13,6 +13,9 @@ router.use(authMiddleware);
 // GET /api/employees/me - Lấy thông tin nhân viên của user hiện tại
 router.get("/me", employeeController.getMe);
 
+// PATCH /api/employees/me - Nhân viên tự cập nhật thông tin cá nhân
+router.patch("/me", employeeController.updateMe);
+
 // GET routes - cần quyền view
 router.get("/", requirePermission("view_employees"), employeeController.getAll);
 router.get(

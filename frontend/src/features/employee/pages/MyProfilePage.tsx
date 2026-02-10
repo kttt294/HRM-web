@@ -9,12 +9,14 @@ import { Employee } from "../models/employee.model";
 import { Department } from "../../hr/models/department.model";
 import {
   GENDER_LABELS,
+  GENDER_OPTIONS,
   Gender,
   EMPLOYEE_STATUS_LABELS,
   EmployeeStatus,
   EMPLOYEE_TYPE_LABELS,
   EmployeeType,
 } from "../constants/employeeStatus";
+import { Select } from "../../../components/ui/Select";
 import { formatDate } from "../../../shared/utils/date.util";
 import anime from "animejs";
 
@@ -27,6 +29,16 @@ import anime from "animejs";
 export function MyProfilePage() {
   const { user } = useAuthStore();
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [isEditingPersonal, setIsEditingPersonal] = useState(false);
+  const [editForm, setEditForm] = useState({
+    fullName: '',
+    dateOfBirth: '',
+    gender: '',
+    nationalId: '',
+    address: '',
+    phone: '',
+  });
+  const [isSaving, setIsSaving] = useState(false);
   const pageRef = useRef<HTMLDivElement>(null);
 
   // Data from API
@@ -127,6 +139,51 @@ export function MyProfilePage() {
       style: "currency",
       currency: "VND",
     }).format(amount);
+  };
+
+  const handleEditPersonal = () => {
+    if (profile) {
+      // Convert ISO date to YYYY-MM-DD for <input type="date">
+      let dob = '';
+      if (profile.dateOfBirth) {
+        try {
+          dob = new Date(profile.dateOfBirth).toISOString().split('T')[0];
+        } catch {
+          dob = '';
+        }
+      }
+      setEditForm({
+        fullName: profile.fullName || '',
+        dateOfBirth: dob,
+        gender: profile.gender || '',
+        nationalId: profile.nationalId || '',
+        address: profile.address || '',
+        phone: profile.phone || '',
+      });
+    }
+    setIsEditingPersonal(true);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditingPersonal(false);
+  };
+
+  const handleSavePersonal = async () => {
+    if (!profile) return;
+    setIsSaving(true);
+    try {
+      console.log('Saving personal info:', editForm);
+      const updated = await employeeApi.updateMe(editForm);
+      console.log('Update success:', updated);
+      setProfile(updated);
+      setIsEditingPersonal(false);
+    } catch (err) {
+      console.error('Failed to update profile:', err);
+      const msg = err instanceof Error ? err.message : 'Lỗi không xác định';
+      alert(`Cập nhật thất bại: ${msg}`);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const displayName = profile?.fullName || user?.name || "Nhân viên";
@@ -298,42 +355,99 @@ export function MyProfilePage() {
             }}
           >
             <h3>Thông tin cá nhân</h3>
+            {!isEditingPersonal && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleEditPersonal}
+                onMouseEnter={(e) => handleButtonHover(e, true)}
+                onMouseLeave={(e) => handleButtonHover(e, false)}
+              >
+                Sửa thông tin
+              </Button>
+            )}
           </div>
           <div className="card-body">
-            <div style={{ display: "grid", gap: "20px" }}>
-              <InfoRow
-                label="Họ và tên"
-                value={profile?.fullName || "—"}
-                color="#1976d2"
-              />
-              <InfoRow
-                label="Ngày sinh"
-                value={
-                  profile?.dateOfBirth ? formatDate(profile.dateOfBirth) : "—"
-                }
-                color="#7c4dff"
-              />
-              <InfoRow
-                label="Giới tính"
-                value={profile?.gender ? getGenderLabel(profile.gender) : "—"}
-                color="#00bcd4"
-              />
-              <InfoRow
-                label="CCCD"
-                value={profile?.nationalId || "—"}
-                color="#ff9800"
-              />
-              <InfoRow
-                label="Địa chỉ"
-                value={profile?.address || "—"}
-                color="#9c27b0"
-              />
-              <InfoRow
-                label="Số điện thoại"
-                value={profile?.phone || "—"}
-                color="#4caf50"
-              />
-            </div>
+            {isEditingPersonal ? (
+              <div style={{ display: "grid", gap: "16px" }}>
+                <Input
+                  label="Họ và tên"
+                  value={editForm.fullName}
+                  onChange={(e) => setEditForm({ ...editForm, fullName: e.target.value })}
+                />
+                <Input
+                  type="date"
+                  label="Ngày sinh"
+                  value={editForm.dateOfBirth}
+                  onChange={(e) => setEditForm({ ...editForm, dateOfBirth: e.target.value })}
+                />
+                <Select
+                  label="Giới tính"
+                  options={GENDER_OPTIONS}
+                  placeholder="Chọn giới tính"
+                  value={editForm.gender}
+                  onChange={(e) => setEditForm({ ...editForm, gender: e.target.value })}
+                />
+                <Input
+                  label="Số CCCD"
+                  value={editForm.nationalId}
+                  onChange={(e) => setEditForm({ ...editForm, nationalId: e.target.value })}
+                />
+                <Input
+                  label="Địa chỉ"
+                  value={editForm.address}
+                  onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                />
+                <Input
+                  label="Số điện thoại"
+                  value={editForm.phone}
+                  onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                />
+                <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>
+                  <Button onClick={handleSavePersonal} disabled={isSaving}>
+                    {isSaving ? 'Đang lưu...' : 'Lưu thay đổi'}
+                  </Button>
+                  <Button variant="secondary" onClick={handleCancelEdit} disabled={isSaving}>
+                    Hủy
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: "grid", gap: "20px" }}>
+                <InfoRow
+                  label="Họ và tên"
+                  value={profile?.fullName || "—"}
+                  color="#1976d2"
+                />
+                <InfoRow
+                  label="Ngày sinh"
+                  value={
+                    profile?.dateOfBirth ? formatDate(profile.dateOfBirth) : "—"
+                  }
+                  color="#7c4dff"
+                />
+                <InfoRow
+                  label="Giới tính"
+                  value={profile?.gender ? getGenderLabel(profile.gender) : "—"}
+                  color="#00bcd4"
+                />
+                <InfoRow
+                  label="CCCD"
+                  value={profile?.nationalId || "—"}
+                  color="#ff9800"
+                />
+                <InfoRow
+                  label="Địa chỉ"
+                  value={profile?.address || "—"}
+                  color="#9c27b0"
+                />
+                <InfoRow
+                  label="Số điện thoại"
+                  value={profile?.phone || "—"}
+                  color="#4caf50"
+                />
+              </div>
+            )}
           </div>
         </div>
 

@@ -23,6 +23,19 @@ export const employeeApi = {
     return response.json();
   },
 
+  async updateMe(data: Partial<Employee>): Promise<Employee> {
+    const response = await authFetch(`${API_BASE}/me`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+      const errorBody = await response.text();
+      console.error('updateMe failed:', response.status, errorBody);
+      throw new Error(errorBody || "Failed to update my profile");
+    }
+    return response.json();
+  },
+
   async getById(id: string): Promise<Employee> {
     const response = await authFetch(`${API_BASE}/${id}`);
     if (!response.ok) throw new Error("Failed to fetch employee");

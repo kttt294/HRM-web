@@ -60,6 +60,88 @@ const employeeController = {
     }
   },
 
+  // PATCH /api/employees/me - Nhân viên tự cập nhật thông tin cá nhân
+  async updateMe(req, res, next) {
+    try {
+      // Chỉ cho phép cập nhật các trường cá nhân
+      const allowedFields = {
+        fullName: "full_name",
+        dateOfBirth: "date_of_birth",
+        gender: "gender",
+        nationalId: "national_id",
+        address: "address",
+        phone: "phone",
+      };
+
+      const updates = req.body;
+      const updateFields = [];
+      const params = [];
+
+      // Date fields that need special handling
+      const dateFields = ['date_of_birth'];
+
+      Object.keys(updates).forEach((key) => {
+        if (allowedFields[key] && updates[key] !== undefined) {
+          updateFields.push(`${allowedFields[key]} = ?`);
+          let value = updates[key] === '' ? null : updates[key];
+          // Convert ISO date strings to YYYY-MM-DD for MySQL DATE columns
+          if (value && dateFields.includes(allowedFields[key])) {
+            try {
+              const d = new Date(value);
+              if (!isNaN(d.getTime())) {
+                value = d.toISOString().split('T')[0];
+              } else {
+                value = null;
+              }
+            } catch {
+              value = null;
+            }
+          }
+          params.push(value);
+        }
+      });
+
+      if (updateFields.length === 0) {
+        return res.status(400).json({
+          message: "Không có trường nào để cập nhật",
+        });
+      }
+
+      const [existing] = await db.query(
+        "SELECT id FROM employees WHERE user_id = ?",
+        [req.user.id],
+      );
+
+      if (existing.length === 0) {
+        return res.status(404).json({
+          message: "Không tìm thấy thông tin nhân viên",
+        });
+      }
+
+      const employeeId = existing[0].id;
+      params.push(employeeId);
+
+      await db.query(
+        `UPDATE employees SET ${updateFields.join(", ")} WHERE id = ?`,
+        params,
+      );
+
+      const [updatedEmployee] = await db.query(
+        `SELECT e.*, d.name as department_name 
+         FROM employees e
+         LEFT JOIN departments d ON e.department_id = d.id
+         WHERE e.id = ?`,
+        [employeeId],
+      );
+
+      res.json(toCamelCase(updatedEmployee[0]));
+    } catch (error) {
+      console.error('updateMe error:', error.code, error.message);
+      console.error('updateMe body was:', JSON.stringify(req.body));
+      next(error);
+    }
+  },
+
   // GET /api/employees/:id
   async getById(req, res, next) {
     try {
@@ -152,21 +234,44 @@ const employeeController = {
       // Map frontend camelCase fields to DB snake_case columns
       const fieldMapping = {
         fullName: "full_name",
+        dateOfBirth: "date_of_birth",
+        gender: "gender",
+        nationalId: "national_id",
+        address: "address",
         email: "email",
         phone: "phone",
         jobTitle: "job_title",
-        department: "department",
+        departmentId: "department_id",
+        supervisorId: "supervisor_id",
         hireDate: "hire_date",
         status: "status",
+        baseSalary: "base_salary",
+        allowance: "allowance",
+        employeeType: "employee_type",
       };
 
       const updateFields = [];
       const params = [];
+      const dateFields = ['date_of_birth', 'hire_date'];
 
       Object.keys(updates).forEach((key) => {
         if (fieldMapping[key]) {
           updateFields.push(`${fieldMapping[key]} = ?`);
-          params.push(updates[key]);
+          let value = updates[key] === '' ? null : updates[key];
+          // Convert ISO date strings to YYYY-MM-DD for MySQL DATE columns
+          if (value && dateFields.includes(fieldMapping[key])) {
+            try {
+              const d = new Date(value);
+              if (!isNaN(d.getTime())) {
+                value = d.toISOString().split('T')[0];
+              } else {
+                value = null;
+              }
+            } catch {
+              value = null;
+            }
+          }
+          params.push(value);
         }
       });
 

@@ -36,7 +36,7 @@ export function Header() {
             easing: 'easeInQuart',
             complete: () => {
                 logout();
-                navigate(ROUTES.LOGIN);
+                navigate(ROUTES.HOME);
             },
         });
     };
