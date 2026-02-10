@@ -34,23 +34,8 @@ export function CandidateLayout() {
                     gap: '12px',
                     textDecoration: 'none',
                 }}>
-                    <div style={{
-                        width: '36px',
-                        height: '36px',
-                        background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
-                        borderRadius: '8px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: 'white',
-                        fontWeight: 'bold',
-                        fontSize: '14px',
-                    }}>HR</div>
-                    <span style={{ 
-                        fontSize: '18px', 
-                        fontWeight: '600', 
-                        color: '#1a237e' 
-                    }}>HRM System</span>
+                    <img src="/favicon.svg" alt="Logo" style={{ width: '40px', height: '40px' }} />
+                    <span style={{ fontSize: '20px', fontWeight: '700', color: '#1a237e' }}>Hệ thống Quản lý Nhân sự</span>
                 </Link>
 
                 {/* Navigation */}
