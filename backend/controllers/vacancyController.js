@@ -1,27 +1,36 @@
 const db = require('../config/database');
+const { toCamelCase } = require('../utils/formatters');
 
 const vacancyController = {
     // GET /api/recruitment/vacancies
+    // Public route - anyone can view
     async getAll(req, res, next) {
         try {
-            const { status, department_id } = req.query;
+            const { department, status, search } = req.query;
             
             let query = 'SELECT * FROM vacancies WHERE 1=1';
             const params = [];
 
+            if (department) {
+                query += ' AND department = ?';
+                params.push(department);
+            }
             if (status) {
                 query += ' AND status = ?';
                 params.push(status);
             }
-            if (department_id) {
-                query += ' AND department_id = ?';
-                params.push(department_id);
+            if (search) {
+                query += ' AND (title LIKE ? OR description LIKE ?)';
+                params.push(`%${search}%`, `%${search}%`);
             }
 
-            query += ' ORDER BY created_at DESC';
+            // Default order: Open first, then by date descending
+            query += ` ORDER BY 
+                CASE WHEN status = 'open' THEN 1 ELSE 2 END,
+                created_at DESC`;
 
             const [vacancies] = await db.query(query, params);
-            res.json(vacancies);
+            res.json(toCamelCase(vacancies));
         } catch (error) {
             next(error);
         }
@@ -41,45 +50,44 @@ const vacancyController = {
                 });
             }
 
-            res.json(vacancies[0]);
+            res.json(toCamelCase(vacancies[0]));
         } catch (error) {
             next(error);
         }
     },
 
     // POST /api/recruitment/vacancies
+    // HR only
     async create(req, res, next) {
         try {
             const { 
                 title, 
-                department_id, 
+                department, 
                 description, 
                 requirements, 
-                salary_range,
-                location,
-                employment_type,
-                experience_level,
-                number_of_positions,
+                numberOfPositions, 
+                minSalary, 
+                maxSalary, 
                 deadline,
-                status
+                status 
             } = req.body;
 
-            if (!title || !department_id) {
+            if (!title) {
                 return res.status(400).json({ 
-                    message: 'Thiếu thông tin bắt buộc: title, department_id' 
+                    message: 'Tiêu đề vị trí là bắt buộc' 
                 });
             }
 
             const [result] = await db.query(
                 `INSERT INTO vacancies (
-                    title, department_id, description, requirements, salary_range,
-                    location, employment_type, experience_level, number_of_positions,
-                    deadline, status
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    title, department, description, requirements, 
+                    number_of_positions, min_salary, max_salary, 
+                    deadline, status, posted_date
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_DATE)`,
                 [
-                    title, department_id, description, requirements, salary_range,
-                    location, employment_type, experience_level, number_of_positions || 1,
-                    deadline, status || 'open'
+                    title, department, description, requirements, 
+                    numberOfPositions || 1, minSalary, maxSalary, 
+                    deadline, status || 'draft'
                 ]
             );
 
@@ -88,28 +96,35 @@ const vacancyController = {
                 [result.insertId]
             );
 
-            res.status(201).json(newVacancy[0]);
+            res.status(201).json(toCamelCase(newVacancy[0]));
         } catch (error) {
             next(error);
         }
     },
 
     // PATCH /api/recruitment/vacancies/:id
+    // HR only
     async update(req, res, next) {
         try {
             const updates = req.body;
-            const allowedFields = [
-                'title', 'department_id', 'description', 'requirements', 'salary_range',
-                'location', 'employment_type', 'experience_level', 'number_of_positions',
-                'deadline', 'status'
-            ];
+            const fieldMapping = {
+                title: 'title',
+                department: 'department',
+                description: 'description',
+                requirements: 'requirements',
+                numberOfPositions: 'number_of_positions',
+                minSalary: 'min_salary',
+                maxSalary: 'max_salary',
+                deadline: 'deadline',
+                status: 'status'
+            };
             
             const updateFields = [];
             const params = [];
 
             Object.keys(updates).forEach(key => {
-                if (allowedFields.includes(key)) {
-                    updateFields.push(`${key} = ?`);
+                if (fieldMapping[key]) {
+                    updateFields.push(`${fieldMapping[key]} = ?`);
                     params.push(updates[key]);
                 }
             });
@@ -138,13 +153,14 @@ const vacancyController = {
                 });
             }
 
-            res.json(updatedVacancy[0]);
+            res.json(toCamelCase(updatedVacancy[0]));
         } catch (error) {
             next(error);
         }
     },
 
     // DELETE /api/recruitment/vacancies/:id
+    // HR only
     async delete(req, res, next) {
         try {
             const [result] = await db.query(

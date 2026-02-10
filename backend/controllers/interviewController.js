@@ -1,31 +1,34 @@
 const db = require('../config/database');
+const { toCamelCase } = require('../utils/formatters');
 
 const interviewController = {
     // GET /api/recruitment/interviews
     async getAll(req, res, next) {
         try {
-            const { candidate_id, status, interviewer_id } = req.query;
+            const { status, date } = req.query;
             
-            let query = 'SELECT * FROM interviews WHERE 1=1';
+            let query = `
+                SELECT i.*, c.full_name as candidate_name, v.title as vacancy_title
+                FROM interviews i
+                JOIN candidates c ON i.candidate_id = c.id
+                LEFT JOIN vacancies v ON i.vacancy_id = v.id
+                WHERE 1=1
+            `;
             const params = [];
 
-            if (candidate_id) {
-                query += ' AND candidate_id = ?';
-                params.push(candidate_id);
-            }
             if (status) {
-                query += ' AND status = ?';
+                query += ' AND i.status = ?';
                 params.push(status);
             }
-            if (interviewer_id) {
-                query += ' AND interviewer_id = ?';
-                params.push(interviewer_id);
+            if (date) {
+                query += ' AND DATE(i.interview_date) = ?';
+                params.push(date);
             }
 
-            query += ' ORDER BY interview_date DESC, interview_time DESC';
+            query += ' ORDER BY i.interview_date ASC';
 
             const [interviews] = await db.query(query, params);
-            res.json(interviews);
+            res.json(toCamelCase(interviews));
         } catch (error) {
             next(error);
         }
@@ -35,7 +38,11 @@ const interviewController = {
     async getById(req, res, next) {
         try {
             const [interviews] = await db.query(
-                'SELECT * FROM interviews WHERE id = ?',
+                `SELECT i.*, c.full_name as candidate_name, v.title as vacancy_title
+                 FROM interviews i
+                 JOIN candidates c ON i.candidate_id = c.id
+                 LEFT JOIN vacancies v ON i.vacancy_id = v.id
+                 WHERE i.id = ?`,
                 [req.params.id]
             );
 
@@ -45,7 +52,7 @@ const interviewController = {
                 });
             }
 
-            res.json(interviews[0]);
+            res.json(toCamelCase(interviews[0]));
         } catch (error) {
             next(error);
         }
@@ -55,55 +62,38 @@ const interviewController = {
     async create(req, res, next) {
         try {
             const { 
-                candidate_id,
-                interviewer_id,
-                interview_date, 
-                interview_time, 
-                location,
-                interview_type,
-                notes,
-                status
+                candidateId, 
+                vacancyId, 
+                title, 
+                interviewDate, 
+                location, 
+                interviewerId, 
+                interviewerName, 
+                notes 
             } = req.body;
 
-            if (!candidate_id || !interviewer_id || !interview_date || !interview_time) {
+            if (!candidateId || !interviewDate) {
                 return res.status(400).json({ 
-                    message: 'Thiếu thông tin bắt buộc: candidate_id, interviewer_id, interview_date, interview_time' 
-                });
-            }
-
-            // Kiểm tra candidate có tồn tại không
-            const [candidates] = await db.query(
-                'SELECT id FROM candidates WHERE id = ?',
-                [candidate_id]
-            );
-
-            if (candidates.length === 0) {
-                return res.status(404).json({ 
-                    message: 'Không tìm thấy ứng viên' 
-                });
-            }
-
-            // Kiểm tra interviewer (employee) có tồn tại không
-            const [interviewers] = await db.query(
-                'SELECT id FROM employees WHERE id = ?',
-                [interviewer_id]
-            );
-
-            if (interviewers.length === 0) {
-                return res.status(404).json({ 
-                    message: 'Không tìm thấy người phỏng vấn' 
+                    message: 'Ứng viên và ngày phỏng vấn là bắt buộc' 
                 });
             }
 
             const [result] = await db.query(
                 `INSERT INTO interviews (
-                    candidate_id, interviewer_id, interview_date, interview_time,
-                    location, interview_type, notes, status
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+                    candidate_id, vacancy_id, title, interview_date, 
+                    location, interviewer_id, interviewer_name, 
+                    status, result, notes
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, 'scheduled', 'pending', ?)`,
                 [
-                    candidate_id, interviewer_id, interview_date, interview_time,
-                    location, interview_type || 'in-person', notes, status || 'scheduled'
+                    candidateId, vacancyId, title, interviewDate, 
+                    location, interviewerId, interviewerName, notes
                 ]
+            );
+
+            // Cập nhật trạng thái ứng viên thành 'interview'
+            await db.query(
+                'UPDATE candidates SET status = ? WHERE id = ?',
+                ['interview', candidateId]
             );
 
             const [newInterview] = await db.query(
@@ -111,7 +101,7 @@ const interviewController = {
                 [result.insertId]
             );
 
-            res.status(201).json(newInterview[0]);
+            res.status(201).json(toCamelCase(newInterview[0]));
         } catch (error) {
             next(error);
         }
@@ -121,17 +111,23 @@ const interviewController = {
     async update(req, res, next) {
         try {
             const updates = req.body;
-            const allowedFields = [
-                'interview_date', 'interview_time', 'location', 'interview_type',
-                'notes', 'status', 'result', 'feedback'
-            ];
+            const fieldMapping = {
+                title: 'title',
+                interviewDate: 'interview_date',
+                location: 'location',
+                interviewerId: 'interviewer_id',
+                interviewerName: 'interviewer_name',
+                status: 'status',
+                result: 'result',
+                notes: 'notes'
+            };
             
             const updateFields = [];
             const params = [];
 
             Object.keys(updates).forEach(key => {
-                if (allowedFields.includes(key)) {
-                    updateFields.push(`${key} = ?`);
+                if (fieldMapping[key]) {
+                    updateFields.push(`${fieldMapping[key]} = ?`);
                     params.push(updates[key]);
                 }
             });
@@ -160,7 +156,7 @@ const interviewController = {
                 });
             }
 
-            res.json(updatedInterview[0]);
+            res.json(toCamelCase(updatedInterview[0]));
         } catch (error) {
             next(error);
         }
