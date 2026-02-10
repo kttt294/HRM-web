@@ -33,7 +33,7 @@ export const employeeApi = {
 
     async update(id: string, data: Partial<Employee>): Promise<Employee> {
         const response = await fetch(`${API_BASE}/${id}`, {
-            method: 'PUT',
+            method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data),
         });

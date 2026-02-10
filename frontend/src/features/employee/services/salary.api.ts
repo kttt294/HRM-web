@@ -26,7 +26,7 @@ export const salaryApi = {
 
     async update(id: string, data: Partial<SalaryRecord>): Promise<SalaryRecord> {
         const response = await fetch(`${API_BASE}/${id}`, {
-            method: 'PUT',
+            method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data),
         });

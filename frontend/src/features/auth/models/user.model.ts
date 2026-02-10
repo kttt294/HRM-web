@@ -5,14 +5,14 @@
  * - admin: System Admin - quản lý tài khoản, phân quyền
  * - hr: HR Manager - quản lý nhân sự, tuyển dụng
  * - employee: Nhân viên - tự quản lý thông tin cá nhân
- * - candidate: Ứng viên - ứng tuyển việc làm
+ * Lưu ý: Candidate KHÔNG có role vì không cần đăng nhập (public routes)
  */
 export interface User {
     id: string;
     username: string;
     email: string;
     name: string;
-    role: 'admin' | 'hr' | 'employee' | 'candidate';
+    role: 'admin' | 'hr' | 'employee';
     permissions: string[];
     avatar?: string;
     employeeId?: string;

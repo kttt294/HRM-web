@@ -1,22 +1,21 @@
 /**
  * ============================================
- * ROLE-BASED ACCESS CONTROL (RBAC)
+ * KIỂM SOÁT TRUY CẬP DỰA TRÊN VAI TRÒ (RBAC)
  * ============================================
  * 
- * Đây là mô phỏng phân quyền frontend-only.
- * Trong production, việc phân quyền PHẢI được validate ở backend.
- * Frontend chỉ nên ẩn UI, backend mới thực sự chặn request.
+ * Permissions hiện được quản lý trong database.
+ * Backend cung cấp permissions qua API response.
+ * Frontend sử dụng file này để type-safety và bảo vệ routes.
  * 
  * File này định nghĩa:
- * - Các role trong hệ thống
- * - Permissions cho mỗi role
- * - Route access patterns
+ * - Các vai trò trong hệ thống
+ * - Các loại permission (cho TypeScript)
+ * - Cấu hình truy cập routes
  */
 
 // ============================================
 // ROLE DEFINITIONS
 // ============================================
-// Note: CANDIDATE role removed - candidate routes are PUBLIC (no authentication needed)
 export enum Role {
     ADMIN = 'admin',        // System Admin - Quản lý tài khoản, phân quyền
     HR = 'hr',              // Human Resources - Quản lý nhân sự, tuyển dụng
@@ -25,6 +24,7 @@ export enum Role {
 
 // ============================================
 // PERMISSION DEFINITIONS
+// Aligned with backend database schema
 // ============================================
 export enum Permission {
     // ADMIN (System) permissions
@@ -33,54 +33,27 @@ export enum Permission {
     VIEW_AUDIT_LOG = 'view_audit_log',    // Xem nhật ký hệ thống
     LOCK_ACCOUNTS = 'lock_accounts',      // Khóa tài khoản
     
-    // HR permissions
-    MANAGE_EMPLOYEES = 'manage_employees',    // Quản lý hồ sơ nhân viên
-    MANAGE_RECRUITMENT = 'manage_recruitment', // Quản lý tuyển dụng
+    // HR permissions - Employee Management
+    MANAGE_EMPLOYEES = 'manage_employees',    // Quản lý hồ sơ nhân viên (toàn quyền)
+    VIEW_EMPLOYEES = 'view_employees',        // Xem thông tin nhân viên
+    CREATE_EMPLOYEES = 'create_employees',    // Tạo nhân viên mới
+    UPDATE_EMPLOYEES = 'update_employees',    // Cập nhật thông tin nhân viên
+    DELETE_EMPLOYEES = 'delete_employees',    // Xóa nhân viên
+    
+    // HR permissions - Recruitment
+    MANAGE_RECRUITMENT = 'manage_recruitment', // Quản lý tuyển dụng (toàn quyền)
+    VIEW_CANDIDATES = 'view_candidates',       // Xem ứng viên
+    CREATE_VACANCIES = 'create_vacancies',     // Tạo vị trí tuyển dụng
+    
+    // HR permissions - Other
     VIEW_ALL_REPORTS = 'view_all_reports',    // Xem báo cáo
     CREATE_ACCOUNTS = 'create_accounts',      // Tạo tài khoản nhân viên mới
-    MANAGE_CONTRACTS = 'manage_contracts',    // Quản lý hợp đồng
     
     // Employee permissions
-    VIEW_SELF = 'view_self',
-    UPDATE_SELF = 'update_self',
-    REQUEST_LEAVE = 'request_leave',
-    VIEW_COMPANY_INFO = 'view_company_info',
+    VIEW_SELF = 'view_self',          // Xem hồ sơ cá nhân
+    UPDATE_SELF = 'update_self',      // Cập nhật hồ sơ cá nhân
+    REQUEST_LEAVE = 'request_leave',  // Xin nghỉ phép
 }
-
-// ============================================
-// ROLE-PERMISSION MAPPING
-// ============================================
-export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
-    [Role.ADMIN]: [
-        // ADMIN chỉ có quyền quản lý hệ thống
-        Permission.MANAGE_USERS,
-        Permission.MANAGE_ROLES,
-        Permission.VIEW_AUDIT_LOG,
-        Permission.LOCK_ACCOUNTS,
-        // ADMIN cũng có thể xem thông tin cá nhân
-        Permission.VIEW_SELF,
-        Permission.UPDATE_SELF,
-    ],
-    [Role.HR]: [
-        // HR có toàn quyền quản lý nhân sự
-        Permission.MANAGE_EMPLOYEES,
-        Permission.MANAGE_RECRUITMENT,
-        Permission.VIEW_ALL_REPORTS,
-        Permission.CREATE_ACCOUNTS,
-        Permission.MANAGE_CONTRACTS,
-        // HR cũng có thể xem thông tin cá nhân
-        Permission.VIEW_SELF,
-        Permission.UPDATE_SELF,
-        Permission.REQUEST_LEAVE,
-        Permission.VIEW_COMPANY_INFO,
-    ],
-    [Role.EMPLOYEE]: [
-        Permission.VIEW_SELF,
-        Permission.UPDATE_SELF,
-        Permission.REQUEST_LEAVE,
-        Permission.VIEW_COMPANY_INFO,
-    ],
-};
 
 // ============================================
 // ROUTE ACCESS CONFIGURATION
@@ -116,9 +89,6 @@ export const ROUTE_ACCESS: Record<string, Role[]> = {
     '/my-profile': [Role.ADMIN, Role.HR, Role.EMPLOYEE],
     '/my-leaves': [Role.HR, Role.EMPLOYEE],
     '/my-payroll': [Role.HR, Role.EMPLOYEE],
-    
-    // Candidate routes: PUBLIC (không cần auth)
-    // /jobs, /apply - không cần định nghĩa vì là public routes
 };
 
 // ============================================
@@ -129,13 +99,12 @@ export const DEFAULT_ROUTE_BY_ROLE: Partial<Record<Role, string>> = {
     [Role.ADMIN]: '/admin/users',
     [Role.HR]: '/pim/employees',
     [Role.EMPLOYEE]: '/my-profile',
-    // CANDIDATE: removed - không cần đăng nhập
 };
 
 // ============================================
 // UNAUTHORIZED ROUTE
 // Trang hiển thị khi truy cập trái phép
-// ============================================`
+// ============================================
 export const UNAUTHORIZED_ROUTE = '/unauthorized';
 
 // ============================================
@@ -144,26 +113,28 @@ export const UNAUTHORIZED_ROUTE = '/unauthorized';
 
 /**
  * Kiểm tra user có permission cụ thể không
+ * @param userPermissions - Array of permission strings from backend
+ * @param permission - Permission to check
  */
-export function hasPermission(role: Role | string | undefined, permission: Permission): boolean {
-    if (!role) return false;
-    const userRole = role as Role;
-    const permissions = ROLE_PERMISSIONS[userRole];
-    return permissions?.includes(permission) ?? false;
+export function hasPermission(userPermissions: string[] | undefined, permission: Permission | string): boolean {
+    if (!userPermissions) return false;
+    return userPermissions.includes(permission);
 }
 
 /**
  * Kiểm tra user có một trong các permissions không
  */
-export function hasAnyPermission(role: Role | string | undefined, permissions: Permission[]): boolean {
-    return permissions.some(p => hasPermission(role, p));
+export function hasAnyPermission(userPermissions: string[] | undefined, permissions: Permission[]): boolean {
+    if (!userPermissions) return false;
+    return permissions.some(p => userPermissions.includes(p));
 }
 
 /**
  * Kiểm tra user có tất cả permissions không
  */
-export function hasAllPermissions(role: Role | string | undefined, permissions: Permission[]): boolean {
-    return permissions.every(p => hasPermission(role, p));
+export function hasAllPermissions(userPermissions: string[] | undefined, permissions: Permission[]): boolean {
+    if (!userPermissions) return false;
+    return permissions.every(p => userPermissions.includes(p));
 }
 
 /**
@@ -202,4 +173,3 @@ export function getDefaultRoute(role: string | undefined): string {
     if (!role) return '/login';
     return DEFAULT_ROUTE_BY_ROLE[role as Role] ?? '/';
 }
-

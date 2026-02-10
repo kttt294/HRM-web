@@ -4,7 +4,6 @@ import { Input } from '../../../components/ui/Input';
 import { Button } from '../../../components/ui/Button';
 import { useAuth } from '../hooks/useAuth';
 import { ROUTES } from '../../../shared/constants/routes';
-import { TEST_ACCOUNTS } from '../services/auth.api';
 import anime from 'animejs';
 
 export function LoginPage() {
@@ -68,21 +67,7 @@ export function LoginPage() {
         }
     };
 
-    const handleQuickLogin = (accountKey: keyof typeof TEST_ACCOUNTS) => {
-        const account = TEST_ACCOUNTS[accountKey];
-        setFormData({
-            username: account.username,
-            password: account.password,
-        });
 
-        // Button animation
-        anime({
-            targets: `.quick-login-btn[data-account="${accountKey}"]`,
-            scale: [1, 0.95, 1],
-            duration: 200,
-            easing: 'easeInOutQuad',
-        });
-    };
 
     return (
         <div className="login-page">
@@ -171,7 +156,7 @@ export function LoginPage() {
                     </div>
                 </form>
 
-                {/* Test Accounts Section */}
+                {/* Hướng dẫn đăng nhập */}
                 <div 
                     className="animate-item"
                     style={{ 
@@ -185,107 +170,13 @@ export function LoginPage() {
                         fontSize: '12px', 
                         color: '#757575', 
                         textAlign: 'center',
-                        marginBottom: '16px'
-                    }}>
-                        Tài khoản test (chỉ dùng cho development)
-                    </p>
-                    
-                    <div style={{ 
-                        display: 'flex', 
-                        gap: '8px', 
-                        flexWrap: 'wrap',
-                        justifyContent: 'center'
-                    }}>
-                        <button
-                            type="button"
-                            className="quick-login-btn"
-                            data-account="admin"
-                            onClick={() => handleQuickLogin('admin')}
-                            style={{
-                                padding: '10px 20px',
-                                fontSize: '12px',
-                                background: 'linear-gradient(135deg, #f44336 0%, #c62828 100%)',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                fontWeight: '500',
-                                boxShadow: '0 4px 12px rgba(244, 67, 54, 0.3)',
-                            }}
-                        >
-                            System Admin
-                        </button>
-                        <button
-                            type="button"
-                            className="quick-login-btn"
-                            data-account="hr"
-                            onClick={() => handleQuickLogin('hr')}
-                            style={{
-                                padding: '10px 20px',
-                                fontSize: '12px',
-                                background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                fontWeight: '500',
-                                boxShadow: '0 4px 12px rgba(25, 118, 210, 0.3)',
-                            }}
-                        >
-                            HR Manager
-                        </button>
-                        <button
-                            type="button"
-                            className="quick-login-btn"
-                            data-account="employee"
-                            onClick={() => handleQuickLogin('employee')}
-                            style={{
-                                padding: '10px 20px',
-                                fontSize: '12px',
-                                background: 'linear-gradient(135deg, #4caf50 0%, #388e3c 100%)',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                fontWeight: '500',
-                                boxShadow: '0 4px 12px rgba(76, 175, 80, 0.3)',
-                            }}
-                        >
-                            Nhân viên
-                        </button>
-                        <button
-                            type="button"
-                            className="quick-login-btn"
-                            data-account="candidate"
-                            onClick={() => handleQuickLogin('candidate')}
-                            style={{
-                                padding: '10px 20px',
-                                fontSize: '12px',
-                                background: 'linear-gradient(135deg, #ff9800 0%, #f57c00 100%)',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                fontWeight: '500',
-                                boxShadow: '0 4px 12px rgba(255, 152, 0, 0.3)',
-                            }}
-                        >
-                            Ứng viên
-                        </button>
-                    </div>
-
-                    <div style={{ 
-                        marginTop: '16px', 
-                        fontSize: '11px', 
-                        color: '#9e9e9e',
-                        textAlign: 'center',
                         lineHeight: '1.8'
                     }}>
-                        <div><strong>Admin:</strong> admin / admin123</div>
-                        <div><strong>HR:</strong> hr / hr123</div>
-                        <div><strong>Nhân viên:</strong> nhanvien / nhanvien123</div>
-                        <div><strong>Ứng viên:</strong> ungvien / ungvien123</div>
-                    </div>
+                        <strong>Tài khoản test:</strong><br/>
+                        Admin: admin / admin123<br/>
+                        HR: hr / hr123<br/>
+                        Nhân viên: nhanvien / nhanvien123
+                    </p>
                 </div>
             </div>
         </div>

@@ -1,12 +1,41 @@
 const express = require('express');
-const app = express();
+const cors = require('cors');
+const errorHandler = require('./middleware/errorHandler');
+require('dotenv').config();
 
+const app = express();
+const PORT = process.env.SERVER_PORT || 5000;
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Test route
 app.get('/', (req, res) => {
-    res.send("Hello world");
+    res.json({ message: 'HRM Backend API đang chạy' });
 });
 
-const port = 3000;
+// Import routes
+const authRoutes = require('./routes/auth.routes');
+const employeeRoutes = require('./routes/employee.routes');
+const salaryRoutes = require('./routes/salary');
+const vacancyRoutes = require('./routes/vacancy');
+const candidateRoutes = require('./routes/candidate');
+const interviewRoutes = require('./routes/interview');
 
-app.listen(port, () => {
-    console.log(`Example app listening on port ${port}`);
+// API routes
+app.use('/api/auth', authRoutes);
+app.use('/api/employees', employeeRoutes);
+app.use('/api/salary', salaryRoutes);
+app.use('/api/recruitment/vacancies', vacancyRoutes);
+app.use('/api/recruitment/candidates', candidateRoutes);
+app.use('/api/recruitment/interviews', interviewRoutes);
+
+// Error handler (phải đặt cuối cùng)
+app.use(errorHandler);
+
+// Start server
+app.listen(PORT, () => {
+    console.log(`--->>> Server đang chạy tại http://localhost:${PORT}`);
 });

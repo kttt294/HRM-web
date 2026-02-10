@@ -4,7 +4,7 @@ import { hasPermission, hasRole, Permission, Role } from '../../shared/constants
 
 /**
  * ============================================
- * CONDITIONAL RENDERING COMPONENTS
+ * CÁC COMPONENT RENDER CÓ ĐIỀU KIỆN
  * ============================================
  * 
  * Các component này giúp ẩn/hiện UI elements
@@ -93,7 +93,7 @@ interface ShowForPermissionProps {
 export function ShowForPermission({ children, permission, fallback = null }: ShowForPermissionProps) {
     const { user } = useAuthStore();
     
-    if (!user || !hasPermission(user.role, permission)) {
+    if (!user || !hasPermission(user.permissions, permission)) {
         return <>{fallback}</>;
     }
 
@@ -116,7 +116,7 @@ export function ShowForAnyPermission({
     
     if (!user) return <>{fallback}</>;
     
-    const hasAny = permissions.some(p => hasPermission(user.role, p));
+    const hasAny = permissions.some(p => hasPermission(user.permissions, p));
     if (!hasAny) return <>{fallback}</>;
 
     return <>{children}</>;
@@ -124,7 +124,7 @@ export function ShowForAnyPermission({
 
 /**
  * ============================================
- * HIDE COMPONENTS
+ * CÁC COMPONENT ẨN
  * ============================================
  */
 
@@ -143,7 +143,7 @@ export function HideForRoles({ children, roles }: { children: ReactNode; roles: 
 
 /**
  * ============================================
- * CUSTOM HOOK FOR PERMISSION CHECK
+ * CUSTOM HOOK KIỂM TRA PERMISSION
  * ============================================
  */
 export function usePermissions() {
@@ -152,10 +152,11 @@ export function usePermissions() {
     return {
         isAuthenticated,
         role: user?.role as Role | undefined,
+        permissions: user?.permissions,
         
         // Check methods
         hasRole: (roles: Role | Role[]) => hasRole(user?.role, roles),
-        hasPermission: (permission: Permission) => hasPermission(user?.role, permission),
+        hasPermission: (permission: Permission) => hasPermission(user?.permissions, permission),
         
         // Role checks
         isAdmin: hasRole(user?.role, [Role.ADMIN]),
@@ -168,9 +169,9 @@ export function usePermissions() {
         
         // Permission checks
         canManageSystem: hasRole(user?.role, [Role.ADMIN]),
-        canManageEmployees: hasPermission(user?.role, Permission.MANAGE_EMPLOYEES),
-        canManageRecruitment: hasPermission(user?.role, Permission.MANAGE_RECRUITMENT),
-        canRequestLeave: hasPermission(user?.role, Permission.REQUEST_LEAVE),
+        canManageEmployees: hasPermission(user?.permissions, Permission.MANAGE_EMPLOYEES),
+        canManageRecruitment: hasPermission(user?.permissions, Permission.MANAGE_RECRUITMENT),
+        canRequestLeave: hasPermission(user?.permissions, Permission.REQUEST_LEAVE),
 
     };
 }

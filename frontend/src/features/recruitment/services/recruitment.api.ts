@@ -27,7 +27,7 @@ export const recruitmentApi = {
 
     async updateVacancy(id: string, data: Partial<Vacancy>): Promise<Vacancy> {
         const response = await fetch(`${API_BASE}/vacancies/${id}`, {
-            method: 'PUT',
+            method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data),
         });

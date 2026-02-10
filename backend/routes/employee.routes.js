@@ -1,0 +1,23 @@
+const express = require('express');
+const router = express.Router();
+const employeeController = require('../controllers/employeeController');
+const authMiddleware = require('../middleware/auth');
+const { requirePermission, requireAnyPermission } = require('../middleware/checkPermission');
+
+// Tất cả routes đều cần authentication
+router.use(authMiddleware);
+
+// GET routes - cần quyền view
+router.get('/', requirePermission('view_employees'), employeeController.getAll);
+router.get('/:id', requirePermission('view_employees'), employeeController.getById);
+
+// POST - cần quyền create
+router.post('/', requirePermission('create_employees'), employeeController.create);
+
+// PATCH - cần quyền update
+router.patch('/:id', requirePermission('update_employees'), employeeController.update);
+
+// DELETE - cần quyền delete
+router.delete('/:id', requirePermission('delete_employees'), employeeController.delete);
+
+module.exports = router;

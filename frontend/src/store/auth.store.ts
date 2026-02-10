@@ -46,13 +46,6 @@ export const useAuthStore = create<AuthState>()(
     )
 );
 
-// Helper function để kiểm tra quyền
-export function hasPermission(user: User | null, permission: string): boolean {
-    if (!user) return false;
-    if (user.permissions.includes('all')) return true;
-    return user.permissions.includes(permission);
-}
-
 // Helper function để kiểm tra role
 export function hasRole(user: User | null, role: string | string[]): boolean {
     if (!user) return false;

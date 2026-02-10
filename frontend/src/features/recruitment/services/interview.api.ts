@@ -33,7 +33,7 @@ export const interviewApi = {
 
     async update(id: string, data: Partial<Interview>): Promise<Interview> {
         const response = await fetch(`${API_BASE}/${id}`, {
-            method: 'PUT',
+            method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data),
         });

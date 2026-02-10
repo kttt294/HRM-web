@@ -5,12 +5,12 @@ import { canAccessRoute, getDefaultRoute, Role } from '../../shared/constants/rb
 
 /**
  * ============================================
- * ROLE-BASED ROUTE GUARD
+ * BẢO VỆ ROUTE DỰA TRÊN VAI TRÒ
  * ============================================
  * 
  * Component này bảo vệ routes dựa trên:
- * 1. Authentication state (đã đăng nhập chưa)
- * 2. Role/Permission (có quyền truy cập không)
+ * 1. Trạng thái xác thực (đã đăng nhập chưa)
+ * 2. Vai trò/Quyền (có quyền truy cập không)
  * 
  * Lưu ý: Đây là frontend guard chỉ để UX.
  * Backend PHẢI validate quyền cho mọi API request.
@@ -33,7 +33,7 @@ export function RoleGuard({
     const location = useLocation();
 
     // ============================================
-    // CHECK 1: Authentication
+    // KIỂM TRA 1: Xác thực
     // ============================================
     if (!isAuthenticated || !user) {
         // Chưa đăng nhập → redirect đến login
@@ -48,7 +48,7 @@ export function RoleGuard({
     }
 
     // ============================================
-    // CHECK 2: Role-based access
+    // KIỂM TRA 2: Truy cập theo vai trò
     // ============================================
     if (allowedRoles && allowedRoles.length > 0) {
         const userRole = user.role as Role;
@@ -62,7 +62,7 @@ export function RoleGuard({
     }
 
     // ============================================
-    // CHECK 3: Route-level access (từ ROUTE_ACCESS config)
+    // KIỂM TRA 3: Truy cập cấp route (từ ROUTE_ACCESS config)
     // ============================================
     if (!canAccessRoute(user.role, location.pathname)) {
         const destination = redirectTo || getDefaultRoute(user.role);
@@ -75,7 +75,7 @@ export function RoleGuard({
 
 /**
  * ============================================
- * PROTECTED ROUTE (chỉ check authentication)
+ * ROUTE BẢO VỆ (chỉ kiểm tra xác thực)
  * ============================================
  */
 interface ProtectedRouteProps {
@@ -101,7 +101,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
 /**
  * ============================================
- * ADMIN ONLY ROUTE
+ * ROUTE CHỈ DÀNH CHO ADMIN
  * ============================================
  */
 export function AdminRoute({ children }: { children: ReactNode }) {
@@ -114,7 +114,7 @@ export function AdminRoute({ children }: { children: ReactNode }) {
 
 /**
  * ============================================
- * HR ONLY ROUTE (Human Resources)
+ * ROUTE CHỈ DÀNH CHO HR (Nhân sự)
  * ============================================
  */
 export function HRRoute({ children }: { children: ReactNode }) {
@@ -127,7 +127,7 @@ export function HRRoute({ children }: { children: ReactNode }) {
 
 /**
  * ============================================
- * EMPLOYEE ROUTE (Admin + HR + Employee)
+ * ROUTE NHÂN VIÊN (Admin + HR + Employee)
  * ============================================
  */
 export function EmployeeRoute({ children }: { children: ReactNode }) {
