@@ -61,14 +61,13 @@ export function Header() {
 
     return (
         <header ref={headerRef} id="app-header" style={{ opacity: 0 }}>
-            <div className="header-left">
+            <div className="header-left" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <img 
                     src={logo} 
                     alt="HRM Logo" 
                     className="app-logo" 
                     style={{ 
                         height: '40px', 
-                        marginRight: '12px',
                         borderRadius: '8px'
                     }} 
                 />
