@@ -1,7 +1,0 @@
-tiếp tục thiết kế lại 3 bảng 9 10 11 trong optimized schema
-
-viết nốt API
-
-viết test
-
-kiểm tra lại logic JWT giữa FE và BE
