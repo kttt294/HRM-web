@@ -169,7 +169,7 @@ export function EntryPage() {
                     </h1>
 
                     <p className="hero-animate" style={{
-                        fontSize: '20px',
+                        fontSize: '18px',
                         color: '#546e7a',
                         marginBottom: '32px',
                         lineHeight: '1.6',
@@ -186,7 +186,7 @@ export function EntryPage() {
             </section>
 
             <section style={{
-                padding: '0 5% 80px',
+                padding: '20px 5% 80px',
                 background: 'white',
             }}>
                 <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
