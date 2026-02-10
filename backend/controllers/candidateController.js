@@ -1,31 +1,37 @@
 const db = require('../config/database');
+const { toCamelCase } = require('../utils/formatters');
 
 const candidateController = {
     // GET /api/recruitment/candidates
     async getAll(req, res, next) {
         try {
-            const { status, vacancy_id, source } = req.query;
+            const { vacancyId, status, search } = req.query;
             
-            let query = 'SELECT * FROM candidates WHERE 1=1';
+            let query = `
+                SELECT c.*, v.title as vacancy_title 
+                FROM candidates c
+                LEFT JOIN vacancies v ON c.vacancy_id = v.id
+                WHERE 1=1
+            `;
             const params = [];
 
+            if (vacancyId) {
+                query += ' AND c.vacancy_id = ?';
+                params.push(vacancyId);
+            }
             if (status) {
-                query += ' AND status = ?';
+                query += ' AND c.status = ?';
                 params.push(status);
             }
-            if (vacancy_id) {
-                query += ' AND vacancy_id = ?';
-                params.push(vacancy_id);
-            }
-            if (source) {
-                query += ' AND source = ?';
-                params.push(source);
+            if (search) {
+                query += ' AND (c.full_name LIKE ? OR c.email LIKE ?)';
+                params.push(`%${search}%`, `%${search}%`);
             }
 
-            query += ' ORDER BY applied_at DESC';
+            query += ' ORDER BY c.created_at DESC';
 
             const [candidates] = await db.query(query, params);
-            res.json(candidates);
+            res.json(toCamelCase(candidates));
         } catch (error) {
             next(error);
         }
@@ -35,7 +41,10 @@ const candidateController = {
     async getById(req, res, next) {
         try {
             const [candidates] = await db.query(
-                'SELECT * FROM candidates WHERE id = ?',
+                `SELECT c.*, v.title as vacancy_title 
+                 FROM candidates c
+                 LEFT JOIN vacancies v ON c.vacancy_id = v.id
+                 WHERE c.id = ?`,
                 [req.params.id]
             );
 
@@ -45,59 +54,39 @@ const candidateController = {
                 });
             }
 
-            res.json(candidates[0]);
+            res.json(toCamelCase(candidates[0]));
         } catch (error) {
             next(error);
         }
     },
 
     // POST /api/recruitment/candidates
+    // Public route for application
     async create(req, res, next) {
         try {
             const { 
-                vacancy_id,
-                full_name, 
+                fullName, 
                 email, 
                 phone, 
-                address,
-                date_of_birth,
-                education,
-                experience,
-                skills,
-                resume_url,
-                cover_letter,
-                source,
-                status
+                vacancyId, 
+                resumeUrl, 
+                notes 
             } = req.body;
 
-            if (!vacancy_id || !full_name || !email || !phone) {
+            if (!fullName || !email) {
                 return res.status(400).json({ 
-                    message: 'Thiếu thông tin bắt buộc: vacancy_id, full_name, email, phone' 
-                });
-            }
-
-            // Kiểm tra vacancy có tồn tại không
-            const [vacancies] = await db.query(
-                'SELECT id FROM vacancies WHERE id = ?',
-                [vacancy_id]
-            );
-
-            if (vacancies.length === 0) {
-                return res.status(404).json({ 
-                    message: 'Không tìm thấy vị trí tuyển dụng' 
+                    message: 'Họ tên và email là bắt buộc' 
                 });
             }
 
             const [result] = await db.query(
                 `INSERT INTO candidates (
-                    vacancy_id, full_name, email, phone, address, date_of_birth,
-                    education, experience, skills, resume_url, cover_letter,
-                    source, status
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    full_name, email, phone, vacancy_id, 
+                    resume_url, notes, status, applied_at
+                ) VALUES (?, ?, ?, ?, ?, ?, 'pending', NOW())`,
                 [
-                    vacancy_id, full_name, email, phone, address, date_of_birth,
-                    education, experience, skills, resume_url, cover_letter,
-                    source || 'website', status || 'new'
+                    fullName, email, phone, vacancyId, 
+                    resumeUrl, notes
                 ]
             );
 
@@ -106,28 +95,33 @@ const candidateController = {
                 [result.insertId]
             );
 
-            res.status(201).json(newCandidate[0]);
+            res.status(201).json(toCamelCase(newCandidate[0]));
         } catch (error) {
             next(error);
         }
     },
 
     // PATCH /api/recruitment/candidates/:id
+    // HR only - update status or notes
     async update(req, res, next) {
         try {
             const updates = req.body;
-            const allowedFields = [
-                'full_name', 'email', 'phone', 'address', 'date_of_birth',
-                'education', 'experience', 'skills', 'resume_url', 'cover_letter',
-                'source', 'status', 'notes'
-            ];
+            const fieldMapping = {
+                fullName: 'full_name',
+                email: 'email',
+                phone: 'phone',
+                vacancyId: 'vacancy_id',
+                resumeUrl: 'resume_url',
+                status: 'status',
+                notes: 'notes'
+            };
             
             const updateFields = [];
             const params = [];
 
             Object.keys(updates).forEach(key => {
-                if (allowedFields.includes(key)) {
-                    updateFields.push(`${key} = ?`);
+                if (fieldMapping[key]) {
+                    updateFields.push(`${fieldMapping[key]} = ?`);
                     params.push(updates[key]);
                 }
             });
@@ -156,7 +150,7 @@ const candidateController = {
                 });
             }
 
-            res.json(updatedCandidate[0]);
+            res.json(toCamelCase(updatedCandidate[0]));
         } catch (error) {
             next(error);
         }

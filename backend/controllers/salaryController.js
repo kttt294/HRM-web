@@ -1,4 +1,5 @@
 const db = require('../config/database');
+const { toCamelCase } = require('../utils/formatters');
 
 const salaryController = {
     // GET /api/salary
@@ -37,7 +38,7 @@ const salaryController = {
             query += ' ORDER BY year DESC, month DESC';
 
             const [salaries] = await db.query(query, params);
-            res.json(salaries);
+            res.json(toCamelCase(salaries));
         } catch (error) {
             next(error);
         }
@@ -73,7 +74,7 @@ const salaryController = {
                 }
             }
 
-            res.json(salary);
+            res.json(toCamelCase(salary));
         } catch (error) {
             next(error);
         }
@@ -103,7 +104,7 @@ const salaryController = {
                 [employeeId]
             );
 
-            res.json(salaries);
+            res.json(toCamelCase(salaries));
         } catch (error) {
             next(error);
         }
@@ -113,32 +114,35 @@ const salaryController = {
     async create(req, res, next) {
         try {
             const { 
-                employee_id, 
+                employeeId, 
                 month, 
                 year, 
-                base_salary,
-                allowance_housing,
-                allowance_transport,
-                allowance_meal,
-                allowance_other,
-                deduction_insurance,
-                deduction_tax,
-                deduction_other,
-                net_salary,
+                baseSalary,
+                allowanceHousing,
+                allowanceTransport,
+                allowanceMeal,
+                allowanceOther,
+                deductionInsurance,
+                deductionTax,
+                deductionOther,
+                netSalary,
                 status,
-                paid_at
+                paidAt
             } = req.body;
 
-            if (!employee_id || !month || !year || base_salary === undefined) {
+            // Map frontend camelCase input to snake_case DB variables (implicitly)
+            // for validation and query parameters
+            
+            if (!employeeId || !month || !year || baseSalary === undefined) {
                 return res.status(400).json({ 
-                    message: 'Thiếu thông tin bắt buộc: employee_id, month, year, base_salary' 
+                    message: 'Thiếu thông tin bắt buộc: employeeId, month, year, baseSalary' 
                 });
             }
 
             // Kiểm tra employee có tồn tại không
             const [employees] = await db.query(
                 'SELECT id FROM employees WHERE id = ?',
-                [employee_id]
+                [employeeId]
             );
 
             if (employees.length === 0) {
@@ -150,7 +154,7 @@ const salaryController = {
             // Kiểm tra đã có bảng lương cho tháng này chưa
             const [existing] = await db.query(
                 'SELECT id FROM salary_records WHERE employee_id = ? AND month = ? AND year = ?',
-                [employee_id, month, year]
+                [employeeId, month, year]
             );
 
             if (existing.length > 0) {
@@ -167,10 +171,10 @@ const salaryController = {
                     net_salary, status, paid_at
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
-                    employee_id, month, year, base_salary,
-                    allowance_housing || 0, allowance_transport || 0, allowance_meal || 0, allowance_other || 0,
-                    deduction_insurance || 0, deduction_tax || 0, deduction_other || 0,
-                    net_salary, status || 'draft', paid_at
+                    employeeId, month, year, baseSalary,
+                    allowanceHousing || 0, allowanceTransport || 0, allowanceMeal || 0, allowanceOther || 0,
+                    deductionInsurance || 0, deductionTax || 0, deductionOther || 0,
+                    netSalary, status || 'draft', paidAt
                 ]
             );
 
@@ -179,7 +183,7 @@ const salaryController = {
                 [result.insertId]
             );
 
-            res.status(201).json(newSalary[0]);
+            res.status(201).json(toCamelCase(newSalary[0]));
         } catch (error) {
             next(error);
         }
@@ -189,17 +193,27 @@ const salaryController = {
     async update(req, res, next) {
         try {
             const updates = req.body;
-            const allowedFields = [
-                'base_salary', 'allowance_housing', 'allowance_transport', 'allowance_meal', 'allowance_other',
-                'deduction_insurance', 'deduction_tax', 'deduction_other', 'net_salary', 'status', 'paid_at'
-            ];
+            // Mapping frontend fields to DB columns
+            const fieldMapping = {
+                baseSalary: 'base_salary',
+                allowanceHousing: 'allowance_housing',
+                allowanceTransport: 'allowance_transport',
+                allowanceMeal: 'allowance_meal',
+                allowanceOther: 'allowance_other',
+                deductionInsurance: 'deduction_insurance',
+                deductionTax: 'deduction_tax',
+                deductionOther: 'deduction_other',
+                netSalary: 'net_salary',
+                status: 'status',
+                paidAt: 'paid_at'
+            };
             
             const updateFields = [];
             const params = [];
 
             Object.keys(updates).forEach(key => {
-                if (allowedFields.includes(key)) {
-                    updateFields.push(`${key} = ?`);
+                if (fieldMapping[key]) {
+                    updateFields.push(`${fieldMapping[key]} = ?`);
                     params.push(updates[key]);
                 }
             });
@@ -228,7 +242,7 @@ const salaryController = {
                 });
             }
 
-            res.json(updatedSalary[0]);
+            res.json(toCamelCase(updatedSalary[0]));
         } catch (error) {
             next(error);
         }

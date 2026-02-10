@@ -1,4 +1,5 @@
 const db = require('../config/database');
+const { toCamelCase } = require('../utils/formatters');
 
 const employeeController = {
     // GET /api/employees
@@ -27,7 +28,7 @@ const employeeController = {
             }
 
             const [employees] = await db.query(query, params);
-            res.json(employees);
+            res.json(toCamelCase(employees));
         } catch (error) {
             next(error);
         }
@@ -47,7 +48,7 @@ const employeeController = {
                 });
             }
 
-            res.json(employees[0]);
+            res.json(toCamelCase(employees[0]));
         } catch (error) {
             next(error);
         }
@@ -56,9 +57,12 @@ const employeeController = {
     // POST /api/employees
     async create(req, res, next) {
         try {
-            const { employee_id, full_name, email, phone, job_title, department, hire_date, status } = req.body;
+            const { employeeId, fullName, email, phone, jobTitle, department, hireDate, status } = req.body;
 
-            if (!employee_id || !full_name) {
+            // Note: req.body coming from frontend is camelCase, we need to map to DB columns or just use values
+            // Ideally should also have a toSnakeCase for inputs, but here we manually map for safety
+            
+            if (!employeeId || !fullName) {
                 return res.status(400).json({ 
                     message: 'Mã nhân viên và họ tên là bắt buộc' 
                 });
@@ -67,7 +71,7 @@ const employeeController = {
             const [result] = await db.query(
                 `INSERT INTO employees (employee_id, full_name, email, phone, job_title, department, hire_date, status) 
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-                [employee_id, full_name, email, phone, job_title, department, hire_date, status || 'active']
+                [employeeId, fullName, email, phone, jobTitle, department, hireDate, status || 'active']
             );
 
             const [newEmployee] = await db.query(
@@ -75,7 +79,7 @@ const employeeController = {
                 [result.insertId]
             );
 
-            res.status(201).json(newEmployee[0]);
+            res.status(201).json(toCamelCase(newEmployee[0]));
         } catch (error) {
             if (error.code === 'ER_DUP_ENTRY') {
                 return res.status(400).json({ 
@@ -90,21 +94,30 @@ const employeeController = {
     async update(req, res, next) {
         try {
             const updates = req.body;
-            const allowedFields = ['full_name', 'email', 'phone', 'job_title', 'department', 'hire_date', 'status'];
+            // Map frontend camelCase fields to DB snake_case columns
+            const fieldMapping = {
+                fullName: 'full_name',
+                email: 'email',
+                phone: 'phone',
+                jobTitle: 'job_title',
+                department: 'department',
+                hireDate: 'hire_date',
+                status: 'status'
+            };
             
             const updateFields = [];
             const params = [];
 
             Object.keys(updates).forEach(key => {
-                if (allowedFields.includes(key)) {
-                    updateFields.push(`${key} = ?`);
+                if (fieldMapping[key]) {
+                    updateFields.push(`${fieldMapping[key]} = ?`);
                     params.push(updates[key]);
                 }
             });
 
             if (updateFields.length === 0) {
                 return res.status(400).json({ 
-                    message: 'Không có trường nào để cập nhật' 
+                    message: 'Không có trường nào để cập nhật hoặc trường không hợp lệ' 
                 });
             }
 
@@ -126,7 +139,7 @@ const employeeController = {
                 });
             }
 
-            res.json(updatedEmployee[0]);
+            res.json(toCamelCase(updatedEmployee[0]));
         } catch (error) {
             next(error);
         }
