@@ -711,12 +711,14 @@ body {
 }
 
 /* Status variants */
-.status-active, .status-working {
+.status-active,
+.status-working {
   background-color: var(--success-50);
   color: var(--success-700);
 }
-.status-active::before, .status-working::before {
-  content: '';
+.status-active::before,
+.status-working::before {
+  content: "";
   display: block;
   width: 6px;
   height: 6px;
@@ -729,7 +731,7 @@ body {
   color: var(--warning-700);
 }
 .status-onleave::before {
-  content: '';
+  content: "";
   display: block;
   width: 6px;
   height: 6px;
@@ -737,12 +739,27 @@ body {
   background-color: currentColor;
 }
 
-.status-resigned, .status-inactive {
+.status-resigned,
+.status-inactive {
   background-color: var(--gray-100);
   color: var(--gray-500);
 }
-.status-resigned::before, .status-inactive::before {
-  content: '';
+.status-resigned::before,
+.status-inactive::before {
+  content: "";
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: currentColor;
+}
+
+.status-pending {
+  background-color: var(--warning-50);
+  color: var(--warning-700);
+}
+.status-pending::before {
+  content: "";
   display: block;
   width: 6px;
   height: 6px;

@@ -1,134 +1,192 @@
-/**
- * ============================================
- * PAYROLL MOCK API
- * ============================================
- */
+import { Payroll, PayrollStatus } from "../models/payroll.model";
+import { authFetch } from "../../../utils/auth-fetch";
 
-import { Payroll } from '../models/payroll.model';
+// Helper: Breakdown total allowance vào housing/transport/meal/other
+function breakdownAllowances(total: number) {
+  return {
+    housing: Math.round(total * 0.5 * 100) / 100,
+    transport: Math.round(total * 0.2 * 100) / 100,
+    meal: Math.round(total * 0.2 * 100) / 100,
+    other: Math.round(total * 0.1 * 100) / 100,
+  };
+}
 
-// Mock employees for payroll
-const EMPLOYEES = [
-    { id: 'NV001', name: 'Nguyễn Văn A', department: 'Phòng Công nghệ' },
-    { id: 'NV002', name: 'Trần Thị B', department: 'Phòng Nhân sự' },
-    { id: 'NV003', name: 'Lê Văn C', department: 'Phòng Kinh doanh' },
-    { id: 'NV004', name: 'Phạm Thị D', department: 'Phòng Kế toán' },
-    { id: 'NV005', name: 'Hoàng Văn E', department: 'Phòng Công nghệ' },
-    { id: 'NV006', name: 'Vũ Thị F', department: 'Phòng Marketing' },
-    { id: 'NV007', name: 'Đỗ Văn G', department: 'Phòng Công nghệ' },
-    { id: 'NV008', name: 'Bùi Thị H', department: 'Phòng Nhân sự' },
-    { id: 'NV009', name: 'Ngô Văn I', department: 'Phòng Kinh doanh' },
-    { id: 'NV010', name: 'Dương Thị K', department: 'Phòng Kế toán' },
-    { id: 'NV011', name: 'Tô Văn L', department: 'Phòng Marketing' },
-    { id: 'NV012', name: 'Lý Thị M', department: 'Phòng Hành chính' },
-];
+// Helper: Breakdown total deduction vào insurance/tax/other
+function breakdownDeductions(total: number) {
+  const insurance = Math.round(total * 0.105 * 100) / 100; // 10.5%
+  const tax = Math.round(total * 0.1 * 100) / 100; // 10%
+  const other = Math.round((total - insurance - tax) * 100) / 100;
+  return { insurance, tax, other };
+}
 
-// Generate mock payroll data
-const generatePayroll = (): Payroll[] => {
-    const payrolls: Payroll[] = [];
-    let id = 1;
-    
-    // Generate 6 months of payroll for each employee
-    const currentDate = new Date();
-    for (let monthOffset = 0; monthOffset < 6; monthOffset++) {
-        const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - monthOffset, 1);
-        const month = date.getMonth() + 1;
-        const year = date.getFullYear();
-        
-        for (const emp of EMPLOYEES) {
-            const baseSalary = 15000000 + Math.floor(Math.random() * 10000000);
-            const allowances = {
-                housing: 2000000,
-                transport: 500000,
-                meal: 800000,
-                other: Math.floor(Math.random() * 1000000),
-            };
-            const totalAllowances = Object.values(allowances).reduce((a, b) => a + b, 0);
-            
-            const grossSalary = baseSalary + totalAllowances;
-            const deductions = {
-                insurance: Math.floor(grossSalary * 0.105),
-                tax: Math.floor(grossSalary * 0.1),
-                other: 0,
-            };
-            const totalDeductions = Object.values(deductions).reduce((a, b) => a + b, 0);
-            
-            payrolls.push({
-                id: String(id++),
-                employeeId: emp.id,
-                employeeName: emp.name,
-                department: emp.department,
-                month,
-                year,
-                baseSalary,
-                allowances,
-                deductions,
-                netSalary: grossSalary - totalDeductions,
-                status: monthOffset === 0 ? 'confirmed' : 'paid',
-                paidAt: monthOffset > 0 ? new Date(year, month, 5).toISOString() : undefined,
-                createdAt: new Date(year, month - 1, 25).toISOString(),
-            });
-        }
-    }
-    
-    return payrolls;
-};
+// Helper: Map DB status sang frontend status
+function mapStatus(dbStatus: string): PayrollStatus {
+  const statusMap: Record<string, PayrollStatus> = {
+    draft: "draft",
+    confirmed: "confirmed",
+    paid: "paid",
+  };
+  return statusMap[dbStatus] || "draft";
+}
 
-let payrolls = generatePayroll();
+// Helper: Generate paidAt nếu status là 'paid'
+function generatePaidAt(
+  status: string,
+  month: number,
+  year: number,
+): string | undefined {
+  if (status !== "paid") return undefined;
+  // Giả sử thanh toán vào ngày 5 của tháng tiếp theo
+  const payMonth = month === 12 ? 1 : month + 1;
+  const payYear = month === 12 ? year + 1 : year;
+  return `${payYear}-${String(payMonth).padStart(2, "0")}-05T00:00:00`;
+}
 
-// Simulated delay
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+// Map DB record sang Payroll model (backend đã convert sang camelCase)
+// Note: MySQL decimal trả về string nên cần convert sang number
+function mapToPayroll(record: any): Payroll {
+  return {
+    id: record.id.toString(),
+    employeeId: record.employeeId,
+    employeeName: record.employeeName || "N/A",
+    department: record.departmentName || "N/A",
+    month: record.month,
+    year: record.year,
+    baseSalary: Number(record.baseSalary) || 0,
+    allowances: breakdownAllowances(Number(record.allowance) || 0),
+    deductions: breakdownDeductions(Number(record.deduction) || 0),
+    netSalary: Number(record.netSalary) || 0,
+    status: mapStatus(record.status),
+    paidAt: generatePaidAt(record.status, record.month, record.year),
+  };
+}
 
+// Get all payroll records
+export async function getAllPayroll(params?: {
+  month?: number;
+  year?: number;
+}): Promise<{ payrolls: Payroll[] }> {
+  let url = "/api/salary";
+  if (params?.month || params?.year) {
+    const queryParams = new URLSearchParams();
+    if (params.month) queryParams.append("month", params.month.toString());
+    if (params.year) queryParams.append("year", params.year.toString());
+    url += `?${queryParams.toString()}`;
+  }
+  const response = await authFetch(url);
+  if (!response.ok) throw new Error("Failed to fetch payroll");
+  const data = await response.json();
+  return { payrolls: data.map(mapToPayroll) };
+}
+
+// Get payroll by employee ID
+export async function getPayrollByEmployee(
+  employeeId: string,
+): Promise<Payroll[]> {
+  const response = await authFetch(`/api/salary/employee/${employeeId}`);
+  if (!response.ok) throw new Error("Failed to fetch payroll by employee");
+  const data = await response.json();
+  return data.map(mapToPayroll);
+}
+
+// Create new payroll record
+export async function createPayroll(
+  payroll: Omit<Payroll, "id">,
+): Promise<Payroll> {
+  const totalAllowance = Object.values(payroll.allowances).reduce(
+    (a, b) => a + b,
+    0,
+  );
+  const totalDeduction = Object.values(payroll.deductions).reduce(
+    (a, b) => a + b,
+    0,
+  );
+
+  // DB giờ dùng English status
+  const payload = {
+    employeeId: payroll.employeeId,
+    month: payroll.month,
+    year: payroll.year,
+    baseSalary: payroll.baseSalary,
+    allowance: totalAllowance,
+    deduction: totalDeduction,
+    netSalary: payroll.netSalary,
+    status: payroll.status, // Gửi trực tiếp English value
+  };
+
+  const response = await authFetch("/api/salary", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) throw new Error("Failed to create payroll");
+  const data = await response.json();
+
+  return mapToPayroll(data);
+}
+
+// Update payroll record
+export async function updatePayroll(
+  id: string,
+  updates: Partial<Payroll>,
+): Promise<Payroll> {
+  const payload: any = {};
+
+  if (updates.employeeId) payload.employeeId = updates.employeeId;
+  if (updates.month) payload.month = updates.month;
+  if (updates.year) payload.year = updates.year;
+  if (updates.baseSalary) payload.baseSalary = updates.baseSalary;
+  if (updates.netSalary) payload.netSalary = updates.netSalary;
+
+  if (updates.allowances) {
+    payload.allowance = Object.values(updates.allowances).reduce(
+      (a, b) => a + b,
+      0,
+    );
+  }
+
+  if (updates.deductions) {
+    payload.deduction = Object.values(updates.deductions).reduce(
+      (a, b) => a + b,
+      0,
+    );
+  }
+
+  if (updates.status) {
+    payload.status = updates.status; // Gửi trực tiếp English value
+  }
+
+  const response = await authFetch(`/api/salary/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) throw new Error("Failed to update payroll");
+  const data = await response.json();
+
+  return mapToPayroll(data);
+}
+
+// Delete payroll record
+export async function deletePayroll(id: string): Promise<void> {
+  const response = await authFetch(`/api/salary/${id}`, {
+    method: "DELETE",
+  });
+  if (!response.ok) throw new Error("Failed to delete payroll");
+}
+
+// Get current user's payroll (for employee self-service)
+export async function getMyPayroll(): Promise<Payroll[]> {
+  const response = await authFetch("/api/salary/my");
+  if (!response.ok) throw new Error("Failed to fetch my payroll");
+  const data = await response.json();
+  return data.map(mapToPayroll);
+}
+
+// Export object API để tương thích với cách gọi payrollApi.method()
 export const payrollApi = {
-    /**
-     * Get all payrolls (for HR)
-     */
-    async getAll(params?: { month?: number; year?: number }): Promise<{ payrolls: Payroll[]; total: number }> {
-        await delay(300);
-        
-        let result = [...payrolls];
-        
-        if (params?.month) {
-            result = result.filter(p => p.month === params.month);
-        }
-        if (params?.year) {
-            result = result.filter(p => p.year === params.year);
-        }
-        
-        // Sort by date descending
-        result.sort((a, b) => {
-            if (a.year !== b.year) return b.year - a.year;
-            return b.month - a.month;
-        });
-        
-        return { payrolls: result, total: result.length };
-    },
-
-    /**
-     * Get payroll for specific employee (for Employee self-service)
-     */
-    async getByEmployee(employeeId: string): Promise<Payroll[]> {
-        await delay(300);
-        return payrolls.filter(p => p.employeeId === employeeId)
-            .sort((a, b) => {
-                if (a.year !== b.year) return b.year - a.year;
-                return b.month - a.month;
-            });
-    },
-
-    /**
-     * Get payroll by ID
-     */
-    async getById(id: string): Promise<Payroll | null> {
-        await delay(200);
-        return payrolls.find(p => p.id === id) || null;
-    },
-
-    /**
-     * Get current user's payroll (mock: returns employee ID 1)
-     */
-    async getMyPayroll(): Promise<Payroll[]> {
-        await delay(300);
-        // In real app, get from auth context
-        return this.getByEmployee('1');
-    },
+  getAll: getAllPayroll,
+  getByEmployee: getPayrollByEmployee,
+  getMyPayroll: getMyPayroll,
+  create: createPayroll,
+  update: updatePayroll,
+  delete: deletePayroll,
 };

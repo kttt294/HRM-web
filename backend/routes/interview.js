@@ -1,25 +1,52 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const interviewController = require('../controllers/interviewController');
-const authMiddleware = require('../middleware/auth');
-const { requirePermission } = require('../middleware/checkPermission');
+const interviewController = require("../controllers/interviewController");
+const authMiddleware = require("../middleware/auth");
+const { requirePermission } = require("../middleware/checkPermission");
 
 // Tất cả routes cần authentication
 router.use(authMiddleware);
 
 // GET /api/recruitment/interviews - Lấy danh sách lịch phỏng vấn
-router.get('/', requirePermission('manage_recruitment'), interviewController.getAll);
+router.get(
+  "/",
+  requirePermission("manage_recruitment"),
+  interviewController.getAll,
+);
 
 // GET /api/recruitment/interviews/:id - Chi tiết lịch phỏng vấn
-router.get('/:id', requirePermission('manage_recruitment'), interviewController.getById);
+router.get(
+  "/:id",
+  requirePermission("manage_recruitment"),
+  interviewController.getById,
+);
 
 // POST /api/recruitment/interviews - Tạo lịch phỏng vấn mới (chỉ HR)
-router.post('/', requirePermission('manage_recruitment'), interviewController.create);
+router.post(
+  "/",
+  requirePermission("manage_recruitment"),
+  interviewController.create,
+);
 
 // PATCH /api/recruitment/interviews/:id - Cập nhật lịch phỏng vấn (chỉ HR)
-router.patch('/:id', requirePermission('manage_recruitment'), interviewController.update);
+router.patch(
+  "/:id",
+  requirePermission("manage_recruitment"),
+  interviewController.update,
+);
+
+// PATCH /api/recruitment/interviews/:id/result - Cập nhật kết quả phỏng vấn (chỉ HR)
+router.patch(
+  "/:id/result",
+  requirePermission("manage_recruitment"),
+  interviewController.updateResult,
+);
 
 // DELETE /api/recruitment/interviews/:id - Xóa lịch phỏng vấn (chỉ HR)
-router.delete('/:id', requirePermission('manage_recruitment'), interviewController.delete);
+router.delete(
+  "/:id",
+  requirePermission("manage_recruitment"),
+  interviewController.delete,
+);
 
 module.exports = router;

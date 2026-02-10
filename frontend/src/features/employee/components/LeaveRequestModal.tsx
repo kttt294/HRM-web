@@ -1,96 +1,116 @@
-import { useState } from 'react';
-import { Modal } from '../../../components/ui/Modal';
-import { Input } from '../../../components/ui/Input';
-import { Select } from '../../../components/ui/Select';
-import { Button } from '../../../components/ui/Button';
-import { LeaveRequest } from '../models/leave.model';
+import { useState } from "react";
+import { Modal } from "../../../components/ui/Modal";
+import { Input } from "../../../components/ui/Input";
+import { Select } from "../../../components/ui/Select";
+import { Button } from "../../../components/ui/Button";
+import { LeaveRequest } from "../models/leave.model";
 
 interface LeaveRequestModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    employeeId: string;
-    onSubmit: (request: Partial<LeaveRequest>) => void;
+  isOpen: boolean;
+  onClose: () => void;
+  employeeId: string;
+  onSubmit: (
+    request: Omit<LeaveRequest, "id" | "status" | "createdAt">,
+  ) => void;
 }
 
 export function LeaveRequestModal({
-    isOpen,
-    onClose,
-    employeeId,
-    onSubmit,
+  isOpen,
+  onClose,
+  employeeId,
+  onSubmit,
 }: LeaveRequestModalProps) {
-    const [formData, setFormData] = useState<{
-        leaveType: 'annual' | 'sick' | 'unpaid' | 'maternity' | 'other' | '';
-        startDate: string;
-        endDate: string;
-        reason: string;
-    }>({
-        leaveType: '',
-        startDate: '',
-        endDate: '',
-        reason: '',
+  const [formData, setFormData] = useState<{
+    leaveType: "annual" | "sick" | "unpaid" | "maternity" | "other";
+    startDate: string;
+    endDate: string;
+    reason: string;
+  }>({
+    leaveType: "annual",
+    startDate: "",
+    endDate: "",
+    reason: "",
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit({
+      employeeId,
+      ...formData,
     });
+    onClose();
+  };
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        onSubmit({
-            employeeId,
-            ...formData,
-        });
-        onClose();
-    };
-
-    return (
-        <Modal
-            isOpen={isOpen}
-            onClose={onClose}
-            title="Yêu cầu nghỉ phép"
-            footer={
-                <>
-                    <Button onClick={() => handleSubmit({ preventDefault: () => { } } as React.FormEvent)}>
-                        Gửi yêu cầu
-                    </Button>
-                    <Button variant="secondary" onClick={onClose}>
-                        Hủy
-                    </Button>
-                </>
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Yêu cầu nghỉ phép"
+      footer={
+        <>
+          <Button
+            onClick={() =>
+              handleSubmit({ preventDefault: () => {} } as React.FormEvent)
             }
-        >
-            <form onSubmit={handleSubmit}>
-                <Select
-                    label="Loại nghỉ phép"
-                    name="leaveType"
-                    options={[
-                        { value: 'annual', label: 'Nghỉ phép năm' },
-                        { value: 'sick', label: 'Nghỉ ốm' },
-                        { value: 'unpaid', label: 'Nghỉ không lương' },
-                    ]}
-                    value={formData.leaveType}
-                    onChange={(e) => setFormData({ ...formData, leaveType: e.target.value })}
-                />
+          >
+            Gửi yêu cầu
+          </Button>
+          <Button variant="secondary" onClick={onClose}>
+            Hủy
+          </Button>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit}>
+        <Select
+          label="Loại nghỉ phép"
+          name="leaveType"
+          options={[
+            { value: "annual", label: "Nghỉ phép năm" },
+            { value: "sick", label: "Nghỉ ốm" },
+            { value: "unpaid", label: "Nghỉ không lương" },
+          ]}
+          value={formData.leaveType}
+          onChange={(e) =>
+            setFormData({
+              ...formData,
+              leaveType: e.target.value as
+                | "annual"
+                | "sick"
+                | "unpaid"
+                | "maternity"
+                | "other",
+            })
+          }
+        />
 
-                <Input
-                    type="date"
-                    label="Ngày bắt đầu"
-                    name="startDate"
-                    value={formData.startDate}
-                    onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                />
+        <Input
+          type="date"
+          label="Ngày bắt đầu"
+          name="startDate"
+          value={formData.startDate}
+          onChange={(e) =>
+            setFormData({ ...formData, startDate: e.target.value })
+          }
+        />
 
-                <Input
-                    type="date"
-                    label="Ngày kết thúc"
-                    name="endDate"
-                    value={formData.endDate}
-                    onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                />
+        <Input
+          type="date"
+          label="Ngày kết thúc"
+          name="endDate"
+          value={formData.endDate}
+          onChange={(e) =>
+            setFormData({ ...formData, endDate: e.target.value })
+          }
+        />
 
-                <Input
-                    label="Lý do"
-                    name="reason"
-                    value={formData.reason}
-                    onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
-                />
-            </form>
-        </Modal>
-    );
+        <Input
+          label="Lý do"
+          name="reason"
+          value={formData.reason}
+          onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
+        />
+      </form>
+    </Modal>
+  );
 }
