@@ -140,7 +140,7 @@ export function DepartmentListPage() {
                                     Mô tả
                                 </th>
                                 <th style={{ padding: '14px 16px', textAlign: 'left', fontWeight: '600', fontSize: '13px' }}>
-                                    Trụ sở
+                                    Địa chỉ
                                 </th>
                                 <th style={{ padding: '14px 16px', textAlign: 'center', fontWeight: '600', fontSize: '13px', width: '150px' }}>
                                     Thao tác
@@ -311,13 +311,13 @@ function DepartmentModal({
 
                     <div style={{ marginBottom: '24px' }}>
                         <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>
-                            Trụ sở
+                            Địa chỉ
                         </label>
                         <input
                             type="text"
                             value={location}
                             onChange={(e) => setLocation(e.target.value)}
-                            placeholder="Nhập địa chỉ trụ sở"
+                            placeholder="Nhập địa chỉ"
                             style={{
                                 width: '100%',
                                 padding: '12px 16px',

@@ -11,6 +11,7 @@ export function JobInfoSection({ employee }: JobInfoSectionProps) {
             <ul id="job-info">
                 <li><strong>Mã nhân viên:</strong> {employee.id}</li>
                 <li><strong>Phòng ban:</strong> {employee.departmentId}</li>
+                <li><strong>Chức danh:</strong> {employee.jobTitle || '—'}</li>
                 <li><strong>Quản lý:</strong> {employee.supervisorId}</li>
                 <li><strong>Ngày vào làm:</strong> {employee.hireDate}</li>
                 <li><strong>Trạng thái:</strong> {employee.status}</li>

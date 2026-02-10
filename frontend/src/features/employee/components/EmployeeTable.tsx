@@ -58,6 +58,13 @@ export function EmployeeTable({ employees, isLoading }: EmployeeTableProps) {
             )
         },
         { key: 'departmentId', header: 'Phòng ban' },
+        { 
+            key: 'jobTitle', 
+            header: 'Chức danh',
+            render: (employee: Employee) => (
+                <span>{employee.jobTitle || '—'}</span>
+            )
+        },
         { key: 'employeeType', header: 'Loại hình' },
         { 
             key: 'status', 

@@ -7,6 +7,7 @@ export interface Employee {
     address: string;
     phone: string;
     departmentId: string;
+    jobTitle: string;
     supervisorId: string;
     hireDate: string;
     status: string;

@@ -192,6 +192,9 @@ export function PayrollListPage() {
                                     Nhân viên
                                 </th>
                                 <th style={{ padding: '14px 16px', textAlign: 'left', fontWeight: '600', fontSize: '13px' }}>
+                                    Mã NV
+                                </th>
+                                <th style={{ padding: '14px 16px', textAlign: 'left', fontWeight: '600', fontSize: '13px' }}>
                                     Phòng ban
                                 </th>
                                 <th style={{ padding: '14px 16px', textAlign: 'right', fontWeight: '600', fontSize: '13px' }}>
@@ -232,6 +235,9 @@ export function PayrollListPage() {
                                     >
                                         <td style={{ padding: '14px 16px' }}>
                                             <div style={{ fontWeight: '500' }}>{payroll.employeeName}</div>
+                                        </td>
+                                        <td style={{ padding: '14px 16px', color: '#616161', fontFamily: 'monospace' }}>
+                                            {payroll.employeeId}
                                         </td>
                                         <td style={{ padding: '14px 16px', color: '#616161' }}>
                                             {payroll.department}

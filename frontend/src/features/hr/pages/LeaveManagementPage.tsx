@@ -223,6 +223,9 @@ export function LeaveManagementPage() {
                                     Nhân viên
                                 </th>
                                 <th style={{ padding: '14px 16px', textAlign: 'left', fontWeight: '600', fontSize: '13px' }}>
+                                    Mã NV
+                                </th>
+                                <th style={{ padding: '14px 16px', textAlign: 'left', fontWeight: '600', fontSize: '13px' }}>
                                     Loại nghỉ
                                 </th>
                                 <th style={{ padding: '14px 16px', textAlign: 'left', fontWeight: '600', fontSize: '13px' }}>
@@ -251,6 +254,9 @@ export function LeaveManagementPage() {
                                         <div style={{ fontSize: '12px', color: '#757575' }}>
                                             {formatDate(request.createdAt)}
                                         </div>
+                                    </td>
+                                    <td style={{ padding: '14px 16px', color: '#616161', fontFamily: 'monospace' }}>
+                                        {request.employeeId}
                                     </td>
                                     <td style={{ padding: '14px 16px' }}>
                                         <span style={{

@@ -35,6 +35,7 @@ export function EmployeeFormPage() {
         address: '',
         phone: '',
         departmentId: '',
+        jobTitle: '',
         supervisorId: '',
         hireDate: '',
         status: '',
@@ -61,6 +62,7 @@ export function EmployeeFormPage() {
                 address: employee.address || '',
                 phone: employee.phone || '',
                 departmentId: employee.departmentId || '',
+                jobTitle: employee.jobTitle || '',
                 supervisorId: employee.supervisorId || '',
                 hireDate: employee.hireDate || '',
                 status: employee.status || '',
@@ -122,10 +124,9 @@ export function EmployeeFormPage() {
     return (
         <>
             <header>
-                <h1>{isEditMode ? 'CẬP NHẬT NHÂN VIÊN' : 'THÊM NHÂN VIÊN'}</h1>
+                <h1 style={{ fontSize: '22px' }}>{isEditMode ? 'CẬP NHẬT NHÂN VIÊN' : 'Thêm nhân viên'}</h1>
             </header>
-
-            <main>
+            <main style={{ marginTop: '24px' }}>
                 <form id="employee-form" onSubmit={handleSubmit}>
                     {/* ====== THÔNG TIN CÁ NHÂN ====== */}
                     <section className="form-section" id="personal-details">
@@ -195,6 +196,14 @@ export function EmployeeFormPage() {
                             placeholder="Chọn phòng ban"
                             value={formData.departmentId}
                             onChange={(e) => setFormData({ ...formData, departmentId: e.target.value })}
+                        />
+
+                        <Input
+                            label="Chức danh"
+                            name="job_title"
+                            placeholder="Nhập chức danh (VD: Trưởng phòng, Nhân viên...)"
+                            value={formData.jobTitle}
+                            onChange={(e) => setFormData({ ...formData, jobTitle: e.target.value })}
                         />
 
                         {/* Supervisor - Searchable Dropdown */}

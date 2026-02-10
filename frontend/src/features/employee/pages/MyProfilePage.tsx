@@ -193,6 +193,7 @@ export function MyProfilePage() {
                                 marginBottom: '12px',
                                 fontSize: '15px',
                             }}>
+                                {profile?.jobTitle ? `${profile.jobTitle} — ` : ''}
                                 {profile ? getDepartmentName(profile.departmentId) : ''}
                                 {profile?.employeeType ? ` • ${getEmployeeTypeLabel(profile.employeeType)}` : ''}
                             </p>
@@ -318,6 +319,11 @@ export function MyProfilePage() {
                                 label="Phòng ban" 
                                 value={profile?.departmentId ? getDepartmentName(profile.departmentId) : '—'}
                                 color="#7c4dff" 
+                            />
+                            <InfoRow 
+                                label="Chức danh" 
+                                value={profile?.jobTitle || '—'}
+                                color="#e040fb" 
                             />
                             <InfoRow 
                                 label="Quản lý trực tiếp" 

@@ -10,6 +10,7 @@ export function VacancyFormPage() {
 
   const [formData, setFormData] = useState({
     title: '',
+    jobTitle: '',
     department: '',
     description: '',
     requirements: '',
@@ -48,6 +49,14 @@ export function VacancyFormPage() {
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               required
+            />
+
+            <Input
+              label="Chức danh"
+              name="jobTitle"
+              placeholder="Nhập chức danh (VD: Senior Developer, Trưởng phòng...)"
+              value={formData.jobTitle}
+              onChange={(e) => setFormData({ ...formData, jobTitle: e.target.value })}
             />
 
             <Select

@@ -18,7 +18,12 @@ export function LeaveRequestModal({
     employeeId,
     onSubmit,
 }: LeaveRequestModalProps) {
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<{
+        leaveType: 'annual' | 'sick' | 'unpaid' | 'maternity' | 'other' | '';
+        startDate: string;
+        endDate: string;
+        reason: string;
+    }>({
         leaveType: '',
         startDate: '',
         endDate: '',

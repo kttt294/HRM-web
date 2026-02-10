@@ -37,6 +37,13 @@ export function VacancyListPage() {
                 <span className="font-medium">{vacancy.title}</span>
             )
         },
+        { 
+            key: 'jobTitle', 
+            header: 'Chức danh',
+            render: (vacancy: Vacancy) => (
+                <span>{vacancy.jobTitle || '—'}</span>
+            )
+        },
         { key: 'department', header: 'Phòng ban' },
         { 
             key: 'status', 

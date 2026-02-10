@@ -8,11 +8,18 @@ import { Payroll } from '../models/payroll.model';
 
 // Mock employees for payroll
 const EMPLOYEES = [
-    { id: '1', name: 'Nguyễn Văn A', department: 'Phòng Công nghệ' },
-    { id: '2', name: 'Trần Thị B', department: 'Phòng Nhân sự' },
-    { id: '3', name: 'Lê Văn C', department: 'Phòng Kinh doanh' },
-    { id: '4', name: 'Phạm Thị D', department: 'Phòng Kế toán' },
-    { id: '5', name: 'Hoàng Văn E', department: 'Phòng Công nghệ' },
+    { id: 'NV001', name: 'Nguyễn Văn A', department: 'Phòng Công nghệ' },
+    { id: 'NV002', name: 'Trần Thị B', department: 'Phòng Nhân sự' },
+    { id: 'NV003', name: 'Lê Văn C', department: 'Phòng Kinh doanh' },
+    { id: 'NV004', name: 'Phạm Thị D', department: 'Phòng Kế toán' },
+    { id: 'NV005', name: 'Hoàng Văn E', department: 'Phòng Công nghệ' },
+    { id: 'NV006', name: 'Vũ Thị F', department: 'Phòng Marketing' },
+    { id: 'NV007', name: 'Đỗ Văn G', department: 'Phòng Công nghệ' },
+    { id: 'NV008', name: 'Bùi Thị H', department: 'Phòng Nhân sự' },
+    { id: 'NV009', name: 'Ngô Văn I', department: 'Phòng Kinh doanh' },
+    { id: 'NV010', name: 'Dương Thị K', department: 'Phòng Kế toán' },
+    { id: 'NV011', name: 'Tô Văn L', department: 'Phòng Marketing' },
+    { id: 'NV012', name: 'Lý Thị M', department: 'Phòng Hành chính' },
 ];
 
 // Generate mock payroll data
