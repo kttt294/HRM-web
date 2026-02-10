@@ -3,46 +3,65 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../../store/auth.store';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
-import { Modal } from '../../../components/ui/Modal';
+import { employeeApi } from '../services/employee.api';
+import { departmentApi } from '../../hr/services/department.api';
+import { Employee } from '../models/employee.model';
+import { Department } from '../../hr/models/department.model';
+import { GENDER_LABELS, Gender, EMPLOYEE_STATUS_LABELS, EmployeeStatus, EMPLOYEE_TYPE_LABELS, EmployeeType } from '../constants/employeeStatus';
 import anime from 'animejs';
 
 /**
  * ============================================
  * MY PROFILE PAGE - Employee Self-Service
  * ============================================
- * 
- * Trang thông tin cá nhân với animations mượt mà
- * Không sử dụng emoji icons, thay bằng visual design
  */
-
-// Mock data cho thông tin công việc
-const MOCK_JOB_INFO = {
-    employeeId: 'NV0042',
-    department: 'Phòng Công nghệ',
-    jobTitle: 'Lập trình viên Frontend',
-    manager: 'Nguyễn Văn Quản Lý',
-    joinDate: '15/03/2024',
-    workLocation: 'Tòa nhà ABC, Cầu Giấy, Hà Nội',
-    employmentType: 'Toàn thời gian',
-    status: 'Đang làm việc',
-};
 
 export function MyProfilePage() {
     const { user } = useAuthStore();
-    const [showEditModal, setShowEditModal] = useState(false);
     const [showPasswordModal, setShowPasswordModal] = useState(false);
     const pageRef = useRef<HTMLDivElement>(null);
 
-    const [contactInfo, setContactInfo] = useState({
-        phone: '0912 345 678',
-        personalEmail: 'nguyenvana.personal@gmail.com',
-        address: '123 Đường ABC, Quận Đống Đa, Hà Nội',
-        emergencyContact: 'Nguyễn Văn B - 0987 654 321',
-    });
+    // Data from API
+    const [profile, setProfile] = useState<Employee | null>(null);
+    const [departments, setDepartments] = useState<Department[]>([]);
+    const [supervisorName, setSupervisorName] = useState('');
+    const [isLoading, setIsLoading] = useState(true);
+
+    // Fetch profile data
+    useEffect(() => {
+        const fetchData = async () => {
+            setIsLoading(true);
+            try {
+                const depts = await departmentApi.getAll();
+                setDepartments(depts);
+
+                // Fetch employee profile by user ID (or fallback to first employee)
+                if (user?.id) {
+                    const emp = await employeeApi.getById(user.id);
+                    setProfile(emp);
+
+                    // Resolve supervisor name
+                    if (emp.supervisorId) {
+                        try {
+                            const sup = await employeeApi.getById(emp.supervisorId);
+                            setSupervisorName(sup.fullName);
+                        } catch {
+                            setSupervisorName(emp.supervisorId);
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error('Failed to load profile:', err);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchData();
+    }, [user?.id]);
 
     // Page load animation
     useEffect(() => {
-        if (pageRef.current) {
+        if (pageRef.current && !isLoading) {
             anime({
                 targets: pageRef.current.querySelectorAll('.animate-item'),
                 opacity: [0, 1],
@@ -52,7 +71,7 @@ export function MyProfilePage() {
                 easing: 'easeOutQuart',
             });
         }
-    }, []);
+    }, [isLoading]);
 
     const getInitials = (name: string) => {
         return name
@@ -63,7 +82,6 @@ export function MyProfilePage() {
             .slice(0, 2);
     };
 
-    // Button animation
     const handleButtonHover = (e: React.MouseEvent<HTMLButtonElement>, isEnter: boolean) => {
         anime({
             targets: e.currentTarget,
@@ -72,6 +90,44 @@ export function MyProfilePage() {
             easing: 'easeOutQuad',
         });
     };
+
+    // Helper: resolve department name
+    const getDepartmentName = (deptId: string) => {
+        const dept = departments.find((d) => d.id === deptId);
+        return dept?.name || deptId;
+    };
+
+    // Helper: resolve gender label
+    const getGenderLabel = (gender: string) => {
+        return GENDER_LABELS[gender as Gender] || gender;
+    };
+
+    // Helper: resolve status label
+    const getStatusLabel = (status: string) => {
+        return EMPLOYEE_STATUS_LABELS[status as EmployeeStatus] || status;
+    };
+
+    // Helper: resolve employee type label
+    const getEmployeeTypeLabel = (type: string) => {
+        return EMPLOYEE_TYPE_LABELS[type as EmployeeType] || type;
+    };
+
+    // Helper: format salary
+    const formatCurrency = (amount: number) => {
+        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+    };
+
+    const displayName = profile?.fullName || user?.name || 'Nhân viên';
+    const displayStatus = profile ? getStatusLabel(profile.status) : '';
+    const displayId = profile?.id || '';
+
+    if (isLoading) {
+        return (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+                <p style={{ color: '#757575' }}>Đang tải thông tin...</p>
+            </div>
+        );
+    }
 
     return (
         <div ref={pageRef}>
@@ -101,7 +157,7 @@ export function MyProfilePage() {
                         gap: '24px',
                         flexWrap: 'wrap',
                     }}>
-                        {/* Avatar với gradient animation */}
+                        {/* Avatar */}
                         <div 
                             className="profile-avatar"
                             style={{
@@ -119,10 +175,10 @@ export function MyProfilePage() {
                                 boxShadow: '0 8px 24px rgba(25, 118, 210, 0.3)',
                             }}
                         >
-                            {user?.name ? getInitials(user.name) : 'NV'}
+                            {getInitials(displayName)}
                         </div>
 
-                        {/* Thông tin chính */}
+                        {/* Basic info */}
                         <div style={{ flex: 1, minWidth: '200px' }}>
                             <h2 style={{ 
                                 fontSize: '24px', 
@@ -130,28 +186,33 @@ export function MyProfilePage() {
                                 marginBottom: '4px',
                                 color: '#212121',
                             }}>
-                                {user?.name || 'Nguyễn Văn A'}
+                                {displayName}
                             </h2>
                             <p style={{ 
                                 color: '#757575', 
                                 marginBottom: '12px',
                                 fontSize: '15px',
                             }}>
-                                {MOCK_JOB_INFO.jobTitle} • {MOCK_JOB_INFO.department}
+                                {profile ? getDepartmentName(profile.departmentId) : ''}
+                                {profile?.employeeType ? ` • ${getEmployeeTypeLabel(profile.employeeType)}` : ''}
                             </p>
                             <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
-                                <span className="status-badge status-active">
-                                    {MOCK_JOB_INFO.status}
-                                </span>
-                                <span style={{ 
-                                    color: '#9e9e9e', 
-                                    fontSize: '13px',
-                                    padding: '4px 12px',
-                                    background: '#f5f5f5',
-                                    borderRadius: '20px',
-                                }}>
-                                    {MOCK_JOB_INFO.employeeId}
-                                </span>
+                                {displayStatus && (
+                                    <span className="status-badge status-active">
+                                        {displayStatus}
+                                    </span>
+                                )}
+                                {displayId && (
+                                    <span style={{ 
+                                        color: '#9e9e9e', 
+                                        fontSize: '13px',
+                                        padding: '4px 12px',
+                                        background: '#f5f5f5',
+                                        borderRadius: '20px',
+                                    }}>
+                                        {displayId}
+                                    </span>
+                                )}
                             </div>
                         </div>
 
@@ -161,13 +222,6 @@ export function MyProfilePage() {
                             gap: '12px',
                             flexShrink: 0,
                         }}>
-                            <Button 
-                                onClick={() => setShowEditModal(true)}
-                                onMouseEnter={(e) => handleButtonHover(e, true)}
-                                onMouseLeave={(e) => handleButtonHover(e, false)}
-                            >
-                                Cập nhật liên hệ
-                            </Button>
                             <Button 
                                 variant="secondary" 
                                 onClick={() => setShowPasswordModal(true)}
@@ -189,52 +243,52 @@ export function MyProfilePage() {
                 gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
                 gap: '24px',
             }}>
-                {/* CONTACT INFO */}
+                {/* THÔNG TIN CÁ NHÂN */}
                 <div className="card animate-item" style={{ opacity: 0 }}>
                     <div className="card-header" style={{
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
                     }}>
-                        <h3>Thông tin liên hệ</h3>
-                        <span style={{
-                            fontSize: '11px',
-                            color: '#4caf50',
-                            background: '#e8f5e9',
-                            padding: '4px 10px',
-                            borderRadius: '12px',
-                            fontWeight: '500',
-                        }}>
-                            Có thể chỉnh sửa
-                        </span>
+                        <h3>Thông tin cá nhân</h3>
                     </div>
                     <div className="card-body">
                         <div style={{ display: 'grid', gap: '20px' }}>
                             <InfoRow 
-                                label="Email công ty" 
-                                value={user?.email || 'nhanvien@hrm.vn'} 
+                                label="Họ và tên" 
+                                value={profile?.fullName || '—'} 
                                 color="#1976d2"
                             />
                             <InfoRow 
-                                label="Số điện thoại" 
-                                value={contactInfo.phone}
-                                color="#4caf50" 
+                                label="Ngày sinh" 
+                                value={profile?.dateOfBirth || '—'}
+                                color="#7c4dff" 
                             />
                             <InfoRow 
-                                label="Email cá nhân" 
-                                value={contactInfo.personalEmail}
+                                label="Giới tính" 
+                                value={profile?.gender ? getGenderLabel(profile.gender) : '—'}
+                                color="#00bcd4" 
+                            />
+                            <InfoRow 
+                                label="CCCD" 
+                                value={profile?.nationalId || '—'}
                                 color="#ff9800" 
                             />
                             <InfoRow 
                                 label="Địa chỉ" 
-                                value={contactInfo.address}
+                                value={profile?.address || '—'}
                                 color="#9c27b0" 
+                            />
+                            <InfoRow 
+                                label="Số điện thoại" 
+                                value={profile?.phone || '—'}
+                                color="#4caf50" 
                             />
                         </div>
                     </div>
                 </div>
 
-                {/* JOB INFO */}
+                {/* THÔNG TIN CÔNG VIỆC */}
                 <div className="card animate-item" style={{ opacity: 0 }}>
                     <div className="card-header" style={{
                         display: 'flex',
@@ -256,34 +310,44 @@ export function MyProfilePage() {
                     <div className="card-body">
                         <div style={{ display: 'grid', gap: '20px' }}>
                             <InfoRow 
-                                label="Phòng ban" 
-                                value={MOCK_JOB_INFO.department}
+                                label="Mã nhân viên" 
+                                value={profile?.id || '—'}
                                 color="#1976d2" 
                             />
                             <InfoRow 
-                                label="Chức danh" 
-                                value={MOCK_JOB_INFO.jobTitle}
+                                label="Phòng ban" 
+                                value={profile?.departmentId ? getDepartmentName(profile.departmentId) : '—'}
                                 color="#7c4dff" 
                             />
                             <InfoRow 
                                 label="Quản lý trực tiếp" 
-                                value={MOCK_JOB_INFO.manager}
+                                value={supervisorName || '—'}
                                 color="#00bcd4" 
                             />
                             <InfoRow 
                                 label="Ngày vào làm" 
-                                value={MOCK_JOB_INFO.joinDate}
+                                value={profile?.hireDate || '—'}
                                 color="#4caf50" 
                             />
                             <InfoRow 
-                                label="Trụ sở" 
-                                value={MOCK_JOB_INFO.workLocation}
+                                label="Trạng thái" 
+                                value={profile?.status ? getStatusLabel(profile.status) : '—'}
                                 color="#ff9800" 
                             />
                             <InfoRow 
-                                label="Loại hình" 
-                                value={MOCK_JOB_INFO.employmentType}
+                                label="Lương cơ bản" 
+                                value={profile?.baseSalary ? formatCurrency(profile.baseSalary) : '—'}
+                                color="#e91e63" 
+                            />
+                            <InfoRow 
+                                label="Phụ cấp" 
+                                value={profile?.allowance ? formatCurrency(profile.allowance) : '—'}
                                 color="#607d8b" 
+                            />
+                            <InfoRow 
+                                label="Loại hình" 
+                                value={profile?.employeeType ? getEmployeeTypeLabel(profile.employeeType) : '—'}
+                                color="#795548" 
                             />
                         </div>
                     </div>
@@ -319,46 +383,7 @@ export function MyProfilePage() {
                 </div>
             </div>
 
-            {/* MODALS */}
-            {showEditModal && (
-                <AnimatedModal
-                    title="Cập nhật thông tin liên hệ"
-                    onClose={() => setShowEditModal(false)}
-                >
-                    <div style={{ display: 'grid', gap: '16px' }}>
-                        <Input
-                            label="Số điện thoại"
-                            value={contactInfo.phone}
-                            onChange={(e) => setContactInfo({...contactInfo, phone: e.target.value})}
-                        />
-                        <Input
-                            label="Email cá nhân"
-                            type="email"
-                            value={contactInfo.personalEmail}
-                            onChange={(e) => setContactInfo({...contactInfo, personalEmail: e.target.value})}
-                        />
-                        <Input
-                            label="Địa chỉ"
-                            value={contactInfo.address}
-                            onChange={(e) => setContactInfo({...contactInfo, address: e.target.value})}
-                        />
-                        <Input
-                            label="Liên hệ khẩn cấp (Tên - SĐT)"
-                            value={contactInfo.emergencyContact}
-                            onChange={(e) => setContactInfo({...contactInfo, emergencyContact: e.target.value})}
-                        />
-                        <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
-                            <Button onClick={() => setShowEditModal(false)}>
-                                Lưu thay đổi
-                            </Button>
-                            <Button variant="secondary" onClick={() => setShowEditModal(false)}>
-                                Hủy
-                            </Button>
-                        </div>
-                    </div>
-                </AnimatedModal>
-            )}
-
+            {/* PASSWORD MODAL */}
             {showPasswordModal && (
                 <AnimatedModal
                     title="Đổi mật khẩu"
@@ -384,7 +409,7 @@ export function MyProfilePage() {
 }
 
 /* ============================================
-   HELPER COMPONENTS - No emoji icons
+   HELPER COMPONENTS
    ============================================ */
 
 function InfoRow({ label, value, color }: { label: string; value: string; color: string }) {
@@ -413,7 +438,6 @@ function InfoRow({ label, value, color }: { label: string; value: string; color:
             onMouseEnter={() => handleHover(true)}
             onMouseLeave={() => handleHover(false)}
         >
-            {/* Color indicator thay cho icon */}
             <div style={{
                 width: '4px',
                 height: '100%',
@@ -486,7 +510,6 @@ function QuickLink({ title, description, color, href }: { title: string; descrip
             onMouseEnter={() => handleHover(true)}
             onMouseLeave={() => handleHover(false)}
         >
-            {/* Circle indicator thay cho icon */}
             <div style={{
                 width: '40px',
                 height: '40px',
@@ -537,7 +560,6 @@ function AnimatedModal({
     const contentRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        // Entry animation
         anime({
             targets: overlayRef.current,
             opacity: [0, 1],

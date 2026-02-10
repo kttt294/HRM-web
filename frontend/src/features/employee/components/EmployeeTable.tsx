@@ -57,8 +57,8 @@ export function EmployeeTable({ employees, isLoading }: EmployeeTableProps) {
                 <span className="font-medium">{employee.fullName}</span>
             )
         },
-        { key: 'jobTitle', header: 'Chức danh' },
-        { key: 'department', header: 'Phòng ban' },
+        { key: 'departmentId', header: 'Phòng ban' },
+        { key: 'employeeType', header: 'Loại hình' },
         { 
             key: 'status', 
             header: 'Trạng thái',

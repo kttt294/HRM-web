@@ -4,17 +4,16 @@ export interface Employee {
     dateOfBirth: string;
     gender: string;
     nationalId: string;
-    department: string;
-    jobTitle: string;
-    supervisor: string;
+    address: string;
+    phone: string;
+    departmentId: string;
+    supervisorId: string;
+    hireDate: string;
     status: string;
-    salary: number;
+    baseSalary: number;
     allowance: number;
-    bankAccount: string;
+    employeeType: string;
     email?: string;
-    phone?: string;
-    address?: string;
-    hireDate?: string;
     createdAt?: string;
     updatedAt?: string;
 }
@@ -22,7 +21,6 @@ export interface Employee {
 export interface EmployeeSearchParams {
     employeeName?: string;
     employeeId?: string;
-    jobTitle?: string;
     status?: string;
-    department?: string;
+    departmentId?: string;
 }

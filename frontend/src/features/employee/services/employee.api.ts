@@ -7,8 +7,8 @@ export const employeeApi = {
         const queryParams = new URLSearchParams();
         if (params?.employeeName) queryParams.append('name', params.employeeName);
         if (params?.employeeId) queryParams.append('id', params.employeeId);
-        if (params?.jobTitle) queryParams.append('jobTitle', params.jobTitle);
         if (params?.status) queryParams.append('status', params.status);
+        if (params?.departmentId) queryParams.append('departmentId', params.departmentId);
 
         const response = await fetch(`${API_BASE}?${queryParams}`);
         if (!response.ok) throw new Error('Failed to fetch employees');
@@ -33,7 +33,7 @@ export const employeeApi = {
 
     async update(id: string, data: Partial<Employee>): Promise<Employee> {
         const response = await fetch(`${API_BASE}/${id}`, {
-            method: 'PATCH',
+            method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data),
         });

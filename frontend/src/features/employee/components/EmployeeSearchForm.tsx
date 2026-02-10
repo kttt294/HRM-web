@@ -15,9 +15,8 @@ export function EmployeeSearchForm({ onSearch }: EmployeeSearchFormProps) {
     const [searchParams, setSearchParams] = useState<EmployeeSearchParams>({
         employeeName: '',
         employeeId: '',
-        jobTitle: '',
         status: '',
-        department: '',
+        departmentId: '',
     });
 
     const [departments, setDepartments] = useState<Department[]>([]);
@@ -43,9 +42,8 @@ export function EmployeeSearchForm({ onSearch }: EmployeeSearchFormProps) {
         const emptyParams = {
             employeeName: '',
             employeeId: '',
-            jobTitle: '',
             status: '',
-            department: '',
+            departmentId: '',
         };
         setSearchParams(emptyParams);
         onSearch(emptyParams);
@@ -53,7 +51,7 @@ export function EmployeeSearchForm({ onSearch }: EmployeeSearchFormProps) {
 
     // Tạo options cho phòng ban từ API
     const departmentOptions = departments.map(dept => ({
-        value: dept.name,
+        value: dept.id,
         label: dept.name,
     }));
 
@@ -85,26 +83,14 @@ export function EmployeeSearchForm({ onSearch }: EmployeeSearchFormProps) {
                 </div>
 
                 <div className="form-group">
-                    <Input
-                        label="Chức danh"
-                        name="job_title"
-                        placeholder="Nhập chức danh..."
-                        value={searchParams.jobTitle}
-                        onChange={(e) =>
-                            setSearchParams({ ...searchParams, jobTitle: e.target.value })
-                        }
-                    />
-                </div>
-
-                <div className="form-group">
                     <Select
                         label="Phòng ban"
-                        name="department"
+                        name="department_id"
                         options={departmentOptions}
                         placeholder="Tất cả phòng ban"
-                        value={searchParams.department}
+                        value={searchParams.departmentId}
                         onChange={(e) =>
-                            setSearchParams({ ...searchParams, department: e.target.value })
+                            setSearchParams({ ...searchParams, departmentId: e.target.value })
                         }
                     />
                 </div>

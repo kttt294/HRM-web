@@ -10,9 +10,8 @@ export function SalarySection({ employee }: SalarySectionProps) {
         <section data-section="salary">
             <h2>Thông tin lương</h2>
             <ul id="salary-info">
-                <li><strong>Lương cơ bản:</strong> {formatCurrency(employee.salary)}</li>
+                <li><strong>Lương cơ bản:</strong> {formatCurrency(employee.baseSalary)}</li>
                 <li><strong>Phụ cấp:</strong> {formatCurrency(employee.allowance)}</li>
-                <li><strong>Tài khoản ngân hàng:</strong> {employee.bankAccount}</li>
             </ul>
         </section>
     );
