@@ -7,9 +7,10 @@ const employeeController = {
     try {
       const { name, id, jobTitle, status } = req.query;
 
-      let query = `SELECT e.*, d.name as department_name 
+      let query = `SELECT e.*, d.name as department_name, u.email, u.username
                          FROM employees e 
-                         LEFT JOIN departments d ON e.department_id = d.id 
+                         LEFT JOIN departments d ON e.department_id = d.id
+                         LEFT JOIN users u ON e.user_id = u.id
                          WHERE 1=1`;
       const params = [];
 
@@ -248,6 +249,7 @@ const employeeController = {
         baseSalary: "base_salary",
         allowance: "allowance",
         employeeType: "employee_type",
+        userId: "user_id",
       };
 
       const updateFields = [];

@@ -35,7 +35,23 @@ const vacancyController = {
                 v.created_at DESC`;
 
       const [vacancies] = await db.query(query, params);
-      res.json(toCamelCase(vacancies));
+      
+      // Parse requirements from JSON string to array
+      const parsedVacancies = vacancies.map(v => {
+        if (v.requirements) {
+          try {
+            v.requirements = JSON.parse(v.requirements);
+          } catch (e) {
+            // If not JSON, keep as is or split by comma
+            v.requirements = v.requirements.includes(',') 
+              ? v.requirements.split(',').map(r => r.trim())
+              : [v.requirements];
+          }
+        }
+        return v;
+      });
+      
+      res.json(toCamelCase(parsedVacancies));
     } catch (error) {
       next(error);
     }
@@ -60,7 +76,21 @@ const vacancyController = {
         });
       }
 
-      res.json(toCamelCase(vacancies[0]));
+      const vacancy = vacancies[0];
+      
+      // Parse requirements from JSON string to array
+      if (vacancy.requirements) {
+        try {
+          vacancy.requirements = JSON.parse(vacancy.requirements);
+        } catch (e) {
+          // If not JSON, keep as is or split by comma
+          vacancy.requirements = vacancy.requirements.includes(',') 
+            ? vacancy.requirements.split(',').map(r => r.trim())
+            : [vacancy.requirements];
+        }
+      }
+
+      res.json(toCamelCase(vacancy));
     } catch (error) {
       next(error);
     }
@@ -72,6 +102,7 @@ const vacancyController = {
     try {
       const {
         title,
+        jobTitle,
         department,
         description,
         requirements,
@@ -88,17 +119,35 @@ const vacancyController = {
         });
       }
 
+      // Convert requirements array to JSON string
+      const requirementsStr = Array.isArray(requirements)
+        ? JSON.stringify(requirements)
+        : requirements;
+
+      // Get department_id from department name if provided
+      let departmentId = null;
+      if (department) {
+        const [depts] = await db.query(
+          "SELECT id FROM departments WHERE name = ? LIMIT 1",
+          [department]
+        );
+        if (depts.length > 0) {
+          departmentId = depts[0].id;
+        }
+      }
+
       const [result] = await db.query(
         `INSERT INTO vacancies (
-                    title, department, description, requirements, 
+                    title, chuc_danh, department_id, description, requirements, 
                     number_of_positions, min_salary, max_salary, 
-                    deadline, status, posted_date
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_DATE)`,
+                    deadline, status
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           title,
-          department,
+          jobTitle,
+          departmentId,
           description,
-          requirements,
+          requirementsStr,
           numberOfPositions || 1,
           minSalary,
           maxSalary,
@@ -108,7 +157,12 @@ const vacancyController = {
       );
 
       const [newVacancy] = await db.query(
-        "SELECT * FROM vacancies WHERE id = ?",
+        `SELECT v.*, 
+                v.chuc_danh AS job_title,
+                d.name AS department
+         FROM vacancies v
+         LEFT JOIN departments d ON v.department_id = d.id
+         WHERE v.id = ?`,
         [result.insertId],
       );
 
@@ -125,7 +179,8 @@ const vacancyController = {
       const updates = req.body;
       const fieldMapping = {
         title: "title",
-        department: "department",
+        jobTitle: "chuc_danh",
+        department: "department_id",
         description: "description",
         requirements: "requirements",
         numberOfPositions: "number_of_positions",
@@ -137,6 +192,24 @@ const vacancyController = {
 
       const updateFields = [];
       const params = [];
+
+      // Handle department conversion
+      if (updates.department) {
+        const [depts] = await db.query(
+          "SELECT id FROM departments WHERE name = ? LIMIT 1",
+          [updates.department]
+        );
+        if (depts.length > 0) {
+          updates.department = depts[0].id;
+        } else {
+          updates.department = null;
+        }
+      }
+
+      // Handle requirements array conversion
+      if (Array.isArray(updates.requirements)) {
+        updates.requirements = JSON.stringify(updates.requirements);
+      }
 
       Object.keys(updates).forEach((key) => {
         if (fieldMapping[key]) {
@@ -159,7 +232,12 @@ const vacancyController = {
       );
 
       const [updatedVacancy] = await db.query(
-        "SELECT * FROM vacancies WHERE id = ?",
+        `SELECT v.*, 
+                v.chuc_danh AS job_title,
+                d.name AS department
+         FROM vacancies v
+         LEFT JOIN departments d ON v.department_id = d.id
+         WHERE v.id = ?`,
         [req.params.id],
       );
 

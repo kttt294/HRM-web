@@ -1,12 +1,15 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Input } from '../../../components/ui/Input';
 import { Select } from '../../../components/ui/Select';
 import { Button } from '../../../components/ui/Button';
 import { ROUTES } from '../../../shared/constants/routes';
+import { recruitmentApi } from '../services/recruitment.api';
 
 export function VacancyFormPage() {
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+  const isEditMode = !!id;
 
   const [formData, setFormData] = useState({
     title: '',
@@ -21,21 +24,102 @@ export function VacancyFormPage() {
     status: 'open',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (isEditMode && id) {
+      setIsLoading(true);
+      recruitmentApi.getVacancyById(id)
+        .then((data) => {
+          // Format deadline from ISO string to yyyy-mm-dd for HTML date input
+          let deadlineValue = '';
+          if (data.deadline) {
+            try {
+              const date = new Date(data.deadline);
+              deadlineValue = date.toISOString().split('T')[0];
+            } catch (e) {
+              console.error('Invalid deadline format:', data.deadline);
+            }
+          }
+
+          setFormData({
+            title: data.title || '',
+            jobTitle: data.jobTitle || '',
+            department: data.department || '',
+            description: data.description || '',
+            requirements: Array.isArray(data.requirements) 
+              ? data.requirements.join(', ') 
+              : (data.requirements || ''),
+            numberOfPositions: data.numberOfPositions || 1,
+            minSalary: data.minSalary ? String(data.minSalary) : '',
+            maxSalary: data.maxSalary ? String(data.maxSalary) : '',
+            deadline: deadlineValue,
+            status: data.status || 'open',
+          });
+        })
+        .catch((error) => {
+          console.error('Failed to load vacancy:', error);
+          alert('Không thể tải thông tin vị trí tuyển dụng');
+          navigate(ROUTES.VACANCIES);
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+    }
+  }, [id, isEditMode, navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Submitting vacancy:', formData);
-    // TODO: Call API to save vacancy
-    navigate(ROUTES.VACANCIES);
+    setIsSaving(true);
+
+    try {
+      const payload = {
+        ...formData,
+        requirements: formData.requirements
+          .split(',')
+          .map(req => req.trim())
+          .filter(req => req.length > 0),
+        numberOfPositions: Number(formData.numberOfPositions),
+        minSalary: formData.minSalary ? Number(formData.minSalary) : undefined,
+        maxSalary: formData.maxSalary ? Number(formData.maxSalary) : undefined,
+        deadline: formData.deadline || undefined,
+        status: formData.status as 'open' | 'closed' | 'draft',
+      };
+
+      console.log('Submitting vacancy payload:', payload);
+
+      if (isEditMode && id) {
+        const result = await recruitmentApi.updateVacancy(id, payload);
+        console.log('Update successful:', result);
+        alert('Cập nhật vị trí tuyển dụng thành công!');
+      } else {
+        const result = await recruitmentApi.createVacancy(payload);
+        console.log('Create successful:', result);
+        alert('Tạo vị trí tuyển dụng thành công!');
+      }
+      navigate(ROUTES.VACANCIES);
+    } catch (error: any) {
+      console.error('Failed to save vacancy:', error);
+      const errorMessage = error.message || 'Unknown error';
+      alert(`Không thể ${isEditMode ? 'cập nhật' : 'tạo'} vị trí tuyển dụng\nLỗi: ${errorMessage}`);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleReset = () => {
     navigate(ROUTES.VACANCIES);
   };
 
+  if (isLoading) {
+    return <div className="loading">Đang tải thông tin vị trí...</div>;
+  }
+
   return (
     <>
       <header>
-        <h1>THÊM VỊ TRÍ TUYỂN DỤNG MỚI</h1>
+        <h1>{isEditMode ? 'CHỈNH SỬA VỊ TRÍ TUYỂN DỤNG' : 'THÊM VỊ TRÍ TUYỂN DỤNG MỚI'}</h1>
       </header>
 
       <main>
@@ -63,11 +147,11 @@ export function VacancyFormPage() {
               label="Phòng ban"
               name="department"
               options={[
-                { value: 'it', label: 'Phòng IT' },
-                { value: 'hr', label: 'Phòng Nhân sự' },
-                { value: 'sales', label: 'Phòng Kinh doanh' },
-                { value: 'marketing', label: 'Phòng Marketing' },
-                { value: 'finance', label: 'Phòng Tài chính' },
+                { value: 'Công nghệ thông tin', label: 'Công nghệ thông tin' },
+                { value: 'Nhân sự', label: 'Nhân sự' },
+                { value: 'Kế toán', label: 'Kế toán' },
+                { value: 'Marketing', label: 'Marketing' },
+                { value: 'Kinh doanh', label: 'Kinh doanh' },
               ]}
               placeholder="Chọn phòng ban"
               value={formData.department}
@@ -139,8 +223,10 @@ export function VacancyFormPage() {
           </section>
 
           <div className="form-actions">
-            <Button type="submit">Lưu vị trí</Button>
-            <Button type="button" variant="secondary" onClick={handleReset}>
+            <Button type="submit" disabled={isSaving}>
+              {isSaving ? 'Đang lưu...' : (isEditMode ? 'Cập nhật' : 'Lưu vị trí')}
+            </Button>
+            <Button type="button" variant="secondary" onClick={handleReset} disabled={isSaving}>
               Hủy
             </Button>
           </div>

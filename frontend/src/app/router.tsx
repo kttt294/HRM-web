@@ -39,6 +39,7 @@ import { CandidateListPage } from "../features/recruitment/pages/CandidateListPa
 import { CandidateDetailPage } from "../features/recruitment/pages/CandidateDetailPage";
 import { CandidateFormPage } from "../features/recruitment/pages/CandidateFormPage";
 import { VacancyFormPage } from "../features/recruitment/pages/VacancyFormPage";
+import { VacancyDetailPage } from "../features/recruitment/pages/VacancyDetailPage";
 
 // Pages for other roles
 import { UnauthorizedPage } from "../features/common/pages/UnauthorizedPage";
@@ -51,6 +52,7 @@ import { EntryPage } from "../features/common/pages/EntryPage";
 // Admin pages
 import { UserListPage } from "../features/admin/pages/UserListPage";
 import { UserFormPage } from "../features/admin/pages/UserFormPage";
+import { EmployeeListPage as AdminEmployeeListPage } from "../features/admin/pages/EmployeeListPage";
 
 // HR Leave & Payroll pages
 import { LeaveManagementPage } from "../features/hr/pages/LeaveManagementPage";
@@ -149,6 +151,14 @@ export function AppRouter() {
               </AdminRoute>
             }
           />
+          <Route
+            path={ROUTES.ADMIN_EMPLOYEES}
+            element={
+              <AdminRoute>
+                <AdminEmployeeListPage />
+              </AdminRoute>
+            }
+          />
 
           {/* ============================================
                         HR ONLY ROUTES
@@ -218,7 +228,7 @@ export function AppRouter() {
             path={ROUTES.VACANCY_DETAIL}
             element={
               <HRRoute>
-                <VacancyFormPage />
+                <VacancyDetailPage />
               </HRRoute>
             }
           />

@@ -21,7 +21,13 @@ export const recruitmentApi = {
       method: "POST",
       body: JSON.stringify(data),
     });
-    if (!response.ok) throw new Error("Failed to create vacancy");
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+      console.error('Create vacancy failed:', response.status, errorData);
+      throw new Error(errorData.message || `Failed to create vacancy: ${response.status}`);
+    }
+    
     return response.json();
   },
 
@@ -30,7 +36,13 @@ export const recruitmentApi = {
       method: "PATCH",
       body: JSON.stringify(data),
     });
-    if (!response.ok) throw new Error("Failed to update vacancy");
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+      console.error('Update vacancy failed:', response.status, errorData);
+      throw new Error(errorData.message || `Failed to update vacancy: ${response.status}`);
+    }
+    
     return response.json();
   },
 

@@ -65,6 +65,11 @@ export function Sidebar() {
                                         <span className="menu-text">Tạo tài khoản mới</span>
                                     </NavLink>
                                 </li>
+                                <li>
+                                    <NavLink to={ROUTES.ADMIN_EMPLOYEES}>
+                                        <span className="menu-text">Danh sách nhân viên</span>
+                                    </NavLink>
+                                </li>
                             </ul>
                         </li>
                     </ShowForRoles>

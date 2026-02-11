@@ -74,7 +74,7 @@ export function VacancyListPage() {
               navigate(ROUTES.VACANCY_EDIT.replace(":id", String(vacancy.id)));
             }}
           >
-            ✏️ Sửa
+            Sửa
           </Button>
         </div>
       ),
@@ -114,6 +114,9 @@ export function VacancyListPage() {
             <Table
               columns={columns}
               data={vacancies}
+              onRowClick={(vacancy) =>
+                navigate(ROUTES.VACANCY_DETAIL.replace(":id", String(vacancy.id)))
+              }
               emptyMessage="Không có vị trí tuyển dụng nào"
             />
           )}
