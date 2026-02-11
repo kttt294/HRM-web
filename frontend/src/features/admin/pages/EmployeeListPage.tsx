@@ -102,8 +102,27 @@ export function EmployeeListPage() {
           </nav>
           <h1>Quản lý nhân viên</h1>
           <p className="page-subtitle">
-            Danh sách nhân viên và quản lý tài khoản
+            Tạo tài khoản cho nhân viên (Role: Employee)
           </p>
+          <div
+            style={{
+              marginTop: "8px",
+              padding: "10px 16px",
+              background: "#e3f2fd",
+              borderRadius: "6px",
+              border: "1px solid #90caf9",
+              fontSize: "13px",
+              color: "#1565c0",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+            }}
+          >
+            <span>ℹ️</span>
+            <span>
+              Tài khoản Admin và HR tạo từ module "Quản lý tài khoản"
+            </span>
+          </div>
         </div>
       </div>
 

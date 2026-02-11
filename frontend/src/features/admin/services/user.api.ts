@@ -26,9 +26,21 @@ export const userApi = {
   },
 
   async createUser(data: CreateUserDto): Promise<SystemUser> {
+    // Convert role string to roleId number
+    const roleIdMap: Record<string, number> = {
+      'admin': 1,
+      'hr': 2,
+      'employee': 3,
+    };
+    
+    const payload = {
+      ...data,
+      roleId: roleIdMap[data.role],
+    };
+    
     const response = await authFetch(API_BASE, {
       method: "POST",
-      body: JSON.stringify(data),
+      body: JSON.stringify(payload),
     });
     if (!response.ok) {
       const error = await response.json();

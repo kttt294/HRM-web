@@ -26,7 +26,7 @@ export function UserFormPage() {
     email: "",
     name: "",
     password: "",
-    role: Role.EMPLOYEE,
+    role: Role.ADMIN,
   });
   const [confirmPassword, setConfirmPassword] = useState("");
 
@@ -148,8 +148,28 @@ export function UserFormPage() {
           Tạo tài khoản mới
         </h1>
         <p className="page-subtitle" style={{ fontSize: "16px" }}>
-          Thiết lập thông tin và phân quyền cho thành viên mới
+          Tạo tài khoản cho Quản trị viên hoặc HR Manager
         </p>
+        <div
+          style={{
+            marginTop: "12px",
+            padding: "12px 20px",
+            background: "#fff9e6",
+            borderRadius: "8px",
+            border: "1px solid #ffd54f",
+            fontSize: "14px",
+            color: "#f57c00",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+          }}
+        >
+          <span>💡</span>
+          <span>
+            <strong>Lưu ý:</strong> Tài khoản nhân viên được tạo tự động từ
+            module "Danh sách nhân viên"
+          </span>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit}>
@@ -384,22 +404,16 @@ export function UserFormPage() {
               >
                 {[
                   {
-                    r: Role.EMPLOYEE,
-                    label: "Nhân viên",
-                    color: "#4caf50",
-                    icon: "👤",
+                    r: Role.ADMIN,
+                    label: "System Admin",
+                    color: "#f44336",
+                    icon: "🔐",
                   },
                   {
                     r: Role.HR,
                     label: "HR Manager",
                     color: "#1976d2",
                     icon: "👥",
-                  },
-                  {
-                    r: Role.ADMIN,
-                    label: "System Admin",
-                    color: "#f44336",
-                    icon: "🔐",
                   },
                 ].map((item) => (
                   <div
