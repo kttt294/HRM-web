@@ -9,8 +9,8 @@ const userController = {
       const { role, status, search } = req.query;
 
       let query = `
-                SELECT u.id, u.username, u.role_id, u.avatar, u.created_at,
-                       r.name as role_name
+                SELECT u.id, u.username, u.email, u.full_name as name, u.role_id, u.avatar, u.status, u.last_login_at, u.created_at,
+                       r.name as role
                 FROM users u
                 LEFT JOIN roles r ON u.role_id = r.id
                 WHERE 1=1
@@ -39,8 +39,8 @@ const userController = {
   async getById(req, res, next) {
     try {
       const [users] = await db.query(
-        `SELECT u.id, u.username, u.role_id, u.avatar, u.created_at,
-                        r.name as role_name
+        `SELECT u.id, u.username, u.email, u.full_name as name, u.role_id, u.avatar, u.status, u.last_login_at, u.created_at,
+                        r.name as role
                  FROM users u
                  LEFT JOIN roles r ON u.role_id = r.id
                  WHERE u.id = ?`,
@@ -62,7 +62,7 @@ const userController = {
   // POST /api/users
   async create(req, res, next) {
     try {
-      const { username, password, roleId, avatar } = req.body;
+      const { username, password, email, name, roleId, avatar } = req.body;
 
       if (!username || !password || !roleId) {
         return res.status(400).json({
@@ -72,13 +72,13 @@ const userController = {
 
       // Kiểm tra username đã tồn tại chưa
       const [existing] = await db.query(
-        "SELECT id FROM users WHERE username = ?",
-        [username],
+        "SELECT id FROM users WHERE username = ? OR email = ?",
+        [username, email],
       );
 
       if (existing.length > 0) {
         return res.status(400).json({
-          message: "Tên đăng nhập đã tồn tại",
+          message: "Tên đăng nhập hoặc email đã tồn tại",
         });
       }
 
@@ -86,14 +86,14 @@ const userController = {
       const hashedPassword = await bcrypt.hash(password, 10);
 
       const [result] = await db.query(
-        `INSERT INTO users (username, password, role_id, avatar) 
-                 VALUES (?, ?, ?, ?)`,
-        [username, hashedPassword, roleId, avatar],
+        `INSERT INTO users (username, password, email, full_name, role_id, avatar, status) 
+                 VALUES (?, ?, ?, ?, ?, ?, 'active')`,
+        [username, hashedPassword, email, name, roleId, avatar],
       );
 
       const [newUser] = await db.query(
-        `SELECT u.id, u.username, u.role_id, u.avatar, u.created_at,
-                        r.name as role_name
+        `SELECT u.id, u.username, u.email, u.full_name as name, u.role_id, u.avatar, u.status, u.last_login_at, u.created_at,
+                        r.name as role
                  FROM users u
                  LEFT JOIN roles r ON u.role_id = r.id
                  WHERE u.id = ?`,
@@ -113,13 +113,16 @@ const userController = {
       const fieldMapping = {
         roleId: "role_id",
         avatar: "avatar",
+        email: "email",
+        name: "full_name",
+        status: "status"
       };
 
       const updateFields = [];
       const params = [];
 
       Object.keys(updates).forEach((key) => {
-        if (fieldMapping[key]) {
+        if (fieldMapping[key] && updates[key] !== undefined) {
           updateFields.push(`${fieldMapping[key]} = ?`);
           params.push(updates[key]);
         }
@@ -139,8 +142,8 @@ const userController = {
       );
 
       const [updatedUser] = await db.query(
-        `SELECT u.id, u.username, u.role_id, u.avatar, u.created_at,
-                        r.name as role_name
+        `SELECT u.id, u.username, u.email, u.full_name as name, u.role_id, u.avatar, u.status, u.last_login_at, u.created_at,
+                        r.name as role
                  FROM users u
                  LEFT JOIN roles r ON u.role_id = r.id
                  WHERE u.id = ?`,
@@ -240,16 +243,16 @@ const userController = {
         });
       }
 
-      // Toggle is_active status (default to 1 if null)
-      const newStatus = user.is_active === 0 ? 1 : 0;
+      // Toggle status between active and locked
+      const newStatus = user.status === 'locked' ? 'active' : 'locked';
 
-      await db.query("UPDATE users SET is_active = ? WHERE id = ?", [
+      await db.query("UPDATE users SET status = ? WHERE id = ?", [
         newStatus,
         req.params.id,
       ]);
 
       const [updatedUser] = await db.query(
-        `SELECT u.id, u.username, u.avatar, u.is_active, u.created_at, u.updated_at,
+        `SELECT u.id, u.username, u.email, u.full_name as name, u.avatar, u.status, u.last_login_at, u.created_at, u.updated_at,
                 r.name as role
          FROM users u
          LEFT JOIN roles r ON u.role_id = r.id

@@ -53,10 +53,10 @@ INSERT INTO departments (name, description, location) VALUES
 
 -- 5. Users
 -- Password: admin/admin123, hr/hr123, nhanvien/nhanvien123
-INSERT INTO users (username, password, role_id) VALUES
-('admin', '$2a$10$EFWbI/.7X79oKSoigybUQuOGJKF7IZQIX/OLkGTH8MRoQZSOOsPBe', 1),
-('hr', '$2a$10$smM0E3P90WCinwcqbB9Dhe/fmQvjnTFBVUu/.JaJkb/Kn0BiDzkBm', 2),
-('nhanvien', '$2a$10$XP1Kju4QmxLQUTLv0pc7/.MgILCtA5YzRM9/6N9hkI4LxxqVqXJ7e', 3);
+INSERT INTO users (username, password, email, full_name, role_id, status) VALUES
+('admin', '$2a$10$EFWbI/.7X79oKSoigybUQuOGJKF7IZQIX/OLkGTH8MRoQZSOOsPBe', 'admin@hrm.com', 'System Administrator', 1, 'active'),
+('hr', '$2a$10$smM0E3P90WCinwcqbB9Dhe/fmQvjnTFBVUu/.JaJkb/Kn0BiDzkBm', 'hr@hrm.com', 'HR Manager', 2, 'active'),
+('nhanvien', '$2a$10$XP1Kju4QmxLQUTLv0pc7/.MgILCtA5YzRM9/6N9hkI4LxxqVqXJ7e', 'employee@hrm.com', 'Normal User', 3, 'active');
 
 INSERT INTO employees (id, user_id, full_name, date_of_birth, gender, national_id, phone, department_id, job_title, hire_date, status, base_salary, allowance, employee_type) VALUES
 ('NV001', 1, 'Nguyễn Văn Admin', '1990-01-01', 'male',   '012345678001', '0901234567', 2, 'Giám đốc Nhân sự',    '2020-01-01', 'active',    30000000, 5000000, 'full_time'),

@@ -42,12 +42,17 @@ CREATE TABLE IF NOT EXISTS users (
     id INT PRIMARY KEY AUTO_INCREMENT,
     username VARCHAR(50) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
+    email VARCHAR(100) UNIQUE,
+    full_name VARCHAR(100),
     role_id INT NOT NULL,
     avatar VARCHAR(255),
+    status ENUM('active', 'inactive', 'locked') DEFAULT 'active',
+    last_login_at TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (role_id) REFERENCES roles(id),
-    INDEX idx_username (username)
+    INDEX idx_username (username),
+    INDEX idx_email (email)
 );
 
 -- 6. Bảng Employees
