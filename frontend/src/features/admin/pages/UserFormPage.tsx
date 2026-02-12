@@ -23,7 +23,6 @@ export function UserFormPage() {
 
   const [formData, setFormData] = useState<CreateUserDto>({
     username: "",
-    email: "",
     name: "",
     password: "",
     role: Role.ADMIN,
@@ -88,18 +87,7 @@ export function UserFormPage() {
     }
   };
 
-  const getRoleDescription = (role: Role) => {
-    switch (role) {
-      case Role.ADMIN:
-        return "Quản trị viên hệ thống. Có quyền quản lý tài khoản và phân quyền.";
-      case Role.HR:
-        return "Nhân viên nhân sự. Có quyền quản lý hồ sơ nhân viên và tuyển dụng.";
-      case Role.EMPLOYEE:
-        return "Nhân viên. Chỉ có quyền xem và cập nhật thông tin cá nhân.";
-      default:
-        return "";
-    }
-  };
+
 
   if (success) {
     return (
@@ -137,25 +125,6 @@ export function UserFormPage() {
       <div className="page-header form-section" style={{ opacity: 0 }}>
         <div className="page-title-section">
           <h1>Tạo tài khoản mới</h1>
-          <div
-            style={{
-              marginTop: "12px",
-              padding: "12px 20px",
-              background: "#fff9e6",
-              borderRadius: "8px",
-              border: "1px solid #ffd54f",
-              fontSize: "13.5px",
-              color: "#f57c00",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-            }}
-          >
-            <span>
-              <strong>Lưu ý:</strong> Tài khoản nhân viên được tạo tự động từ
-              module "Danh sách nhân viên"
-            </span>
-          </div>
         </div>
       </div>
 
@@ -241,20 +210,6 @@ export function UserFormPage() {
 
               <div style={{ gridColumn: "1 / -1" }}>
                 <Input
-                  label="Email"
-                  type="email"
-                  placeholder="email@company.com"
-                  value={formData.email}
-                  onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
-                  }
-                  required
-                  style={{ height: "48px", fontSize: "15px" }}
-                />
-              </div>
-
-              <div>
-                <Input
                   label="Tên đăng nhập"
                   placeholder="username"
                   value={formData.username}
@@ -295,7 +250,7 @@ export function UserFormPage() {
               <Input
                 label="Mật khẩu"
                 type="password"
-                placeholder="Min 6 ký tự"
+                placeholder="Tối thiểu 6 ký tự"
                 value={formData.password}
                 onChange={(e) =>
                   setFormData({ ...formData, password: e.target.value })
@@ -316,99 +271,7 @@ export function UserFormPage() {
             </div>
           </div>
 
-          {/* Role Section */}
-          <div
-            className="form-section"
-            style={{ marginTop: "40px", opacity: 0 }}
-          >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "12px",
-                marginBottom: "24px",
-              }}
-            >
-              <h3 style={{ fontSize: "18px", fontWeight: "600", margin: 0 }}>
-                Phân quyền
-              </h3>
-            </div>
 
-            <div
-              style={{
-                background: "#f8f9fa",
-                padding: "20px",
-                borderRadius: "16px",
-                border: "1px solid #edf2f7",
-              }}
-            >
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: "14px",
-                }}
-              >
-                {[
-                  {
-                    r: Role.ADMIN,
-                    label: "System Admin",
-                    color: "#f44336"
-                  },
-                  {
-                    r: Role.HR,
-                    label: "HR Manager",
-                    color: "#1976d2"
-                  },
-                ].map((item) => (
-                  <div
-                    key={item.r}
-                    onClick={() => setFormData({ ...formData, role: item.r })}
-                    style={{
-                      padding: "12px",
-                      borderRadius: "12px",
-                      border: `2px solid ${formData.role === item.r ? item.color : "transparent"}`,
-                      background:
-                        formData.role === item.r ? `${item.color}10` : "white",
-                      cursor: "pointer",
-                      transition: "all 0.2s ease",
-                      boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "10px",
-                    }}
-                  >
-                    <div style={{ fontSize: "17px" }}></div>
-                    <div
-                      style={{
-                        fontWeight: formData.role === item.r ? "600" : "500",
-                        color:
-                          formData.role === item.r ? item.color : "#4a5568",
-                        fontSize: "14px",
-                      }}
-                    >
-                      {item.label}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div
-                style={{
-                  marginTop: "12px",
-                  padding: "10px 14px",
-                  background: "white",
-                  borderRadius: "8px",
-                  fontSize: "15px",
-                  color: "#718096",
-                  borderLeft: "4px solid #cbd5e0",
-                  lineHeight: "1.5",
-                }}
-              >
-                {getRoleDescription(formData.role)}
-              </div>
-            </div>
-          </div>
 
           {/* Actions */}
           <div

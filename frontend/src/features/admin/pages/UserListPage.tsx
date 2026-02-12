@@ -30,9 +30,8 @@ export function UserListPage() {
         open: false,
         user: null,
     });
-    const [editForm, setEditForm] = useState<{ name: string; email: string; role: Role }>({
+    const [editForm, setEditForm] = useState<{ name: string; role: Role }>({
         name: '',
-        email: '',
         role: Role.EMPLOYEE,
     });
 
@@ -133,7 +132,6 @@ export function UserListPage() {
     const handleOpenEdit = (user: SystemUser) => {
         setEditForm({
             name: user.name,
-            email: user.email,
             role: user.role,
         });
         setEditModal({ open: true, user });
@@ -185,7 +183,7 @@ export function UserListPage() {
             }}>
                 <div style={{ flex: '1', minWidth: '200px', transform: 'translateY(5%)' }}>
                     <Input
-                        placeholder="Tìm kiếm theo tên, username, email..."
+                        placeholder="Tìm kiếm theo tên, username..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                     />
@@ -258,9 +256,6 @@ export function UserListPage() {
                                     Tài khoản
                                 </th>
                                 <th style={{ padding: '14px 16px', textAlign: 'left', fontWeight: '600', fontSize: '13px' }}>
-                                    Email
-                                </th>
-                                <th style={{ padding: '14px 16px', textAlign: 'left', fontWeight: '600', fontSize: '13px' }}>
                                     Vai trò
                                 </th>
                                 <th style={{ padding: '14px 16px', textAlign: 'left', fontWeight: '600', fontSize: '13px' }}>
@@ -304,9 +299,6 @@ export function UserListPage() {
                                                 <div style={{ fontSize: '12px', color: '#757575' }}>@{user.username}</div>
                                             </div>
                                         </div>
-                                    </td>
-                                    <td style={{ padding: '14px 16px', color: '#616161' }}>
-                                        {user.email}
                                     </td>
                                     <td style={{ padding: '14px 16px' }}>
                                         <span style={{
@@ -484,12 +476,6 @@ export function UserListPage() {
                         label="Họ tên"
                         value={editForm.name}
                         onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                    />
-                    <Input
-                        label="Email"
-                        type="email"
-                        value={editForm.email}
-                        onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
                     />
                     <div>
                         <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>

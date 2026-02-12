@@ -15,7 +15,6 @@ export interface Employee {
   baseSalary: number;
   allowance: number;
   employeeType: string;
-  email?: string;
   createdAt?: string;
   updatedAt?: string;
 }

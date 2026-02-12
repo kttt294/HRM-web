@@ -53,18 +53,18 @@ INSERT INTO departments (name, description, location) VALUES
 
 -- 5. Users
 -- Password: admin/admin123, hr/hr123, nhanvien/nhanvien123
-INSERT INTO users (username, password, email, full_name, role_id, status) VALUES
-('admin', '$2a$10$EFWbI/.7X79oKSoigybUQuOGJKF7IZQIX/OLkGTH8MRoQZSOOsPBe', 'admin@hrm.com', 'System Administrator', 1, 'active'),
-('hr', '$2a$10$smM0E3P90WCinwcqbB9Dhe/fmQvjnTFBVUu/.JaJkb/Kn0BiDzkBm', 'hr@hrm.com', 'HR Manager', 2, 'active'),
-('nhanvien', '$2a$10$XP1Kju4QmxLQUTLv0pc7/.MgILCtA5YzRM9/6N9hkI4LxxqVqXJ7e', 'employee@hrm.com', 'Normal User', 3, 'active');
+INSERT INTO users (username, password, full_name, role_id, status) VALUES
+('admin', '$2a$10$EFWbI/.7X79oKSoigybUQuOGJKF7IZQIX/OLkGTH8MRoQZSOOsPBe', 'System Administrator', 1, 'active'),
+('hr', '$2a$10$smM0E3P90WCinwcqbB9Dhe/fmQvjnTFBVUu/.JaJkb/Kn0BiDzkBm', 'HR Manager', 2, 'active'),
+('nhanvien', '$2a$10$XP1Kju4QmxLQUTLv0pc7/.MgILCtA5YzRM9/6N9hkI4LxxqVqXJ7e', 'Normal User', 3, 'active');
 
 -- 6. Employees
 INSERT INTO employees (id, user_id, full_name, date_of_birth, gender, national_id, phone, department_id, job_title, hire_date, status, base_salary, allowance, employee_type) VALUES
-('NV001', 1, 'Nguyễn Văn Admin', '1990-01-01', 'male',   '012345678001', '0901234567', 2, 'Giám đốc Nhân sự',    '2020-01-01', 'active',    30000000, 5000000, 'full_time'),
+('NV001', 1, 'Lê Văn Admin', '1990-01-01', 'male',   '012345678001', '0901234567', 2, 'Giám đốc Nhân sự',    '2020-01-01', 'active',    30000000, 5000000, 'full_time'),
 ('NV002', 2, 'Trần Thị HR',       '1992-05-15', 'female', '012345678002', '0912345678', 2, 'Quản lý Nhân sự',     '2021-03-15', 'active',    20000000, 3000000, 'full_time'),
-('NV003', 3, 'Lê Văn Nhân viên',  '1995-08-20', 'male',   '012345678003', '0923456789', 1, 'Lập trình viên',      '2022-06-01', 'active',    15000000, 2000000, 'full_time'),
-('NV004', NULL, 'Phạm Thị Giang', '1998-03-10', 'female', '012345678004', '0934567890', 4, 'Marketing Executive', '2023-01-15', 'probation', 12000000, 1500000, 'full_time'),
-('NV005', NULL, 'Hoàng Văn Nam',  '1993-11-25', 'male',   '012345678005', '0945678901', 1, 'Senior Developer',    '2020-09-01', 'active',    25000000, 4000000, 'full_time');
+('NV003', 3, 'Nguyễn Văn A',  '1995-08-20', 'male',   '012345678003', '0923456789', 1, 'Lập trình viên',      '2022-06-01', 'active',    15000000, 2000000, 'full_time'),
+('NV004', NULL, 'Phạm Thị B', '1998-03-10', 'female', '012345678004', '0934567890', 4, 'Marketing Executive', '2023-01-15', 'probation', 12000000, 1500000, 'full_time'),
+('NV005', NULL, 'Hoàng Văn C',  '1993-11-25', 'male',   '012345678005', '0945678901', 1, 'Senior Developer',    '2020-09-01', 'active',    25000000, 4000000, 'full_time');
 
 -- Update supervisor
 UPDATE employees SET supervisor_id = 'NV001' WHERE id IN ('NV002', 'NV004');

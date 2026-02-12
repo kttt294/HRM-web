@@ -7,7 +7,7 @@ const employeeController = {
     try {
       const { name, id, jobTitle, status } = req.query;
 
-      let query = `SELECT e.*, d.name as department_name, u.email, u.username
+      let query = `SELECT e.*, d.name as department_name, u.username
                          FROM employees e 
                          LEFT JOIN departments d ON e.department_id = d.id
                          LEFT JOIN users u ON e.user_id = u.id
@@ -239,7 +239,6 @@ const employeeController = {
         gender: "gender",
         nationalId: "national_id",
         address: "address",
-        email: "email",
         phone: "phone",
         jobTitle: "job_title",
         departmentId: "department_id",

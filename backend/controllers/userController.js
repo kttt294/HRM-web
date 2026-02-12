@@ -9,7 +9,7 @@ const userController = {
       const { role, status, search } = req.query;
 
       let query = `
-                SELECT u.id, u.username, u.email, u.full_name as name, u.role_id, u.avatar, u.status, u.last_login_at, u.created_at,
+                SELECT u.id, u.username, u.full_name as name, u.role_id, u.avatar, u.status, u.last_login_at, u.created_at,
                        r.name as role
                 FROM users u
                 LEFT JOIN roles r ON u.role_id = r.id
@@ -39,7 +39,7 @@ const userController = {
   async getById(req, res, next) {
     try {
       const [users] = await db.query(
-        `SELECT u.id, u.username, u.email, u.full_name as name, u.role_id, u.avatar, u.status, u.last_login_at, u.created_at,
+        `SELECT u.id, u.username, u.full_name as name, u.role_id, u.avatar, u.status, u.last_login_at, u.created_at,
                         r.name as role
                  FROM users u
                  LEFT JOIN roles r ON u.role_id = r.id
@@ -62,7 +62,7 @@ const userController = {
   // POST /api/users
   async create(req, res, next) {
     try {
-      const { username, password, email, name, roleId, avatar } = req.body;
+      const { username, password, name, roleId, avatar } = req.body;
 
       if (!username || !password || !roleId) {
         return res.status(400).json({
@@ -72,13 +72,13 @@ const userController = {
 
       // Kiểm tra username đã tồn tại chưa
       const [existing] = await db.query(
-        "SELECT id FROM users WHERE username = ? OR email = ?",
-        [username, email],
+        "SELECT id FROM users WHERE username = ?",
+        [username],
       );
 
       if (existing.length > 0) {
         return res.status(400).json({
-          message: "Tên đăng nhập hoặc email đã tồn tại",
+          message: "Tên đăng nhập đã tồn tại",
         });
       }
 
@@ -86,13 +86,13 @@ const userController = {
       const hashedPassword = await bcrypt.hash(password, 10);
 
       const [result] = await db.query(
-        `INSERT INTO users (username, password, email, full_name, role_id, avatar, status) 
-                 VALUES (?, ?, ?, ?, ?, ?, 'active')`,
-        [username, hashedPassword, email, name, roleId, avatar],
+        `INSERT INTO users (username, password, full_name, role_id, avatar, status) 
+                 VALUES (?, ?, ?, ?, ?, 'active')`,
+        [username, hashedPassword, name, roleId, avatar],
       );
 
       const [newUser] = await db.query(
-        `SELECT u.id, u.username, u.email, u.full_name as name, u.role_id, u.avatar, u.status, u.last_login_at, u.created_at,
+        `SELECT u.id, u.username, u.full_name as name, u.role_id, u.avatar, u.status, u.last_login_at, u.created_at,
                         r.name as role
                  FROM users u
                  LEFT JOIN roles r ON u.role_id = r.id
@@ -113,7 +113,6 @@ const userController = {
       const fieldMapping = {
         roleId: "role_id",
         avatar: "avatar",
-        email: "email",
         name: "full_name",
         status: "status"
       };
@@ -142,7 +141,7 @@ const userController = {
       );
 
       const [updatedUser] = await db.query(
-        `SELECT u.id, u.username, u.email, u.full_name as name, u.role_id, u.avatar, u.status, u.last_login_at, u.created_at,
+        `SELECT u.id, u.username, u.full_name as name, u.role_id, u.avatar, u.status, u.last_login_at, u.created_at,
                         r.name as role
                  FROM users u
                  LEFT JOIN roles r ON u.role_id = r.id
@@ -221,7 +220,7 @@ const userController = {
   async toggleLock(req, res, next) {
     try {
       const [users] = await db.query(
-        `SELECT u.*, r.name as role_name 
+        `SELECT u.id, u.username, u.full_name, u.role_id, u.avatar, u.status, u.last_login_at, u.created_at, u.updated_at, r.name as role_name 
          FROM users u
          LEFT JOIN roles r ON u.role_id = r.id
          WHERE u.id = ?`,
@@ -252,7 +251,7 @@ const userController = {
       ]);
 
       const [updatedUser] = await db.query(
-        `SELECT u.id, u.username, u.email, u.full_name as name, u.avatar, u.status, u.last_login_at, u.created_at, u.updated_at,
+        `SELECT u.id, u.username, u.full_name as name, u.avatar, u.status, u.last_login_at, u.created_at, u.updated_at,
                 r.name as role
          FROM users u
          LEFT JOIN roles r ON u.role_id = r.id

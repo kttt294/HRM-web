@@ -4,7 +4,6 @@ export interface Employee {
   id: string;
   userId?: number | null;
   fullName: string;
-  email?: string;
   jobTitle?: string;
   departmentName?: string;
   phone?: string;
@@ -15,7 +14,6 @@ export interface CreateUserAccountRequest {
   employeeId: string;
   username: string;
   password: string;
-  email?: string;
   roleId: number;
 }
 
@@ -46,16 +44,15 @@ export const adminEmployeeApi = {
    * Tạo tài khoản user cho nhân viên
    * Username tự động từ employee ID, password mặc định 123456
    */
-  async createUserAccount(employeeId: string, employeeName: string, email?: string): Promise<any> {
+  async createUserAccount(employeeId: string, employeeName: string, roleId: number = 3): Promise<any> {
     // Tạo username từ employee ID (loại bỏ ký tự đặc biệt)
     const username = employeeId.toLowerCase().replace(/[^a-z0-9]/g, '');
     
     const payload = {
       username: username,
       password: "123456",
-      email: email || `${username}@company.com`,
       name: employeeName,
-      roleId: 3, // Role employee mặc định (cần kiểm tra trong DB)
+      roleId: roleId,
     };
 
     const response = await authFetch("/api/users", {

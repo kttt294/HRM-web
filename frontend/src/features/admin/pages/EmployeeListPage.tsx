@@ -18,15 +18,9 @@ export function EmployeeListPage() {
     employee: null,
   });
 
-  const [successModal, setSuccessModal] = useState<{
-    isOpen: boolean;
-    type: "create_success" | "delete_success" | null;
-    employee: Employee | null;
-  }>({
-    isOpen: false,
-    type: null,
-    employee: null,
-  });
+
+
+  const [selectedRole, setSelectedRole] = useState<number>(3);
 
   useEffect(() => {
     loadEmployees();
@@ -47,6 +41,7 @@ export function EmployeeListPage() {
   };
 
   const handleCreateAccount = (employee: Employee) => {
+    setSelectedRole(3);
     setConfirmModal({
       isOpen: true,
       type: "create",
@@ -75,24 +70,16 @@ export function EmployeeListPage() {
         await adminEmployeeApi.createUserAccount(
           employee.id,
           employee.fullName,
-          employee.email
+          selectedRole
         );
-        setSuccessModal({
-          isOpen: true,
-          type: "create_success",
-          employee: employee,
-        });
+
       } else {
         if (!employee.userId) return;
         await adminEmployeeApi.deleteUserAccount(
           employee.id,
           employee.userId
         );
-        setSuccessModal({
-          isOpen: true,
-          type: "delete_success",
-          employee: employee,
-        });
+
       }
       
       await loadEmployees();
@@ -154,7 +141,7 @@ export function EmployeeListPage() {
                   <tr>
                     <th>ID</th>
                     <th>Tên nhân viên</th>
-                    <th>Email</th>
+
                     <th>Chức vụ</th>
                     <th>Phòng ban</th>
                     <th>Trạng thái tài khoản</th>
@@ -166,7 +153,7 @@ export function EmployeeListPage() {
                     <tr key={employee.id}>
                       <td>{employee.id}</td>
                       <td style={{ fontWeight: 600 }}>{employee.fullName}</td>
-                      <td>{employee.email || "—"}</td>
+
                       <td>{employee.jobTitle || "—"}</td>
                       <td>{employee.departmentName || "—"}</td>
                       <td>
@@ -226,7 +213,6 @@ export function EmployeeListPage() {
             <ul style={{ marginLeft: "20px", marginTop: "8px" }}>
               <li>Tài khoản được tạo tự động với tên đăng nhập là mã nhân viên</li>
               <li>Mật khẩu mặc định: <strong>123456</strong></li>
-              <li>Nhân viên nên đổi mật khẩu sau khi đăng nhập lần đầu</li>
             </ul>
           </div>
         </div>
@@ -235,29 +221,49 @@ export function EmployeeListPage() {
         isOpen={confirmModal.isOpen}
         onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
         title={
-          confirmModal.type === "create" ? "Xác nhận tạo tài khoản" : "Xác nhận xóa tài khoản"
+          confirmModal.type === "create" 
+            ? `Tạo tài khoản cho ${confirmModal.employee?.fullName}` 
+            : `Xóa tài khoản của ${confirmModal.employee?.fullName}`
         }
       >
-        <div style={{ padding: "8px 0" }}>
-          <p style={{ marginBottom: "16px", fontSize: "15px", lineHeight: "1.5" }}>
+        <div style={{ padding: "8px 0", minWidth: "450px" }}>
+          <div style={{ marginBottom: "16px", fontSize: "15px", lineHeight: "1.5" }}>
             {confirmModal.type === "create" ? (
               <>
-                Bạn có chắc muốn tạo tài khoản cho nhân viên <strong>{confirmModal.employee?.fullName}</strong>?
-                <br />
-                <span style={{ fontSize: "14px", color: "#dc3545", fontWeight: "500", display: "block", marginTop: "8px" }}>
-                  Tên đăng nhập và mật khẩu sẽ được tạo tự động.
-                </span>
+                <div style={{ marginBottom: "16px" }}>
+                  <label style={{ display: "block", marginBottom: "6px", fontWeight: "500", fontSize: "14px" }}>
+                    Chọn vai trò:
+                  </label>
+                  <select
+                    value={selectedRole}
+                    onChange={(e) => setSelectedRole(Number(e.target.value))}
+                    style={{
+                      width: "100%",
+                      padding: "8px 12px",
+                      borderRadius: "6px",
+                      border: "1px solid #ddd",
+                      fontSize: "14px",
+                      outline: "none"
+                    }}
+                  >
+                    <option value={3}>Nhân viên (Employee)</option>
+                    <option value={2}>Quản lý nhân sự (HR)</option>
+                    <option value={1}>Quản trị viên (Admin)</option>
+                  </select>
+                </div>
+
+                <div style={{ background: "#e3f2fd", padding: "12px", borderRadius: "8px", fontSize: "13px", color: "#0d47a1" }}>
+                  Tên đăng nhập: <strong>{confirmModal.employee ? confirmModal.employee.id.toLowerCase().replace(/[^a-z0-9]/g, "") : ""}</strong>
+                  <br/>
+                  Mật khẩu mặc định: <strong>123456</strong>
+                </div>
               </>
             ) : (
-              <>
-                Bạn có chắc muốn xóa tài khoản của nhân viên <strong>{confirmModal.employee?.fullName}</strong>?
-                <br />
-                <span style={{ fontSize: "13px", color: "#dc3545", fontWeight: "500", display: "block", marginTop: "8px" }}>
-                  Hành động này không thể hoàn tác!
-                </span>
-              </>
+              <div style={{ padding: "18px", background: "#fff5f5", borderRadius: "8px", color: "#c53030", fontSize: "15px", border: "1px solid #fed7d7" }}>
+                 ⚠️ Tài khoản sẽ bị xóa vĩnh viễn và không thể hoàn tác.
+              </div>
             )}
-          </p>
+          </div>
           <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end", marginTop: "24px" }}>
             <Button
               variant="secondary"
@@ -270,56 +276,13 @@ export function EmployeeListPage() {
               onClick={handleConfirmAction}
               style={confirmModal.type === "delete" ? { backgroundColor: "#dc3545", color: "white" } : {}}
             >
-              {confirmModal.type === "create" ? "Đồng ý" : "Xóa tài khoản"}
+              {confirmModal.type === "create" ? "Tạo tài khoản" : "Xóa tài khoản"}
             </Button>
           </div>
         </div>
       </Modal>
 
-      {/* Success/Info Modal */}
-      <Modal
-        isOpen={successModal.isOpen}
-        onClose={() => setSuccessModal({ ...successModal, isOpen: false })}
-        title="Thông báo"
-      >
-        <div style={{ padding: "8px 0" }}>
-          {successModal.type === "create_success" && successModal.employee && (
-            <>
-              <div style={{ marginBottom: "16px", color: "#28a745", fontWeight: "600", fontSize: "18px", display: "flex", alignItems: "center", gap: "8px" }}>
-                <span>✓</span> Tạo tài khoản thành công!
-              </div>
-              <div style={{ background: "#f8f9fa", padding: "16px", borderRadius: "8px", border: "1px solid #e9ecef" }}>
-                <div style={{ marginBottom: "8px", fontSize: "16px" }}>
-                  <span style={{ color: "#666" }}>Tên đăng nhập:</span>{" "}
-                  <strong style={{ marginLeft: "4px", color: "#2c3e50" }}>
-                    {successModal.employee.id.toLowerCase().replace(/[^a-z0-9]/g, "")}
-                  </strong>
-                </div>
-                <div style={{ fontSize: "16px" }}>
-                  <span style={{ color: "#666" }}>Mật khẩu:</span>{" "}
-                  <strong style={{ marginLeft: "4px", color: "#2c3e50" }}>123456</strong>
-                </div>
-              </div>
-            </>
-          )}
 
-          {successModal.type === "delete_success" && (
-            <p style={{ color: "#28a745", fontWeight: "600", fontSize: "16px", marginBottom: "20px" }}>
-              Xóa tài khoản thành công!
-            </p>
-          )}
-
-          <div style={{ marginTop: "20px", display: "flex", justifyContent: "flex-end" }}>
-            <Button
-              variant="secondary"
-              onClick={() => setSuccessModal({ ...successModal, isOpen: false })}
-              style={{ minWidth: "80px" }}
-            >
-              Thoát
-            </Button>
-          </div>
-        </div>
-      </Modal>
     </>
   );
 }

@@ -239,7 +239,7 @@ export function EntryPage() {
                 fontSize: '14px',
                 marginTop: 'auto'
             }}>
-                <p>Hệ thống quản lý nhân sự © 2026</p>
+                <p>[Nhóm 8] BTL Kỹ thuật phần mềm - kỳ 2 - năm 2026 - ĐH Phenikaa</p>
             </footer>
         </div>
     );

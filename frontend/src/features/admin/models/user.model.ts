@@ -6,7 +6,6 @@ import { Role } from '../../../shared/constants/rbac';
 export interface SystemUser {
     id: string;
     username: string;
-    email: string;
     name: string;
     role: Role;
     status: 'active' | 'inactive' | 'locked';
@@ -18,7 +17,6 @@ export interface SystemUser {
 
 export interface CreateUserDto {
     username: string;
-    email: string;
     name: string;
     password: string;
     role: Role;
@@ -26,7 +24,6 @@ export interface CreateUserDto {
 
 export interface UpdateUserDto {
     name?: string;
-    email?: string;
     role?: Role;
     status?: 'active' | 'inactive' | 'locked';
 }
