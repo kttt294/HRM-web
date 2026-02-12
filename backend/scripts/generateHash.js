@@ -13,7 +13,7 @@ const passwords = {
 };
 
 async function generateHashes() {
-  console.log("🔐 Generating password hashes...\n");
+  console.log("Generating password hashes...\n");
 
   for (const password in passwords) {
     const hash = await bcrypt.hash(password, 10);

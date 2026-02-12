@@ -163,10 +163,16 @@ export function UserListPage() {
         <div ref={containerRef}>
             {/* Header */}
             <div className="page-header">
-                <h1>Quản lý tài khoản người dùng</h1>
-                <p className="page-subtitle">
-                    Tìm kiếm, chỉnh sửa quyền và quản lý tài khoản trong hệ thống
-                </p>
+                <div className="page-title-section">
+                    <nav className="breadcrumb">
+                        <a href="/">Trang chủ</a>
+                        <span className="breadcrumb-separator">/</span>
+                        <a href="/admin">Quản lý hệ thống</a>
+                        <span className="breadcrumb-separator">/</span>
+                        <span>Tài khoản người dùng</span>
+                    </nav>
+                    <h1>Quản lý tài khoản người dùng</h1>
+                </div>
             </div>
 
             {/* Filters */}
@@ -177,7 +183,7 @@ export function UserListPage() {
                 flexWrap: 'wrap',
                 alignItems: 'flex-end',
             }}>
-                <div style={{ flex: '1', minWidth: '200px' }}>
+                <div style={{ flex: '1', minWidth: '200px', transform: 'translateY(5%)' }}>
                     <Input
                         placeholder="Tìm kiếm theo tên, username, email..."
                         value={search}

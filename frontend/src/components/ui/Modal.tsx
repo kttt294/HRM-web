@@ -30,7 +30,7 @@ export function Modal({ isOpen, onClose, title, children, footer }: ModalProps) 
                 <div className="modal-header">
                     <h3>{title}</h3>
                     <Button variant="secondary" onClick={onClose}>
-                        ×
+                        x
                     </Button>
                 </div>
                 <div className="modal-body">{children}</div>

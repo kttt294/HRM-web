@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Button } from "../../../components/ui/Button";
+import { Modal } from "../../../components/ui/Modal";
 import { adminEmployeeApi, Employee } from "../services/employee.api";
 
 export function EmployeeListPage() {
@@ -7,6 +8,25 @@ export function EmployeeListPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [processingEmployeeId, setProcessingEmployeeId] = useState<string | null>(null);
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    type: "create" | "delete" | null;
+    employee: Employee | null;
+  }>({
+    isOpen: false,
+    type: null,
+    employee: null,
+  });
+
+  const [successModal, setSuccessModal] = useState<{
+    isOpen: boolean;
+    type: "create_success" | "delete_success" | null;
+    employee: Employee | null;
+  }>({
+    isOpen: false,
+    type: null,
+    employee: null,
+  });
 
   useEffect(() => {
     loadEmployees();
@@ -26,47 +46,63 @@ export function EmployeeListPage() {
     }
   };
 
-  const handleCreateAccount = async (employee: Employee) => {
-    if (!confirm(`Tạo tài khoản cho nhân viên ${employee.fullName}?\n\nTên đăng nhập và mật khẩu sẽ được tạo tự động.`)) {
-      return;
-    }
-
-    try {
-      setProcessingEmployeeId(employee.id);
-      await adminEmployeeApi.createUserAccount(
-        employee.id,
-        employee.fullName,
-        employee.email
-      );
-      alert(`Tạo tài khoản thành công!\n\nTên đăng nhập: ${employee.id.toLowerCase().replace(/[^a-z0-9]/g, '')}\nMật khẩu: 123456`);
-      await loadEmployees(); // Reload để cập nhật trạng thái
-    } catch (err: any) {
-      console.error("Failed to create account:", err);
-      alert(`Không thể tạo tài khoản: ${err.message}`);
-    } finally {
-      setProcessingEmployeeId(null);
-    }
+  const handleCreateAccount = (employee: Employee) => {
+    setConfirmModal({
+      isOpen: true,
+      type: "create",
+      employee: employee,
+    });
   };
 
-  const handleDeleteAccount = async (employee: Employee) => {
-    if (!employee.userId) {
-      return;
-    }
+  const handleDeleteAccount = (employee: Employee) => {
+    if (!employee.userId) return;
+    setConfirmModal({
+      isOpen: true,
+      type: "delete",
+      employee: employee,
+    });
+  };
 
-    if (!confirm(`Xóa tài khoản của nhân viên ${employee.fullName}?\n\nHành động này không thể hoàn tác!`)) {
-      return;
-    }
+  const handleConfirmAction = async () => {
+    const { type, employee } = confirmModal;
+    if (!employee || !type) return;
 
     try {
       setProcessingEmployeeId(employee.id);
-      await adminEmployeeApi.deleteUserAccount(employee.id, employee.userId);
-      alert("Xóa tài khoản thành công!");
-      await loadEmployees(); // Reload để cập nhật trạng thái
+      setConfirmModal({ ...confirmModal, isOpen: false });
+
+      if (type === "create") {
+        await adminEmployeeApi.createUserAccount(
+          employee.id,
+          employee.fullName,
+          employee.email
+        );
+        setSuccessModal({
+          isOpen: true,
+          type: "create_success",
+          employee: employee,
+        });
+      } else {
+        if (!employee.userId) return;
+        await adminEmployeeApi.deleteUserAccount(
+          employee.id,
+          employee.userId
+        );
+        setSuccessModal({
+          isOpen: true,
+          type: "delete_success",
+          employee: employee,
+        });
+      }
+      
+      await loadEmployees();
     } catch (err: any) {
-      console.error("Failed to delete account:", err);
-      alert(`Không thể xóa tài khoản: ${err.message}`);
+      console.error(`Failed to ${type} account:`, err);
+      // Keep error alert for now or replace similarly if requested, but focusing on success 
+      alert(`Có lỗi xảy ra: ${err.message}`);
     } finally {
       setProcessingEmployeeId(null);
+      setConfirmModal({ isOpen: false, type: null, employee: null });
     }
   };
 
@@ -101,28 +137,7 @@ export function EmployeeListPage() {
             <span>Danh sách nhân viên</span>
           </nav>
           <h1>Quản lý nhân viên</h1>
-          <p className="page-subtitle">
-            Tạo tài khoản cho nhân viên (Role: Employee)
-          </p>
-          <div
-            style={{
-              marginTop: "8px",
-              padding: "10px 16px",
-              background: "#e3f2fd",
-              borderRadius: "6px",
-              border: "1px solid #90caf9",
-              fontSize: "13px",
-              color: "#1565c0",
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-            }}
-          >
-            <span>ℹ️</span>
-            <span>
-              Tài khoản Admin và HR tạo từ module "Quản lý tài khoản"
-            </span>
-          </div>
+
         </div>
       </div>
 
@@ -157,7 +172,7 @@ export function EmployeeListPage() {
                       <td>
                         {employee.userId ? (
                           <span style={{ color: "green", fontWeight: 500 }}>
-                            ✓ Đã có tài khoản
+                            Đã có tài khoản
                           </span>
                         ) : (
                           <span style={{ color: "#999" }}>
@@ -216,6 +231,95 @@ export function EmployeeListPage() {
           </div>
         </div>
       </div>
+      <Modal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+        title={
+          confirmModal.type === "create" ? "Xác nhận tạo tài khoản" : "Xác nhận xóa tài khoản"
+        }
+      >
+        <div style={{ padding: "8px 0" }}>
+          <p style={{ marginBottom: "16px", fontSize: "15px", lineHeight: "1.5" }}>
+            {confirmModal.type === "create" ? (
+              <>
+                Bạn có chắc muốn tạo tài khoản cho nhân viên <strong>{confirmModal.employee?.fullName}</strong>?
+                <br />
+                <span style={{ fontSize: "14px", color: "#dc3545", fontWeight: "500", display: "block", marginTop: "8px" }}>
+                  Tên đăng nhập và mật khẩu sẽ được tạo tự động.
+                </span>
+              </>
+            ) : (
+              <>
+                Bạn có chắc muốn xóa tài khoản của nhân viên <strong>{confirmModal.employee?.fullName}</strong>?
+                <br />
+                <span style={{ fontSize: "13px", color: "#dc3545", fontWeight: "500", display: "block", marginTop: "8px" }}>
+                  Hành động này không thể hoàn tác!
+                </span>
+              </>
+            )}
+          </p>
+          <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end", marginTop: "24px" }}>
+            <Button
+              variant="secondary"
+              onClick={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+            >
+              Hủy
+            </Button>
+            <Button
+              variant={confirmModal.type === "create" ? "primary" : "danger"}
+              onClick={handleConfirmAction}
+              style={confirmModal.type === "delete" ? { backgroundColor: "#dc3545", color: "white" } : {}}
+            >
+              {confirmModal.type === "create" ? "Đồng ý" : "Xóa tài khoản"}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Success/Info Modal */}
+      <Modal
+        isOpen={successModal.isOpen}
+        onClose={() => setSuccessModal({ ...successModal, isOpen: false })}
+        title="Thông báo"
+      >
+        <div style={{ padding: "8px 0" }}>
+          {successModal.type === "create_success" && successModal.employee && (
+            <>
+              <div style={{ marginBottom: "16px", color: "#28a745", fontWeight: "600", fontSize: "18px", display: "flex", alignItems: "center", gap: "8px" }}>
+                <span>✓</span> Tạo tài khoản thành công!
+              </div>
+              <div style={{ background: "#f8f9fa", padding: "16px", borderRadius: "8px", border: "1px solid #e9ecef" }}>
+                <div style={{ marginBottom: "8px", fontSize: "16px" }}>
+                  <span style={{ color: "#666" }}>Tên đăng nhập:</span>{" "}
+                  <strong style={{ marginLeft: "4px", color: "#2c3e50" }}>
+                    {successModal.employee.id.toLowerCase().replace(/[^a-z0-9]/g, "")}
+                  </strong>
+                </div>
+                <div style={{ fontSize: "16px" }}>
+                  <span style={{ color: "#666" }}>Mật khẩu:</span>{" "}
+                  <strong style={{ marginLeft: "4px", color: "#2c3e50" }}>123456</strong>
+                </div>
+              </div>
+            </>
+          )}
+
+          {successModal.type === "delete_success" && (
+            <p style={{ color: "#28a745", fontWeight: "600", fontSize: "16px", marginBottom: "20px" }}>
+              Xóa tài khoản thành công!
+            </p>
+          )}
+
+          <div style={{ marginTop: "20px", display: "flex", justifyContent: "flex-end" }}>
+            <Button
+              variant="secondary"
+              onClick={() => setSuccessModal({ ...successModal, isOpen: false })}
+              style={{ minWidth: "80px" }}
+            >
+              Thoát
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </>
   );
 }

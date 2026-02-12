@@ -131,44 +131,31 @@ export function UserFormPage() {
 
   return (
     <div ref={containerRef} style={{ maxWidth: "800px", margin: "0 auto" }}>
+
+
       {/* Header */}
-      <div
-        className="page-header form-section"
-        style={{ opacity: 0, marginBottom: "32px", textAlign: "center" }}
-      >
-        <h1
-          style={{
-            fontSize: "32px",
-            background: "linear-gradient(45deg, #1565c0, #42a5f5)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            marginBottom: "12px",
-          }}
-        >
-          Tạo tài khoản mới
-        </h1>
-        <p className="page-subtitle" style={{ fontSize: "16px" }}>
-          Tạo tài khoản cho Quản trị viên hoặc HR Manager
-        </p>
-        <div
-          style={{
-            marginTop: "12px",
-            padding: "12px 20px",
-            background: "#fff9e6",
-            borderRadius: "8px",
-            border: "1px solid #ffd54f",
-            fontSize: "14px",
-            color: "#f57c00",
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-          }}
-        >
-          <span>💡</span>
-          <span>
-            <strong>Lưu ý:</strong> Tài khoản nhân viên được tạo tự động từ
-            module "Danh sách nhân viên"
-          </span>
+      <div className="page-header form-section" style={{ opacity: 0 }}>
+        <div className="page-title-section">
+          <h1>Tạo tài khoản mới</h1>
+          <div
+            style={{
+              marginTop: "12px",
+              padding: "12px 20px",
+              background: "#fff9e6",
+              borderRadius: "8px",
+              border: "1px solid #ffd54f",
+              fontSize: "13.5px",
+              color: "#f57c00",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+            }}
+          >
+            <span>
+              <strong>Lưu ý:</strong> Tài khoản nhân viên được tạo tự động từ
+              module "Danh sách nhân viên"
+            </span>
+          </div>
         </div>
       </div>
 
@@ -227,21 +214,6 @@ export function UserFormPage() {
                 marginBottom: "24px",
               }}
             >
-              <div
-                style={{
-                  width: "40px",
-                  height: "40px",
-                  borderRadius: "12px",
-                  background: "#e3f2fd",
-                  color: "#1565c0",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "20px",
-                }}
-              >
-                👤
-              </div>
               <h3 style={{ fontSize: "18px", fontWeight: "600", margin: 0 }}>
                 Thông tin cơ bản
               </h3>
@@ -313,21 +285,7 @@ export function UserFormPage() {
           <div
             className="form-section"
             style={{ marginTop: "40px", opacity: 0 }}
-          >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "12px",
-                marginBottom: "24px",
-              }}
-            >
-              <h3 style={{ fontSize: "18px", fontWeight: "600", margin: 0 }}>
-                Bảo mật
-              </h3>
-            </div>
-
-            <div
+          >            <div
               style={{
                 display: "grid",
                 gridTemplateColumns: "1fr 1fr",
@@ -379,48 +337,35 @@ export function UserFormPage() {
             <div
               style={{
                 background: "#f8f9fa",
-                padding: "24px",
+                padding: "20px",
                 borderRadius: "16px",
                 border: "1px solid #edf2f7",
               }}
             >
-              <label
-                style={{
-                  display: "block",
-                  marginBottom: "12px",
-                  fontWeight: "600",
-                  fontSize: "14px",
-                  color: "#4a5568",
-                }}
-              >
-                Chọn vai trò
-              </label>
               <div
                 style={{
                   display: "grid",
                   gridTemplateColumns: "1fr 1fr",
-                  gap: "16px",
+                  gap: "14px",
                 }}
               >
                 {[
                   {
                     r: Role.ADMIN,
                     label: "System Admin",
-                    color: "#f44336",
-                    icon: "🔐",
+                    color: "#f44336"
                   },
                   {
                     r: Role.HR,
                     label: "HR Manager",
-                    color: "#1976d2",
-                    icon: "👥",
+                    color: "#1976d2"
                   },
                 ].map((item) => (
                   <div
                     key={item.r}
                     onClick={() => setFormData({ ...formData, role: item.r })}
                     style={{
-                      padding: "16px",
+                      padding: "12px",
                       borderRadius: "12px",
                       border: `2px solid ${formData.role === item.r ? item.color : "transparent"}`,
                       background:
@@ -430,35 +375,31 @@ export function UserFormPage() {
                       boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
                       display: "flex",
                       alignItems: "center",
-                      gap: "12px",
+                      gap: "10px",
                     }}
                   >
-                    <div style={{ fontSize: "20px" }}>{item.icon}</div>
+                    <div style={{ fontSize: "17px" }}></div>
                     <div
                       style={{
                         fontWeight: formData.role === item.r ? "600" : "500",
                         color:
                           formData.role === item.r ? item.color : "#4a5568",
+                        fontSize: "14px",
                       }}
                     >
                       {item.label}
                     </div>
-                    {formData.role === item.r && (
-                      <div style={{ marginLeft: "auto", color: item.color }}>
-                        ✓
-                      </div>
-                    )}
                   </div>
                 ))}
               </div>
 
               <div
                 style={{
-                  marginTop: "16px",
-                  padding: "12px 16px",
+                  marginTop: "12px",
+                  padding: "10px 14px",
                   background: "white",
                   borderRadius: "8px",
-                  fontSize: "14px",
+                  fontSize: "15px",
                   color: "#718096",
                   borderLeft: "4px solid #cbd5e0",
                   lineHeight: "1.5",
@@ -478,15 +419,19 @@ export function UserFormPage() {
               gap: "16px",
               justifyContent: "flex-end",
               opacity: 0,
-              borderTop: "1px solid #f0f0f0",
               paddingTop: "24px",
+              border: "none",
+              boxShadow: "none",
             }}
           >
             <Button
               type="button"
               variant="secondary"
               onClick={() => navigate(ROUTES.ADMIN_USERS)}
-              style={{ padding: "12px 24px", height: "48px" }}
+              style={{
+                padding: "8px 20px",
+                height: "40px"
+              }}
             >
               Hủy bỏ
             </Button>
@@ -494,10 +439,8 @@ export function UserFormPage() {
               type="submit"
               disabled={loading}
               style={{
-                padding: "12px 32px",
-                height: "48px",
-                background: "linear-gradient(45deg, #1565c0, #42a5f5)",
-                boxShadow: "0 4px 12px rgba(21, 101, 192, 0.3)",
+                padding: "8px 20px",
+                height: "40px",
               }}
             >
               {loading ? "Đang xử lý..." : "Tạo tài khoản"}
