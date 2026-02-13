@@ -60,9 +60,9 @@ INSERT INTO users (username, password, full_name, role_id, status) VALUES
 
 -- 6. Employees
 INSERT INTO employees (id, user_id, full_name, date_of_birth, gender, national_id, address, phone, department_id, job_title, hire_date, status, base_salary, allowance, employee_type) VALUES
-('NV001', 1, 'Lê Văn Admin', '1990-01-01', 'male',   '012345678001', '123 Đường ABC, Quận 1, TP. Hà Nội', '0901234567', 2, 'Giám đốc Nhân sự',    '2020-01-01', 'active',    30000000, 5000000, 'full_time'),
-('NV002', 2, 'Trần Thị HR',       '1992-05-15', 'female', '012345678002', '456 Đường XYZ, Quận 2, TP. Hà Nội', '0912345678', 2, 'Quản lý Nhân sự',     '2021-03-15', 'active',    20000000, 3000000, 'full_time'),
-('NV003', 3, 'Nguyễn Văn A',  '1995-08-20', 'male',   '012345678003', '789 Đường DEF, Quận 3, TP. Hà Nội', '0923456789', 1, 'Lập trình viên',      '2022-06-01', 'active',    15000000, 2000000, 'full_time'),
+('NV001', 2, 'Lê Văn HR', '1990-01-01', 'male',   '012345678001', '123 Đường ABC, Quận 1, TP. Hà Nội', '0901234567', 2, 'Giám đốc Nhân sự',    '2020-01-01', 'active',    30000000, 5000000, 'full_time'),
+('NV002', 3, 'Trần Thị Nhan Vien',  '1992-05-15', 'female', '012345678002', '456 Đường XYZ, Quận 2, TP. Hà Nội', '0912345678', 2, 'Quản lý Nhân sự',     '2021-03-15', 'active',    20000000, 3000000, 'full_time'),
+('NV003', NULL, 'Nguyễn Văn A',  '1995-08-20', 'male',   '012345678003', '789 Đường DEF, Quận 3, TP. Hà Nội', '0923456789', 1, 'Lập trình viên',      '2022-06-01', 'active',    15000000, 2000000, 'full_time'),
 ('NV004', NULL, 'Phạm Thị B', '1998-03-10', 'female', '012345678004', '123 Đường GHI, Quận 4, TP. Hà Nội', '0934567890', 4, 'Marketing Executive', '2023-01-15', 'probation', 12000000, 1500000, 'full_time'),
 ('NV005', NULL, 'Hoàng Văn C',  '1993-11-25', 'male',   '012345678005', '456 Đường JKL, Quận 5, TP. Hà Nội', '0945678901', 1, 'Senior Developer',    '2020-09-01', 'active',    25000000, 4000000, 'full_time');
 

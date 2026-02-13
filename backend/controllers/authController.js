@@ -31,6 +31,15 @@ const authController = {
 
       const user = users[0];
 
+      // Kiểm tra trạng thái tài khoản
+      if (user.status === 'locked') {
+        return res.status(403).json({
+          message: "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ Admin để được hướng dẫn.",
+        });
+      }
+
+
+
       // Kiểm tra password
       const isValidPassword = await bcrypt.compare(password, user.password);
 
@@ -39,6 +48,9 @@ const authController = {
           message: "Tên đăng nhập hoặc mật khẩu không đúng",
         });
       }
+
+      // Cập nhật thời gian đăng nhập gần nhất
+      await db.query("UPDATE users SET last_login_at = NOW() WHERE id = ?", [user.id]);
 
       // Tạo JWT token với role_name
       const token = generateToken({
@@ -58,6 +70,8 @@ const authController = {
           username: user.username,
           role: user.role_name,
           avatar: user.avatar,
+          status: user.status, // Bổ sung status để frontend biết
+          lastLoginAt: new Date(), // Trả về thời gian hiện tại vừa update
           createdAt: user.created_at,
           updatedAt: user.updated_at,
           permissions,

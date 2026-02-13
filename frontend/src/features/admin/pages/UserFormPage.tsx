@@ -124,7 +124,7 @@ export function UserFormPage() {
       {/* Header */}
       <div className="page-header form-section" style={{ opacity: 0 }}>
         <div className="page-title-section">
-          <h1>Tạo tài khoản mới</h1>
+          <h1>Tạo tài khoản Admin mới</h1>
         </div>
       </div>
 

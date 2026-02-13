@@ -87,7 +87,7 @@ export function UserListPage() {
         switch (role) {
             case Role.ADMIN: return '#f44336';
             case Role.HR: return '#1976d2';
-            case Role.EMPLOYEE: return '#4caf50';
+            case Role.EMPLOYEE: return '#757575';
             default: return '#757575';
         }
     };
@@ -95,7 +95,7 @@ export function UserListPage() {
     const getStatusLabel = (status: string) => {
         switch (status) {
             case 'active': return 'Hoạt động';
-            case 'inactive': return 'Không hoạt động';
+
             case 'locked': return 'Đã khóa';
             default: return status;
         }
@@ -104,7 +104,7 @@ export function UserListPage() {
     const getStatusColor = (status: string) => {
         switch (status) {
             case 'active': return '#4caf50';
-            case 'inactive': return '#ff9800';
+
             case 'locked': return '#f44336';
             default: return '#757575';
         }
@@ -232,7 +232,7 @@ export function UserListPage() {
                     >
                         <option value="">Tất cả</option>
                     <option value="active">Hoạt động</option>
-                        <option value="inactive">Không hoạt động</option>
+
                         <option value="locked">Đã khóa</option>
                     </select>
                 </div>
@@ -331,13 +331,23 @@ export function UserListPage() {
                                     </td>
                                     <td style={{ padding: '14px 16px', color: '#757575', fontSize: '13px' }}>
                                         {user.lastLoginAt 
-                                            ? new Date(user.lastLoginAt).toLocaleDateString('vi-VN', {
-                                                year: 'numeric',
-                                                month: 'short',
-                                                day: 'numeric',
-                                                hour: '2-digit',
-                                                minute: '2-digit',
-                                            })
+                                            ? (() => {
+                                                const date = new Date(user.lastLoginAt);
+                                                // Cộng thêm 7 tiếng vào timestamp hiện tại (đang bị hiển thị thiếu 7h)
+                                                const d = new Date(date.getTime() + 7 * 60 * 60 * 1000);
+                                                
+                                                // Format thủ công
+                                                const pad = (n: number) => n.toString().padStart(2, '0');
+                                                
+                                                const day = pad(d.getDate());
+                                                const month = pad(d.getMonth() + 1);
+                                                const year = d.getFullYear();
+                                                const hours = pad(d.getHours());
+                                                const minutes = pad(d.getMinutes());
+                                                const seconds = pad(d.getSeconds());
+                                                
+                                                return `${hours}:${minutes}:${seconds} ${day}/${month}/${year}`;
+                                            })()
                                             : 'Chưa đăng nhập'
                                         }
                                     </td>

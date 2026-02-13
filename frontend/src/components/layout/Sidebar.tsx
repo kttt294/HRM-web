@@ -67,7 +67,7 @@ export function Sidebar() {
                                 </li>
                                 <li>
                                     <NavLink to="/admin/users/new">
-                                        <span className="menu-text">Tạo tài khoản mới</span>
+                                        <span className="menu-text">Tạo tài khoản Admin mới</span>
                                     </NavLink>
                                 </li>
                             </ul>
