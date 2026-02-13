@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  # Backend Service (Node.js)
+  backend:
+    container_name: hrm-backend
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "5001:5001" # Port thực tế của Backend là 5001
+    env_file:
+      - ./backend/.env  # Load cấu hình DB (Aiven) từ file .env hiện tại
+    restart: always
+
+  # Frontend Service (React + Nginx)
+  frontend:
+    container_name: hrm-frontend
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80" # Map port 3000 ở máy bạn -> port 80 của Nginx trong container
+    depends_on:
+      - backend
+    restart: always

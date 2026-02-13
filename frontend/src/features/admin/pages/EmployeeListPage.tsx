@@ -88,7 +88,7 @@ export function EmployeeListPage() {
       showSnackbar(`${type === 'create' ? 'Tạo' : 'Xóa'} tài khoản thành công`, 'success');
     } catch (err: any) {
       console.error(`Failed to ${type} account:`, err);
-      showSnackbar(`Có lỗi xảy ra: ${err.message}`, 'error');
+      showSnackbar(`Lỗi: ${err.message}`, 'error');
     } finally {
       setProcessingEmployeeId(null);
       setConfirmModal({ isOpen: false, type: null, employee: null });

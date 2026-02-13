@@ -10,7 +10,8 @@ export function RecruitmentDashboardPage() {
     const { candidates } = useCandidates();
 
     const openVacancies = vacancies.filter(v => v.status === 'open').length;
-    const pendingCandidates = candidates.filter(c => c.status === 'pending').length;
+    // Đếm số ứng viên chưa có kết quả cuối cùng (không phải hired hoặc rejected)
+    const pendingCandidates = candidates.filter(c => c.status !== 'hired' && c.status !== 'rejected').length;
     const hiredCandidates = candidates.filter(c => c.status === 'hired').length;
 
     return (
