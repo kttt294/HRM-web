@@ -4,10 +4,14 @@ const errorHandler = require("./middleware/errorHandler");
 require("dotenv").config();
 
 const app = express();
-const PORT = process.env.SERVER_PORT || 5000;
+const PORT = process.env.SERVER_PORT;
 
 // Middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL,
+  }),
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -38,7 +42,7 @@ app.use("/api/leaves", leaveRoutes);
 app.use("/api/departments", departmentRoutes);
 app.use("/api/users", userRoutes);
 
-// Error handler (phải đặt cuối cùng)
+// Error handler
 app.use(errorHandler);
 
 // Start server

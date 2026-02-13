@@ -10,12 +10,12 @@ const sslConfig = {
 };
 
 try {
-  // Đường dẫn file CA (tương đối từ file config này ra folder certs)
+  // Đường dẫn file CA
   const caPath = path.join(__dirname, "../certs/ca.pem");
   
   if (fs.existsSync(caPath)) {
     sslConfig.ca = fs.readFileSync(caPath);
-    sslConfig.rejectUnauthorized = true; // Bật xác thực bảo mật
+    sslConfig.rejectUnauthorized = true;
     console.log("----> Đã tải CA Certificate thành công. Kết nối Database được bảo mật.");
   } else {
     console.warn("----> Không tìm thấy file 'backend/certs/ca.pem'. Kết nối sẽ bỏ qua xác thực SSL (Không khuyến nghị cho Production).");

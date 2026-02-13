@@ -21,6 +21,10 @@ const userController = {
         query += " AND r.name = ?";
         params.push(role);
       }
+      if (status) {
+        query += " AND u.status = ?";
+        params.push(status);
+      }
       if (search) {
         query += " AND u.username LIKE ?";
         params.push(`%${search}%`);

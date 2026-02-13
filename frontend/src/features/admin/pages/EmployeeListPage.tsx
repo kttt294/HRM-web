@@ -160,11 +160,25 @@ export function EmployeeListPage() {
                       <td>{employee.departmentName || "—"}</td>
                       <td>
                         {employee.userId ? (
-                          <span style={{ color: "green", fontWeight: 500 }}>
+                          <span style={{ 
+                            padding: '4px 10px',
+                            borderRadius: '12px',
+                            fontSize: '12px',
+                            fontWeight: '500',
+                            backgroundColor: '#e8f5e9',
+                            color: '#2e7d32'
+                          }}>
                             Đã có tài khoản
                           </span>
                         ) : (
-                          <span style={{ color: "#999" }}>
+                          <span style={{ 
+                            padding: '4px 10px',
+                            borderRadius: '12px',
+                            fontSize: '12px',
+                            fontWeight: '500',
+                            backgroundColor: '#f5f5f5',
+                            color: '#757575'
+                          }}>
                             Chưa có tài khoản
                           </span>
                         )}
