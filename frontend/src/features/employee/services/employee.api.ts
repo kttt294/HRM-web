@@ -47,16 +47,22 @@ export const employeeApi = {
       method: "POST",
       body: JSON.stringify(data),
     });
-    if (!response.ok) throw new Error("Failed to create employee");
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || "Failed to create employee");
+    }
     return response.json();
   },
 
   async update(id: string, data: Partial<Employee>): Promise<Employee> {
     const response = await authFetch(`${API_BASE}/${id}`, {
-      method: "PUT",
+      method: "PATCH",
       body: JSON.stringify(data),
     });
-    if (!response.ok) throw new Error("Failed to update employee");
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Failed to update employee");
+    }
     return response.json();
   },
 

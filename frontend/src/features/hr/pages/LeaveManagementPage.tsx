@@ -4,6 +4,7 @@ import { LeaveRequest } from '../../employee/models/leave.model';
 import { Button } from '../../../components/ui/Button';
 import { Modal } from '../../../components/ui/Modal';
 import anime from 'animejs';
+import { useSnackbarStore } from '../../../store/snackbar.store';
 
 /**
  * ============================================
@@ -25,6 +26,7 @@ export function LeaveManagementPage() {
         request: null,
         action: 'approve',
     });
+    const { showSnackbar } = useSnackbarStore();
 
     const fetchRequests = async () => {
         setLoading(true);
@@ -70,8 +72,10 @@ export function LeaveManagementPage() {
             }
             setActionModal({ open: false, request: null, action: 'approve' });
             fetchRequests();
+            const actionText = actionModal.action === 'approve' ? 'Duyệt' : 'Từ chối';
+            showSnackbar(`${actionText} đơn thành công`, 'success');
         } catch (error) {
-            alert(error instanceof Error ? error.message : 'Lỗi xử lý đơn');
+            showSnackbar(error instanceof Error ? error.message : 'Lỗi xử lý đơn', 'error');
         }
     };
 

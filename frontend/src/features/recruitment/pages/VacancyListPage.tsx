@@ -54,7 +54,7 @@ export function VacancyListPage() {
       key: "actions",
       header: "Thao tác",
       render: (vacancy: Vacancy) => (
-        <div className="action-buttons">
+        <div className="action-buttons" style={{ display: 'flex', gap: '8px' }}>
           <Button
             size="sm"
             onClick={(e) => {

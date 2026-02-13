@@ -19,6 +19,7 @@ import {
 import { Select } from "../../../components/ui/Select";
 import { formatDate } from "../../../shared/utils/date.util";
 import anime from "animejs";
+import { useSnackbarStore } from "../../../store/snackbar.store";
 
 /**
  * ============================================
@@ -40,6 +41,7 @@ export function MyProfilePage() {
   });
   const [isSaving, setIsSaving] = useState(false);
   const pageRef = useRef<HTMLDivElement>(null);
+  const { showSnackbar } = useSnackbarStore();
 
   // Data from API
   const [profile, setProfile] = useState<Employee | null>(null);
@@ -177,10 +179,11 @@ export function MyProfilePage() {
       console.log('Update success:', updated);
       setProfile(updated);
       setIsEditingPersonal(false);
+      showSnackbar("Cập nhật thông tin thành công!", "success");
     } catch (err) {
       console.error('Failed to update profile:', err);
       const msg = err instanceof Error ? err.message : 'Lỗi không xác định';
-      alert(`Cập nhật thất bại: ${msg}`);
+      showSnackbar(`Cập nhật thất bại: ${msg}`, 'error');
     } finally {
       setIsSaving(false);
     }

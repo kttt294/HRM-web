@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from "react";
+import { useAuth } from "../../auth/hooks/useAuth";
 import { leaveApi } from "../services/leave.api";
 import { LeaveRequest, LeaveBalance } from "../models/leave.model";
 import { Button } from "../../../components/ui/Button";
 import { Input } from "../../../components/ui/Input";
 import { Modal } from "../../../components/ui/Modal";
 import anime from "animejs";
+import { useSnackbarStore } from "../../../store/snackbar.store";
 
 /**
  * ============================================
@@ -15,6 +17,7 @@ import anime from "animejs";
 
 export function MyLeaveRequestsPage() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuth();
   const [requests, setRequests] = useState<LeaveRequest[]>([]);
   const [balance, setBalance] = useState<LeaveBalance | null>(null);
   const [loading, setLoading] = useState(true);
@@ -27,6 +30,7 @@ export function MyLeaveRequestsPage() {
   });
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { showSnackbar } = useSnackbarStore();
 
   const fetchData = async () => {
     setLoading(true);
@@ -79,8 +83,13 @@ export function MyLeaveRequestsPage() {
 
     setCreating(true);
     try {
+      if (!user) {
+         showSnackbar("Vui lòng đăng nhập lại", "error");
+         return;
+      }
       await leaveApi.create({
         ...newRequest,
+        employeeId: user.id
       });
       setShowCreateModal(false);
       setNewRequest({
@@ -90,6 +99,7 @@ export function MyLeaveRequestsPage() {
         reason: "",
       });
       fetchData();
+      showSnackbar("Tạo đơn nghỉ phép thành công", "success");
     } catch (error) {
       setError(error instanceof Error ? error.message : "Lỗi tạo đơn");
     } finally {
@@ -103,8 +113,9 @@ export function MyLeaveRequestsPage() {
     try {
       await leaveApi.cancel(id);
       fetchData();
+      showSnackbar("Hủy đơn thành công", "success");
     } catch (error) {
-      alert(error instanceof Error ? error.message : "Lỗi hủy đơn");
+      showSnackbar(error instanceof Error ? error.message : "Lỗi hủy đơn", "error");
     }
   };
 

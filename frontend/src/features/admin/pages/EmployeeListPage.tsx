@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Button } from "../../../components/ui/Button";
 import { Modal } from "../../../components/ui/Modal";
 import { adminEmployeeApi, Employee } from "../services/employee.api";
+import { useSnackbarStore } from "../../../store/snackbar.store";
 
 export function EmployeeListPage() {
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -21,6 +22,7 @@ export function EmployeeListPage() {
 
 
   const [selectedRole, setSelectedRole] = useState<number>(3);
+  const { showSnackbar } = useSnackbarStore();
 
   useEffect(() => {
     loadEmployees();
@@ -83,10 +85,10 @@ export function EmployeeListPage() {
       }
       
       await loadEmployees();
+      showSnackbar(`${type === 'create' ? 'Tạo' : 'Xóa'} tài khoản thành công`, 'success');
     } catch (err: any) {
       console.error(`Failed to ${type} account:`, err);
-      // Keep error alert for now or replace similarly if requested, but focusing on success 
-      alert(`Có lỗi xảy ra: ${err.message}`);
+      showSnackbar(`Có lỗi xảy ra: ${err.message}`, 'error');
     } finally {
       setProcessingEmployeeId(null);
       setConfirmModal({ isOpen: false, type: null, employee: null });

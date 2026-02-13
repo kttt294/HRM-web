@@ -32,8 +32,14 @@ export async function authFetch(url: string, options: RequestInit = {}): Promise
         headers['Authorization'] = `Bearer ${token}`;
     }
 
-    return fetch(url, {
+    const response = await fetch(url, {
         ...options,
         headers,
     });
+
+    if (response.status === 401) {
+        useAuthStore.getState().logout();
+    }
+
+    return response;
 }

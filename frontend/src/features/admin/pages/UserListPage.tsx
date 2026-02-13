@@ -6,6 +6,7 @@ import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
 import { Modal } from '../../../components/ui/Modal';
 import anime from 'animejs';
+import { useSnackbarStore } from '../../../store/snackbar.store';
 
 /**
  * ============================================
@@ -34,6 +35,7 @@ export function UserListPage() {
         name: '',
         role: Role.EMPLOYEE,
     });
+    const { showSnackbar } = useSnackbarStore();
 
     // Fetch users
     const fetchUsers = async () => {
@@ -115,8 +117,9 @@ export function UserListPage() {
             await userApi.deleteUser(deleteModal.user.id);
             setDeleteModal({ open: false, user: null });
             fetchUsers();
+            showSnackbar('Xóa tài khoản thành công', 'success');
         } catch (error) {
-            alert(error instanceof Error ? error.message : 'Lỗi xóa tài khoản');
+            showSnackbar(error instanceof Error ? error.message : 'Lỗi xóa tài khoản', 'error');
         }
     };
 
@@ -124,8 +127,9 @@ export function UserListPage() {
         try {
             await userApi.toggleLock(user.id);
             fetchUsers();
+            showSnackbar('Cập nhật trạng thái tài khoản thành công', 'success');
         } catch (error) {
-            alert(error instanceof Error ? error.message : 'Lỗi khóa/mở khóa tài khoản');
+            showSnackbar(error instanceof Error ? error.message : 'Lỗi khóa/mở khóa tài khoản', 'error');
         }
     };
 
@@ -143,17 +147,18 @@ export function UserListPage() {
             await userApi.updateUser(editModal.user.id, editForm);
             setEditModal({ open: false, user: null });
             fetchUsers();
+            showSnackbar('Cập nhật tài khoản thành công', 'success');
         } catch (error) {
-            alert(error instanceof Error ? error.message : 'Lỗi cập nhật tài khoản');
+            showSnackbar(error instanceof Error ? error.message : 'Lỗi cập nhật tài khoản', 'error');
         }
     };
 
     const handleResetPassword = async (user: SystemUser) => {
         try {
             const result = await userApi.resetPassword(user.id);
-            alert(`Mật khẩu mới của ${user.name}: ${result.tempPassword}`);
+            showSnackbar(`Mật khẩu mới của ${user.name}: ${result.tempPassword}`, 'success', 15000);
         } catch (error) {
-            alert(error instanceof Error ? error.message : 'Lỗi reset mật khẩu');
+            showSnackbar(error instanceof Error ? error.message : 'Lỗi reset mật khẩu', 'error');
         }
     };
 

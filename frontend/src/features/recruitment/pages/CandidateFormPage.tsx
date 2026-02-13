@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useSnackbarStore } from '../../../store/snackbar.store';
 import { Input } from '../../../components/ui/Input';
 import { Select } from '../../../components/ui/Select';
 import { Button } from '../../../components/ui/Button';
@@ -7,6 +8,7 @@ import { ROUTES } from '../../../shared/constants/routes';
 
 export function CandidateFormPage() {
   const navigate = useNavigate();
+  const { showSnackbar } = useSnackbarStore();
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -21,6 +23,7 @@ export function CandidateFormPage() {
     e.preventDefault();
     console.log('Submitting candidate:', formData);
     // TODO: Call API to save candidate
+    showSnackbar("Thêm ứng viên thành công (Mô phỏng)", "success");
     navigate(ROUTES.CANDIDATES);
   };
 

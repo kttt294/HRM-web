@@ -26,7 +26,10 @@ export const departmentApi = {
       method: "POST",
       body: JSON.stringify(data),
     });
-    if (!response.ok) throw new Error("Failed to create department");
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || "Failed to create department");
+    }
     return response.json();
   },
 
@@ -40,7 +43,8 @@ export const departmentApi = {
     });
     if (!response.ok) {
       if (response.status === 404) return null;
-      throw new Error("Failed to update department");
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || "Failed to update department");
     }
     return response.json();
   },

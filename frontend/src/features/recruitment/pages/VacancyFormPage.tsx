@@ -5,11 +5,13 @@ import { Select } from '../../../components/ui/Select';
 import { Button } from '../../../components/ui/Button';
 import { ROUTES } from '../../../shared/constants/routes';
 import { recruitmentApi } from '../services/recruitment.api';
+import { useSnackbarStore } from '../../../store/snackbar.store';
 
 export function VacancyFormPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const isEditMode = !!id;
+  const { showSnackbar } = useSnackbarStore();
 
   const [formData, setFormData] = useState({
     title: '',
@@ -60,7 +62,7 @@ export function VacancyFormPage() {
         })
         .catch((error) => {
           console.error('Failed to load vacancy:', error);
-          alert('Không thể tải thông tin vị trí tuyển dụng');
+          showSnackbar('Không thể tải thông tin vị trí tuyển dụng', 'error');
           navigate(ROUTES.VACANCIES);
         })
         .finally(() => {
@@ -92,17 +94,17 @@ export function VacancyFormPage() {
       if (isEditMode && id) {
         const result = await recruitmentApi.updateVacancy(id, payload);
         console.log('Update successful:', result);
-        alert('Cập nhật vị trí tuyển dụng thành công!');
+        showSnackbar('Cập nhật vị trí tuyển dụng thành công!', 'success');
       } else {
         const result = await recruitmentApi.createVacancy(payload);
         console.log('Create successful:', result);
-        alert('Tạo vị trí tuyển dụng thành công!');
+        showSnackbar('Tạo vị trí tuyển dụng thành công!', 'success');
       }
       navigate(ROUTES.VACANCIES);
     } catch (error: any) {
       console.error('Failed to save vacancy:', error);
       const errorMessage = error.message || 'Unknown error';
-      alert(`Không thể ${isEditMode ? 'cập nhật' : 'tạo'} vị trí tuyển dụng\nLỗi: ${errorMessage}`);
+      showSnackbar(`Không thể ${isEditMode ? 'cập nhật' : 'tạo'} vị trí tuyển dụng\nLỗi: ${errorMessage}`, 'error');
     } finally {
       setIsSaving(false);
     }

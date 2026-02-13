@@ -59,6 +59,11 @@ const departmentController = {
 
       res.status(201).json(toCamelCase(newDepartment[0]));
     } catch (error) {
+      if (error.code === "ER_DUP_ENTRY") {
+        return res.status(400).json({
+          message: "Tên phòng ban đã tồn tại",
+        });
+      }
       next(error);
     }
   },
@@ -109,6 +114,11 @@ const departmentController = {
 
       res.json(toCamelCase(updatedDepartment[0]));
     } catch (error) {
+      if (error.code === "ER_DUP_ENTRY") {
+        return res.status(400).json({
+          message: "Tên phòng ban đã tồn tại",
+        });
+      }
       next(error);
     }
   },

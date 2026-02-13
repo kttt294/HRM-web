@@ -3,6 +3,7 @@ import { departmentApi } from "../services/department.api";
 import { Department } from "../models/department.model";
 import { Button } from "../../../components/ui/Button";
 import anime from "animejs";
+import { useSnackbarStore } from "../../../store/snackbar.store";
 
 /**
  * ============================================
@@ -26,6 +27,7 @@ export function DepartmentListPage() {
     isOpen: false,
     id: null,
   });
+  const { showSnackbar } = useSnackbarStore();
 
   const fetchDepartments = async () => {
     setLoading(true);
@@ -84,9 +86,11 @@ export function DepartmentListPage() {
       try {
         await departmentApi.delete(deleteConfirm.id);
         fetchDepartments();
+        showSnackbar("Xóa phòng ban thành công", "success");
       } catch (error) {
-        alert(
-          error instanceof Error ? error.message : "Xóa phòng ban thất bại",
+        showSnackbar(
+          error instanceof Error ? error.message : "Xóa phòng ban thất bại", 
+          "error"
         );
       }
     }
@@ -94,13 +98,22 @@ export function DepartmentListPage() {
   };
 
   const handleSave = async (data: Omit<Department, "id" | "createdAt">) => {
-    if (editingDepartment) {
-      await departmentApi.update(editingDepartment.id, data);
-    } else {
-      await departmentApi.create(data);
+    try {
+      if (editingDepartment) {
+        await departmentApi.update(editingDepartment.id, data);
+        showSnackbar("Cập nhật phòng ban thành công", "success");
+      } else {
+        await departmentApi.create(data);
+        showSnackbar("Thêm phòng ban thành công", "success");
+      }
+      setIsModalOpen(false);
+      fetchDepartments();
+    } catch (error) {
+       showSnackbar(
+        error instanceof Error ? error.message : "Lỗi lưu phòng ban", 
+        "error"
+      );
     }
-    setIsModalOpen(false);
-    fetchDepartments();
   };
 
   return (
@@ -309,11 +322,12 @@ function DepartmentModal({
   const [name, setName] = useState(department?.name || "");
   const [description, setDescription] = useState(department?.description || "");
   const [location, setLocation] = useState(department?.location || "");
+  const { showSnackbar } = useSnackbarStore();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
-      alert("Vui lòng nhập tên phòng ban");
+      showSnackbar("Vui lòng nhập tên phòng ban", "warning");
       return;
     }
     onSave({ name, description, location });

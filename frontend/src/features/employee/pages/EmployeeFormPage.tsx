@@ -14,12 +14,14 @@ import { departmentApi } from "../../hr/services/department.api";
 import { employeeApi } from "../services/employee.api";
 import { Department } from "../../hr/models/department.model";
 import { Employee } from "../models/employee.model";
+import { useSnackbarStore } from "../../../store/snackbar.store";
 
 export function EmployeeFormPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const isEditMode = !!id;
   const { employee } = useEmployeeDetail(id || "");
+  const { showSnackbar } = useSnackbarStore();
 
   // Dropdown data
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -134,13 +136,16 @@ export function EmployeeFormPage() {
 
       if (isEditMode && id) {
         await employeeApi.update(id, payload);
+        showSnackbar('Cập nhật nhân viên thành công', 'success');
       } else {
         await employeeApi.create(payload);
+        showSnackbar('Thêm nhân viên thành công', 'success');
       }
       navigate(ROUTES.EMPLOYEES);
     } catch (error) {
       console.error("Error saving employee:", error);
-      alert("Lỗi khi lưu nhân viên!");
+      const msg = error instanceof Error ? error.message : "Lỗi khi lưu nhân viên!";
+      showSnackbar(msg, 'error');
     }
   };
 
@@ -168,12 +173,13 @@ export function EmployeeFormPage() {
             <h2>Thông tin cá nhân</h2>
 
             <Input
-              label="Họ và tên"
+              label="Họ và tên *"
               name="full_name"
               value={formData.fullName}
               onChange={(e) =>
                 setFormData({ ...formData, fullName: e.target.value })
               }
+              required
             />
 
             <Input
@@ -230,12 +236,13 @@ export function EmployeeFormPage() {
             <h2>Thông tin công việc</h2>
 
             <Input
-              label="Mã nhân viên (ID)"
+              label="Mã nhân viên (ID) *"
               name="employee_id"
               value={formData.employeeId}
               onChange={(e) =>
                 setFormData({ ...formData, employeeId: e.target.value })
               }
+              required
             />
 
             <Select
