@@ -82,7 +82,7 @@ INSERT INTO salary_records (employee_id, month, year, base_salary, allowance, de
 ('NV003', 2, 2026, 15000000, 2000000, 1700000, 15300000, 'draft');
 
 -- 8. Vacancies
-INSERT INTO vacancies (title, chuc_danh, department_id, description, requirements, number_of_positions, min_salary, max_salary, deadline, status) VALUES
+INSERT INTO vacancies (title, job_title, department_id, description, requirements, number_of_positions, min_salary, max_salary, deadline, status) VALUES
 ('Tuyển Lập trình viên React', 'Frontend Developer', 1, 
 'Phát triển ứng dụng web với React và TypeScript', 
 '- Kinh nghiệm 1-2 năm React\n- Biết TypeScript, Git\n- Tiếng Anh đọc hiểu tốt', 

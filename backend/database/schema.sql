@@ -72,16 +72,14 @@ CREATE TABLE IF NOT EXISTS employees (
     hire_date DATE,
     status ENUM('active', 'probation', 'resigned', 'terminated', 'on_leave') DEFAULT 'active',
     employee_type ENUM('full_time', 'part_time', 'intern', 'contract', 'remote') DEFAULT 'full_time',
+    location VARCHAR(255),
 
     -- Thông tin lương
     base_salary DECIMAL(15, 2) DEFAULT 0,
     allowance DECIMAL(15, 2) DEFAULT 0,
 
     -- Thông tin ngân hàng
-    bank_account VARCHAR(255), -- Gộp cả số TK và tên ngân hàng
-
-    -- Khác
-    location VARCHAR(255),
+    bank_account VARCHAR(255),
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -89,7 +87,6 @@ CREATE TABLE IF NOT EXISTS employees (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
     FOREIGN KEY (department_id) REFERENCES departments(id) ON DELETE SET NULL,
     FOREIGN KEY (supervisor_id) REFERENCES employees(id) ON DELETE SET NULL,
-
     INDEX idx_full_name (full_name),
     INDEX idx_department (department_id),
     INDEX idx_status (status)
@@ -141,7 +138,7 @@ CREATE TABLE IF NOT EXISTS salary_records (
 CREATE TABLE IF NOT EXISTS vacancies (
     id INT PRIMARY KEY AUTO_INCREMENT,
     title VARCHAR(200) NOT NULL,
-    chuc_danh TEXT,
+    job_title TEXT,
     department_id INT,
     description TEXT,
     requirements TEXT,

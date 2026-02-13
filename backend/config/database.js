@@ -16,12 +16,12 @@ try {
   if (fs.existsSync(caPath)) {
     sslConfig.ca = fs.readFileSync(caPath);
     sslConfig.rejectUnauthorized = true; // Bật xác thực bảo mật
-    console.log("--> Đã tải CA Certificate thành công. Kết nối Database được bảo mật.");
+    console.log("----> Đã tải CA Certificate thành công. Kết nối Database được bảo mật.");
   } else {
-    console.warn("--> Không tìm thấy file 'backend/certs/ca.pem'. Kết nối sẽ bỏ qua xác thực SSL (Không khuyến nghị cho Production).");
+    console.warn("----> Không tìm thấy file 'backend/certs/ca.pem'. Kết nối sẽ bỏ qua xác thực SSL (Không khuyến nghị cho Production).");
   }
 } catch (error) {
-  console.error("--> Lỗi khi đọc CA Certificate:", error.message);
+  console.error("----> Lỗi khi đọc CA Certificate:", error.message);
 }
 
 // Tạo connection pool để quản lý kết nối hiệu quả
@@ -41,11 +41,11 @@ const pool = mysql.createPool({
 pool
   .getConnection()
   .then((conn) => {
-    console.log("--> Kết nối MySQL thành công");
+    console.log("----> Kết nối MySQL thành công");
     conn.release();
   })
   .catch((err) => {
-    console.error("--> Lỗi kết nối MySQL:", err.message);
+    console.error("----> Lỗi kết nối MySQL:", err.message);
   });
 
 module.exports = pool;

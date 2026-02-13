@@ -9,7 +9,7 @@ const vacancyController = {
       const { department, status, search } = req.query;
 
       let query = `SELECT v.*, 
-                v.chuc_danh AS job_title,
+                v.job_title AS job_title,
                 d.name AS department
                 FROM vacancies v
                 LEFT JOIN departments d ON v.department_id = d.id
@@ -62,7 +62,7 @@ const vacancyController = {
     try {
       const [vacancies] = await db.query(
         `SELECT v.*, 
-                    v.chuc_danh AS job_title,
+                    v.job_title AS job_title,
                     d.name AS department
                 FROM vacancies v
                 LEFT JOIN departments d ON v.department_id = d.id
@@ -138,7 +138,7 @@ const vacancyController = {
 
       const [result] = await db.query(
         `INSERT INTO vacancies (
-                    title, chuc_danh, department_id, description, requirements, 
+                    title, job_title, department_id, description, requirements, 
                     number_of_positions, min_salary, max_salary, 
                     deadline, status
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -158,7 +158,7 @@ const vacancyController = {
 
       const [newVacancy] = await db.query(
         `SELECT v.*, 
-                v.chuc_danh AS job_title,
+                v.job_title AS job_title,
                 d.name AS department
          FROM vacancies v
          LEFT JOIN departments d ON v.department_id = d.id
@@ -179,7 +179,7 @@ const vacancyController = {
       const updates = req.body;
       const fieldMapping = {
         title: "title",
-        jobTitle: "chuc_danh",
+        jobTitle: "job_title",
         department: "department_id",
         description: "description",
         requirements: "requirements",
@@ -233,7 +233,7 @@ const vacancyController = {
 
       const [updatedVacancy] = await db.query(
         `SELECT v.*, 
-                v.chuc_danh AS job_title,
+                v.job_title AS job_title,
                 d.name AS department
          FROM vacancies v
          LEFT JOIN departments d ON v.department_id = d.id
