@@ -7,23 +7,23 @@ INSERT INTO roles (id, name, description) VALUES
 (3, 'employee', 'Nhân viên thông thường');
 
 -- 2. Permissions
-INSERT INTO permissions (name, description, category) VALUES
+INSERT INTO permissions (name, description) VALUES
 -- Admin permissions
-('manage_users', 'Quản lý tài khoản người dùng', 'admin'),
-('manage_roles', 'Quản lý vai trò và phân quyền', 'admin'),
+('manage_users', 'Quản lý tài khoản người dùng'),
+('manage_roles', 'Quản lý vai trò và phân quyền'),
 -- HR permissions  
-('manage_employees', 'Quản lý hồ sơ nhân viên', 'hr'),
-('view_employees', 'Xem danh sách nhân viên', 'hr'),
-('create_employees', 'Tạo mới nhân viên', 'hr'),
-('update_employees', 'Cập nhật thông tin nhân viên', 'hr'),
-('delete_employees', 'Xóa nhân viên', 'hr'),
-('manage_recruitment', 'Quản lý tuyển dụng', 'recruitment'),
-('view_candidates', 'Xem danh sách ứng viên', 'recruitment'),
-('create_vacancies', 'Tạo vị trí tuyển dụng', 'recruitment'),
+('manage_employees', 'Quản lý hồ sơ nhân viên'),
+('view_employees', 'Xem danh sách nhân viên'),
+('create_employees', 'Tạo mới nhân viên'),
+('update_employees', 'Cập nhật thông tin nhân viên'),
+('delete_employees', 'Xóa nhân viên'),
+('manage_recruitment', 'Quản lý tuyển dụng'),
+('view_candidates', 'Xem danh sách ứng viên'),
+('create_vacancies', 'Tạo vị trí tuyển dụng'),
 -- Employee permissions
-('view_self', 'Xem thông tin cá nhân', 'employee'),
-('update_self', 'Cập nhật thông tin cá nhân', 'employee'),
-('request_leave', 'Gửi đơn xin nghỉ phép', 'employee');
+('view_self', 'Xem thông tin cá nhân'),
+('update_self', 'Cập nhật thông tin cá nhân'),
+('request_leave', 'Gửi đơn xin nghỉ phép');
 
 -- 3. Role Permissions
 -- Admin: ALL
@@ -59,12 +59,12 @@ INSERT INTO users (username, password, full_name, role_id, status) VALUES
 ('nhanvien', '$2a$10$XP1Kju4QmxLQUTLv0pc7/.MgILCtA5YzRM9/6N9hkI4LxxqVqXJ7e', 'Normal User', 3, 'active');
 
 -- 6. Employees
-INSERT INTO employees (id, user_id, full_name, date_of_birth, gender, national_id, phone, department_id, job_title, hire_date, status, base_salary, allowance, employee_type) VALUES
-('NV001', 1, 'Lê Văn Admin', '1990-01-01', 'male',   '012345678001', '0901234567', 2, 'Giám đốc Nhân sự',    '2020-01-01', 'active',    30000000, 5000000, 'full_time'),
-('NV002', 2, 'Trần Thị HR',       '1992-05-15', 'female', '012345678002', '0912345678', 2, 'Quản lý Nhân sự',     '2021-03-15', 'active',    20000000, 3000000, 'full_time'),
-('NV003', 3, 'Nguyễn Văn A',  '1995-08-20', 'male',   '012345678003', '0923456789', 1, 'Lập trình viên',      '2022-06-01', 'active',    15000000, 2000000, 'full_time'),
-('NV004', NULL, 'Phạm Thị B', '1998-03-10', 'female', '012345678004', '0934567890', 4, 'Marketing Executive', '2023-01-15', 'probation', 12000000, 1500000, 'full_time'),
-('NV005', NULL, 'Hoàng Văn C',  '1993-11-25', 'male',   '012345678005', '0945678901', 1, 'Senior Developer',    '2020-09-01', 'active',    25000000, 4000000, 'full_time');
+INSERT INTO employees (id, user_id, full_name, date_of_birth, gender, national_id, address, phone, department_id, job_title, hire_date, status, base_salary, allowance, employee_type) VALUES
+('NV001', 1, 'Lê Văn Admin', '1990-01-01', 'male',   '012345678001', '123 Đường ABC, Quận 1, TP. Hà Nội', '0901234567', 2, 'Giám đốc Nhân sự',    '2020-01-01', 'active',    30000000, 5000000, 'full_time'),
+('NV002', 2, 'Trần Thị HR',       '1992-05-15', 'female', '012345678002', '456 Đường XYZ, Quận 2, TP. Hà Nội', '0912345678', 2, 'Quản lý Nhân sự',     '2021-03-15', 'active',    20000000, 3000000, 'full_time'),
+('NV003', 3, 'Nguyễn Văn A',  '1995-08-20', 'male',   '012345678003', '789 Đường DEF, Quận 3, TP. Hà Nội', '0923456789', 1, 'Lập trình viên',      '2022-06-01', 'active',    15000000, 2000000, 'full_time'),
+('NV004', NULL, 'Phạm Thị B', '1998-03-10', 'female', '012345678004', '123 Đường GHI, Quận 4, TP. Hà Nội', '0934567890', 4, 'Marketing Executive', '2023-01-15', 'probation', 12000000, 1500000, 'full_time'),
+('NV005', NULL, 'Hoàng Văn C',  '1993-11-25', 'male',   '012345678005', '456 Đường JKL, Quận 5, TP. Hà Nội', '0945678901', 1, 'Senior Developer',    '2020-09-01', 'active',    25000000, 4000000, 'full_time');
 
 -- Update supervisor
 UPDATE employees SET supervisor_id = 'NV001' WHERE id IN ('NV002', 'NV004');
