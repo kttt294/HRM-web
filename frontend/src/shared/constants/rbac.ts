@@ -97,7 +97,7 @@ export const ROUTE_ACCESS: Record<string, Role[]> = {
 // ============================================
 export const DEFAULT_ROUTE_BY_ROLE: Partial<Record<Role, string>> = {
     [Role.ADMIN]: '/admin/users',
-    [Role.HR]: '/my-profile',
+    [Role.HR]: '/hr/employees',
     [Role.EMPLOYEE]: '/my-profile',
 };
 

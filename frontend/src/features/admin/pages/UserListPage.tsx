@@ -178,6 +178,40 @@ export function UserListPage() {
                 </div>
             </div>
 
+            {/* Stats */}
+            <div style={{
+                marginBottom: '24px',
+                display: 'flex',
+                gap: '16px',
+                flexWrap: 'wrap',
+            }}>
+                <StatCard 
+                    label="Tổng tài khoản" 
+                    value={users.length} 
+                    color="#1976d2" 
+                />
+                <StatCard 
+                    label="Admin" 
+                    value={users.filter(u => u.role === Role.ADMIN).length} 
+                    color="#f44336" 
+                />
+                <StatCard 
+                    label="HR" 
+                    value={users.filter(u => u.role === Role.HR).length} 
+                    color="#1976d2" 
+                />
+                <StatCard 
+                    label="Nhân viên" 
+                    value={users.filter(u => u.role === Role.EMPLOYEE).length} 
+                    color="#4caf50" 
+                />
+                <StatCard 
+                    label="Đã khóa" 
+                    value={users.filter(u => u.status === 'locked').length} 
+                    color="#ff9800" 
+                />
+            </div>
+
             {/* Filters */}
             <div style={{
                 display: 'flex',
@@ -427,38 +461,7 @@ export function UserListPage() {
             </div>
 
             {/* Stats */}
-            <div style={{
-                marginTop: '24px',
-                display: 'flex',
-                gap: '16px',
-                flexWrap: 'wrap',
-            }}>
-                <StatCard 
-                    label="Tổng tài khoản" 
-                    value={users.length} 
-                    color="#1976d2" 
-                />
-                <StatCard 
-                    label="Admin" 
-                    value={users.filter(u => u.role === Role.ADMIN).length} 
-                    color="#f44336" 
-                />
-                <StatCard 
-                    label="HR" 
-                    value={users.filter(u => u.role === Role.HR).length} 
-                    color="#1976d2" 
-                />
-                <StatCard 
-                    label="Nhân viên" 
-                    value={users.filter(u => u.role === Role.EMPLOYEE).length} 
-                    color="#4caf50" 
-                />
-                <StatCard 
-                    label="Đã khóa" 
-                    value={users.filter(u => u.status === 'locked').length} 
-                    color="#ff9800" 
-                />
-            </div>
+
 
             {/* Delete Modal */}
             <Modal

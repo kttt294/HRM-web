@@ -64,7 +64,7 @@ export function CandidateLayout() {
                             fontSize: '14px',
                         }}
                     >
-                        Đăng nhập (Nhân viên/Admin)
+                        Đăng nhập
                     </Link>
                 </nav>
             </header>

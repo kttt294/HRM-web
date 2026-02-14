@@ -4,7 +4,7 @@ import { authFetch } from '../../../utils/auth-fetch';
 const API_BASE = '/api/auth';
 
 export const authApi = {
-    async login(username: string, password: string): Promise<{ user: User; token: string }> {
+    async login(username: string, password: string): Promise<{ user: User; accessToken: string; refreshToken: string }> {
         const response = await fetch(`${API_BASE}/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -19,9 +19,10 @@ export const authApi = {
         return response.json();
     },
 
-    async logout(): Promise<void> {
+    async logout(refreshToken: string | null): Promise<void> {
         const response = await authFetch(`${API_BASE}/logout`, {
             method: 'POST',
+            body: JSON.stringify({ refreshToken }),
         });
         if (!response.ok) throw new Error('Đăng xuất thất bại');
     },
@@ -32,9 +33,15 @@ export const authApi = {
         return response.json();
     },
 
-    async refreshToken(): Promise<{ token: string }> {
-        const response = await authFetch(`${API_BASE}/refresh`, {
+    /**
+     * Làm mới access token bằng refresh token
+     * Gọi khi access token hết hạn (401)
+     */
+    async refreshAccessToken(refreshToken: string): Promise<{ accessToken: string }> {
+        const response = await fetch(`${API_BASE}/refresh`, {
             method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refreshToken }),
         });
         if (!response.ok) throw new Error('Failed to refresh token');
         return response.json();
