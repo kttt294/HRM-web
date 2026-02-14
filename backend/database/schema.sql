@@ -128,7 +128,6 @@ CREATE TABLE IF NOT EXISTS salary_records (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
     FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE,
-
     UNIQUE KEY unique_payroll (employee_id, month, year),
     INDEX idx_period (year, month),
     INDEX idx_status (status)

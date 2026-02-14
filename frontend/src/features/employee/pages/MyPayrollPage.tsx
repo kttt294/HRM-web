@@ -132,13 +132,13 @@ export function MyPayrollPage() {
                                     <div>
                                         <div style={{ fontSize: '12px', opacity: 0.7 }}>Phụ cấp</div>
                                         <div style={{ fontSize: '16px', fontWeight: '500', color: '#a5d6a7' }}>
-                                            +{formatCurrency(Object.values(latestPayroll.allowances).reduce((a, b) => a + b, 0))}
+                                            +{formatCurrency(latestPayroll.allowance)}
                                         </div>
                                     </div>
                                     <div>
                                         <div style={{ fontSize: '12px', opacity: 0.7 }}>Khấu trừ</div>
                                         <div style={{ fontSize: '16px', fontWeight: '500', color: '#ef9a9a' }}>
-                                            -{formatCurrency(Object.values(latestPayroll.deductions).reduce((a, b) => a + b, 0))}
+                                            -{formatCurrency(latestPayroll.deduction)}
                                         </div>
                                     </div>
                                 </div>
@@ -285,12 +285,7 @@ function PayrollDetailModal({
                     </h4>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         <DetailRow label="Lương cơ bản" value={formatCurrency(payroll.baseSalary)} />
-                        <DetailRow label="Phụ cấp nhà ở" value={`+${formatCurrency(payroll.allowances.housing)}`} color="#4caf50" />
-                        <DetailRow label="Phụ cấp đi lại" value={`+${formatCurrency(payroll.allowances.transport)}`} color="#4caf50" />
-                        <DetailRow label="Phụ cấp ăn uống" value={`+${formatCurrency(payroll.allowances.meal)}`} color="#4caf50" />
-                        {payroll.allowances.other > 0 && (
-                            <DetailRow label="Phụ cấp khác" value={`+${formatCurrency(payroll.allowances.other)}`} color="#4caf50" />
-                        )}
+                        <DetailRow label="Tổng phụ cấp" value={`+${formatCurrency(payroll.allowance)}`} color="#4caf50" />
                     </div>
                 </div>
 
@@ -299,8 +294,7 @@ function PayrollDetailModal({
                         Khấu trừ
                     </h4>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        <DetailRow label="Bảo hiểm (10.5%)" value={`-${formatCurrency(payroll.deductions.insurance)}`} color="#f44336" />
-                        <DetailRow label="Thuế TNCN (10%)" value={`-${formatCurrency(payroll.deductions.tax)}`} color="#f44336" />
+                        <DetailRow label="Tổng khấu trừ" value={`-${formatCurrency(payroll.deduction)}`} color="#f44336" />
                     </div>
                 </div>
 

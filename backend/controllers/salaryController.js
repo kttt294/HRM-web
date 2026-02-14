@@ -40,7 +40,9 @@ const salaryController = {
       const { employeeId, month, year, status } = req.query;
 
       let query = `
-                SELECT sr.*, 
+                SELECT sr.id, sr.employee_id, sr.month, sr.year, 
+                       sr.base_salary, sr.allowance, sr.deduction, 
+                       sr.net_salary, sr.status,
                        e.full_name as employee_name,
                        d.name as department_name
                 FROM salary_records sr

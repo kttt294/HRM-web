@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { useAuthStore } from '../../store/auth.store';
 import { ROUTES } from '../../shared/constants/routes';
 import anime from 'animejs';
@@ -13,6 +13,7 @@ export function Header() {
     const navigate = useNavigate();
     const { user, logout } = useAuthStore();
     const headerRef = useRef<HTMLElement>(null);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
 
     // Entry animation
     useEffect(() => {
@@ -29,10 +30,11 @@ export function Header() {
 
     const handleLogout = () => {
         // Exit animation
+        setIsLoggingOut(true);
         anime({
             targets: headerRef.current,
             opacity: [1, 0],
-            duration: 200,
+            duration: 600,
             easing: 'easeInQuart',
             complete: () => {
                 logout();
@@ -90,10 +92,35 @@ export function Header() {
                 <button 
                     className="logout-btn" 
                     onClick={handleLogout}
-                    onMouseEnter={(e) => handleButtonHover(e, true)}
-                    onMouseLeave={(e) => handleButtonHover(e, false)}
+                    onMouseEnter={(e) => !isLoggingOut && handleButtonHover(e, true)}
+                    onMouseLeave={(e) => !isLoggingOut && handleButtonHover(e, false)}
+                    disabled={isLoggingOut}
+                    style={{ 
+                        opacity: isLoggingOut ? 0.8 : 1,
+                        cursor: isLoggingOut ? 'wait' : 'pointer',
+                        paddingRight: isLoggingOut ? '20px' : '' 
+                    }}
                 >
-                    Đăng xuất
+                    {isLoggingOut ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <div style={{
+                                width: '16px',
+                                height: '16px',
+                                border: '2px solid rgba(255,255,255,0.3)',
+                                borderTopColor: 'white',
+                                borderRadius: '50%',
+                                animation: 'spin 1s linear infinite'
+                            }} />
+                            <span>Đang đăng xuất...</span>
+                            <style>{`
+                                @keyframes spin {
+                                    to { transform: rotate(360deg); }
+                                }
+                            `}</style>
+                        </div>
+                    ) : (
+                        'Đăng xuất'
+                    )}
                 </button>
             </div>
         </header>

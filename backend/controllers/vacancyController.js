@@ -10,10 +10,10 @@ const vacancyController = {
 
       let query = `SELECT v.*, 
                 v.job_title AS job_title,
-                d.name AS department
-                FROM vacancies v
-                LEFT JOIN departments d ON v.department_id = d.id
-                WHERE 1=1`;
+                          d.name AS department
+                   FROM vacancies v
+                   LEFT JOIN departments d ON v.department_id = d.id
+                   WHERE 1=1`;
       const params = [];
 
       if (department) {

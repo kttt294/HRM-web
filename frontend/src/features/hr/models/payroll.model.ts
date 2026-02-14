@@ -14,17 +14,8 @@ export interface Payroll {
   month: number;
   year: number;
   baseSalary: number;
-  allowances: {
-    housing: number;
-    transport: number;
-    meal: number;
-    other: number;
-  };
-  deductions: {
-    insurance: number;
-    tax: number;
-    other: number;
-  };
+  allowance: number;
+  deduction: number;
   netSalary: number;
   status: PayrollStatus;
   paidAt?: string;

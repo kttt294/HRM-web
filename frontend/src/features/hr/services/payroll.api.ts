@@ -1,23 +1,7 @@
 import { Payroll, PayrollStatus } from "../models/payroll.model";
 import { authFetch } from "../../../utils/auth-fetch";
 
-// Helper: Breakdown total allowance vào housing/transport/meal/other
-function breakdownAllowances(total: number) {
-  return {
-    housing: Math.round(total * 0.5 * 100) / 100,
-    transport: Math.round(total * 0.2 * 100) / 100,
-    meal: Math.round(total * 0.2 * 100) / 100,
-    other: Math.round(total * 0.1 * 100) / 100,
-  };
-}
-
-// Helper: Breakdown total deduction vào insurance/tax/other
-function breakdownDeductions(total: number) {
-  const insurance = Math.round(total * 0.105 * 100) / 100; // 10.5%
-  const tax = Math.round(total * 0.1 * 100) / 100; // 10%
-  const other = Math.round((total - insurance - tax) * 100) / 100;
-  return { insurance, tax, other };
-}
+// Breakdown helpers removed as we now use direct values from DB
 
 // Helper: Map DB status sang frontend status
 function mapStatus(dbStatus: string): PayrollStatus {
@@ -42,8 +26,7 @@ function generatePaidAt(
   return `${payYear}-${String(payMonth).padStart(2, "0")}-05T00:00:00`;
 }
 
-// Map DB record sang Payroll model (backend đã convert sang camelCase)
-// Note: MySQL decimal trả về string nên cần convert sang number
+// Map DB record sang Payroll model
 function mapToPayroll(record: any): Payroll {
   return {
     id: record.id.toString(),
@@ -53,8 +36,8 @@ function mapToPayroll(record: any): Payroll {
     month: record.month,
     year: record.year,
     baseSalary: Number(record.baseSalary) || 0,
-    allowances: breakdownAllowances(Number(record.allowance) || 0),
-    deductions: breakdownDeductions(Number(record.deduction) || 0),
+    allowance: Number(record.allowance) || 0,
+    deduction: Number(record.deduction) || 0,
     netSalary: Number(record.netSalary) || 0,
     status: mapStatus(record.status),
     paidAt: generatePaidAt(record.status, record.month, record.year),
@@ -93,23 +76,14 @@ export async function getPayrollByEmployee(
 export async function createPayroll(
   payroll: Omit<Payroll, "id">,
 ): Promise<Payroll> {
-  const totalAllowance = Object.values(payroll.allowances).reduce(
-    (a, b) => a + b,
-    0,
-  );
-  const totalDeduction = Object.values(payroll.deductions).reduce(
-    (a, b) => a + b,
-    0,
-  );
-
   // DB giờ dùng English status
   const payload = {
     employeeId: payroll.employeeId,
     month: payroll.month,
     year: payroll.year,
     baseSalary: payroll.baseSalary,
-    allowance: totalAllowance,
-    deduction: totalDeduction,
+    allowance: payroll.allowance,
+    deduction: payroll.deduction,
     netSalary: payroll.netSalary,
     status: payroll.status, // Gửi trực tiếp English value
   };
@@ -136,20 +110,8 @@ export async function updatePayroll(
   if (updates.year) payload.year = updates.year;
   if (updates.baseSalary) payload.baseSalary = updates.baseSalary;
   if (updates.netSalary) payload.netSalary = updates.netSalary;
-
-  if (updates.allowances) {
-    payload.allowance = Object.values(updates.allowances).reduce(
-      (a, b) => a + b,
-      0,
-    );
-  }
-
-  if (updates.deductions) {
-    payload.deduction = Object.values(updates.deductions).reduce(
-      (a, b) => a + b,
-      0,
-    );
-  }
+  if (updates.allowance) payload.allowance = updates.allowance;
+  if (updates.deduction) payload.deduction = updates.deduction;
 
   if (updates.status) {
     payload.status = updates.status; // Gửi trực tiếp English value

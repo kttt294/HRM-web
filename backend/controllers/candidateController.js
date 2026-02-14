@@ -8,7 +8,9 @@ const candidateController = {
       const { vacancyId, status, search } = req.query;
 
       let query = `
-                SELECT c.*, v.title as vacancy_title 
+                SELECT c.id, c.vacancy_id, c.full_name, c.email, 
+                       c.phone, c.resume_url, c.status, c.applied_at,
+                       v.title as vacancy_title 
                 FROM candidates c
                 LEFT JOIN vacancies v ON c.vacancy_id = v.id
                 WHERE 1=1

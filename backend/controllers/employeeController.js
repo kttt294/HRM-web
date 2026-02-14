@@ -7,11 +7,14 @@ const employeeController = {
     try {
       const { name, id, jobTitle, status } = req.query;
 
-      let query = `SELECT e.*, d.name as department_name, u.username
-                         FROM employees e 
-                         LEFT JOIN departments d ON e.department_id = d.id
-                         LEFT JOIN users u ON e.user_id = u.id
-                         WHERE 1=1`;
+      let query = `SELECT e.id, e.full_name, e.job_title, e.department_id, e.status, e.employee_type, 
+                          e.phone, e.hire_date,
+                          d.name as department_name, 
+                          u.id as user_id, u.username, u.avatar
+                   FROM employees e 
+                   LEFT JOIN departments d ON e.department_id = d.id
+                   LEFT JOIN users u ON e.user_id = u.id
+                   WHERE 1=1`;
       const params = [];
 
       if (name) {

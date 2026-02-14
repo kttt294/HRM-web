@@ -3,6 +3,8 @@ import { ReactNode } from 'react';
 interface Column<T> {
     key: keyof T | string;
     header: string;
+    width?: string;
+    align?: 'left' | 'center' | 'right';
     render?: (item: T) => ReactNode;
 }
 
@@ -24,7 +26,14 @@ export function Table<T extends { id: string | number }>({
             <thead>
                 <tr>
                     {columns.map((col) => (
-                        <th key={String(col.key)} data-field={col.key}>
+                        <th 
+                            key={String(col.key)} 
+                            data-field={col.key}
+                            style={{ 
+                                textAlign: col.align || 'left',
+                                width: col.width 
+                            }}
+                        >
                             {col.header}
                         </th>
                     ))}
@@ -51,7 +60,7 @@ export function Table<T extends { id: string | number }>({
                             }}
                         >
                             {columns.map((col) => (
-                                <td key={String(col.key)}>
+                                <td key={String(col.key)} style={{ textAlign: col.align || 'left' }}>
                                     {col.render
                                         ? col.render(item)
                                         : String(item[col.key as keyof T] ?? '')}

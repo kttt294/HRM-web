@@ -340,301 +340,254 @@ export function PayrollListPage() {
                 </th>
               </tr>
             </thead>
-            <tbody>
-              {payrolls.map((payroll) => {
-                const totalAllowances = Object.values(
-                  payroll.allowances,
-                ).reduce((a, b) => a + b, 0);
-                const totalDeductions = Object.values(
-                  payroll.deductions,
-                ).reduce((a, b) => a + b, 0);
-
-                return (
-                  <tr
-                    key={payroll.id}
-                    className="payroll-row"
-                    onClick={() => setSelectedPayroll(payroll)}
-                    style={{
-                      borderBottom: "1px solid #f0f0f0",
-                      opacity: 0,
-                      cursor: "pointer",
-                      transition: "background 0.2s",
-                    }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.background = "#fafafa")
-                    }
-                    onMouseLeave={(e) =>
-                      (e.currentTarget.style.background = "transparent")
-                    }
-                  >
-                    <td style={{ padding: "14px 16px" }}>
-                      <div style={{ fontWeight: "500" }}>
-                        {payroll.employeeName}
-                      </div>
-                    </td>
-                    <td
+              <tbody>
+                {payrolls.map((payroll) => {
+                  return (
+                    <tr
+                      key={payroll.id}
+                      className="payroll-row"
+                      onClick={() => setSelectedPayroll(payroll)}
                       style={{
-                        padding: "14px 16px",
-                        color: "#616161",
-                        fontFamily: "monospace",
+                        borderBottom: "1px solid #f0f0f0",
+                        opacity: 0,
+                        cursor: "pointer",
+                        transition: "background 0.2s",
                       }}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.background = "#fafafa")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.background = "transparent")
+                      }
                     >
-                      {payroll.employeeId}
-                    </td>
-                    <td style={{ padding: "14px 16px", color: "#616161" }}>
-                      {payroll.department}
-                    </td>
-                    <td
-                      style={{
-                        padding: "14px 16px",
-                        textAlign: "right",
-                        fontFamily: "monospace",
-                      }}
-                    >
-                      {formatCurrency(payroll.baseSalary)}
-                    </td>
-                    <td
-                      style={{
-                        padding: "14px 16px",
-                        textAlign: "right",
-                        color: "#4caf50",
-                        fontFamily: "monospace",
-                      }}
-                    >
-                      +{formatCurrency(totalAllowances)}
-                    </td>
-                    <td
-                      style={{
-                        padding: "14px 16px",
-                        textAlign: "right",
-                        color: "#f44336",
-                        fontFamily: "monospace",
-                      }}
-                    >
-                      -{formatCurrency(totalDeductions)}
-                    </td>
-                    <td
-                      style={{
-                        padding: "14px 16px",
-                        textAlign: "right",
-                        fontWeight: "600",
-                        fontFamily: "monospace",
-                      }}
-                    >
-                      {formatCurrency(payroll.netSalary)}
-                    </td>
-                    <td style={{ padding: "14px 16px", textAlign: "center" }}>
-                      <span
+                      <td style={{ padding: "14px 16px" }}>
+                        <div style={{ fontWeight: "500" }}>
+                          {payroll.employeeName}
+                        </div>
+                      </td>
+                      <td
                         style={{
-                          padding: "4px 10px",
-                          borderRadius: "12px",
-                          fontSize: "12px",
-                          fontWeight: "500",
-                          background: `${getStatusColor(payroll.status)}15`,
-                          color: getStatusColor(payroll.status),
+                          padding: "14px 16px",
+                          color: "#616161",
+                          fontFamily: "monospace",
                         }}
                       >
-                        {getStatusLabel(payroll.status)}
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                        {payroll.employeeId}
+                      </td>
+                      <td style={{ padding: "14px 16px", color: "#616161" }}>
+                        {payroll.department}
+                      </td>
+                      <td
+                        style={{
+                          padding: "14px 16px",
+                          textAlign: "right",
+                          fontFamily: "monospace",
+                        }}
+                      >
+                        {formatCurrency(payroll.baseSalary)}
+                      </td>
+                      <td
+                        style={{
+                          padding: "14px 16px",
+                          textAlign: "right",
+                          color: "#4caf50",
+                          fontFamily: "monospace",
+                        }}
+                      >
+                        +{formatCurrency(payroll.allowance)}
+                      </td>
+                      <td
+                        style={{
+                          padding: "14px 16px",
+                          textAlign: "right",
+                          color: "#f44336",
+                          fontFamily: "monospace",
+                        }}
+                      >
+                        -{formatCurrency(payroll.deduction)}
+                      </td>
+                      <td
+                        style={{
+                          padding: "14px 16px",
+                          textAlign: "right",
+                          fontWeight: "600",
+                          fontFamily: "monospace",
+                        }}
+                      >
+                        {formatCurrency(payroll.netSalary)}
+                      </td>
+                      <td style={{ padding: "14px 16px", textAlign: "center" }}>
+                        <span
+                          style={{
+                            padding: "4px 10px",
+                            borderRadius: "12px",
+                            fontSize: "12px",
+                            fontWeight: "500",
+                            background: `${getStatusColor(payroll.status)}15`,
+                            color: getStatusColor(payroll.status),
+                          }}
+                        >
+                          {getStatusLabel(payroll.status)}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
+  
+        {/* Detail Modal */}
+        {selectedPayroll && (
+          <PayrollDetailModal
+            payroll={selectedPayroll}
+            onClose={() => setSelectedPayroll(null)}
+            formatCurrency={formatCurrency}
+          />
         )}
       </div>
-
-      {/* Detail Modal */}
-      {selectedPayroll && (
-        <PayrollDetailModal
-          payroll={selectedPayroll}
-          onClose={() => setSelectedPayroll(null)}
-          formatCurrency={formatCurrency}
-        />
-      )}
-    </div>
-  );
-}
-
-function PayrollDetailModal({
-  payroll,
-  onClose,
-  formatCurrency,
-}: {
-  payroll: Payroll;
-  onClose: () => void;
-  formatCurrency: (n: number) => string;
-}) {
-  const totalAllowances = Object.values(payroll.allowances).reduce(
-    (a, b) => a + b,
-    0,
-  );
-  const totalDeductions = Object.values(payroll.deductions).reduce(
-    (a, b) => a + b,
-    0,
-  );
-
-  return (
-    <div
-      onClick={(e) => e.target === e.currentTarget && onClose()}
-      style={{
-        position: "fixed",
-        inset: 0,
-        background: "rgba(0,0,0,0.5)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 1000,
-      }}
-    >
+    );
+  }
+  
+  function PayrollDetailModal({
+    payroll,
+    onClose,
+    formatCurrency,
+  }: {
+    payroll: Payroll;
+    onClose: () => void;
+    formatCurrency: (n: number) => string;
+  }) {
+  
+    return (
       <div
+        onClick={(e) => e.target === e.currentTarget && onClose()}
         style={{
-          background: "white",
-          borderRadius: "16px",
-          padding: "32px",
-          maxWidth: "500px",
-          width: "90%",
+          position: "fixed",
+          inset: 0,
+          background: "rgba(0,0,0,0.5)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 1000,
         }}
       >
         <div
           style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: "24px",
+            background: "white",
+            borderRadius: "16px",
+            padding: "32px",
+            maxWidth: "420px",
+            width: "90%",
           }}
         >
-          <h2 style={{ margin: 0, fontSize: "20px" }}>Chi tiết phiếu lương</h2>
-          <button
-            onClick={onClose}
+          <div
             style={{
-              background: "none",
-              border: "none",
-              fontSize: "24px",
-              cursor: "pointer",
-              color: "#757575",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "24px",
             }}
           >
-            ×
-          </button>
-        </div>
-
-        <div
-          style={{
-            marginBottom: "20px",
-            padding: "16px",
-            background: "#f5f5f5",
-            borderRadius: "12px",
-          }}
-        >
-          <div style={{ fontWeight: "600", fontSize: "18px" }}>
-            {payroll.employeeName}
+            <h2 style={{ margin: 0, fontSize: "20px" }}>Chi tiết phiếu lương</h2>
+            <button
+              onClick={onClose}
+              style={{
+                background: "none",
+                border: "none",
+                fontSize: "24px",
+                cursor: "pointer",
+                color: "#757575",
+              }}
+            >
+              ×
+            </button>
           </div>
-          <div style={{ color: "#757575", fontSize: "14px" }}>
-            {payroll.department}
-          </div>
-          <div style={{ color: "#757575", fontSize: "14px" }}>
-            Tháng {payroll.month}/{payroll.year}
-          </div>
-        </div>
-
-        <div style={{ marginBottom: "16px" }}>
-          <h4
+  
+          <div
             style={{
-              margin: "0 0 12px",
-              color: "#757575",
-              fontSize: "13px",
-              textTransform: "uppercase",
+              marginBottom: "20px",
+              padding: "16px",
+              background: "#f5f5f5",
+              borderRadius: "12px",
             }}
           >
-            Thu nhập
-          </h4>
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            <DetailRow
-              label="Lương cơ bản"
-              value={formatCurrency(payroll.baseSalary)}
-            />
-            <DetailRow
-              label="Phụ cấp nhà ở"
-              value={formatCurrency(payroll.allowances.housing)}
-              color="#4caf50"
-            />
-            <DetailRow
-              label="Phụ cấp đi lại"
-              value={formatCurrency(payroll.allowances.transport)}
-              color="#4caf50"
-            />
-            <DetailRow
-              label="Phụ cấp ăn uống"
-              value={formatCurrency(payroll.allowances.meal)}
-              color="#4caf50"
-            />
-            {payroll.allowances.other > 0 && (
+            <div style={{ fontWeight: "600", fontSize: "18px" }}>
+              {payroll.employeeName}
+            </div>
+            <div style={{ color: "#757575", fontSize: "14px" }}>
+              {payroll.department}
+            </div>
+            <div style={{ color: "#757575", fontSize: "14px" }}>
+              Tháng {payroll.month}/{payroll.year}
+            </div>
+          </div>
+  
+          <div style={{ marginBottom: "16px" }}>
+            <h4
+              style={{
+                margin: "0 0 12px",
+                color: "#757575",
+                fontSize: "13px",
+                textTransform: "uppercase",
+              }}
+            >
+              Chi tiết thu nhập
+            </h4>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               <DetailRow
-                label="Phụ cấp khác"
-                value={formatCurrency(payroll.allowances.other)}
-                color="#4caf50"
+                label="Lương cơ bản"
+                value={formatCurrency(payroll.baseSalary)}
               />
-            )}
-            <DetailRow
-              label="Tổng phụ cấp"
-              value={formatCurrency(totalAllowances)}
-              color="#2e7d32"
-            />
+              <DetailRow
+                label="Tổng phụ cấp"
+                value={formatCurrency(payroll.allowance)}
+                color="#2e7d32"
+              />
+            </div>
           </div>
-        </div>
-
-        <div style={{ marginBottom: "16px" }}>
-          <h4
+  
+          <div style={{ marginBottom: "16px" }}>
+            <h4
+              style={{
+                margin: "0 0 12px",
+                color: "#757575",
+                fontSize: "13px",
+                textTransform: "uppercase",
+              }}
+            >
+              Chi tiết khấu trừ
+            </h4>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              <DetailRow
+                label="Tổng khấu trừ"
+                value={`-${formatCurrency(payroll.deduction)}`}
+                color="#c62828"
+              />
+            </div>
+          </div>
+  
+          <div
             style={{
-              margin: "0 0 12px",
-              color: "#757575",
-              fontSize: "13px",
-              textTransform: "uppercase",
+              padding: "16px",
+              background: "linear-gradient(135deg, #1565c0 0%, #42a5f5 100%)",
+              borderRadius: "12px",
+              color: "white",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
             }}
           >
-            Khấu trừ
-          </h4>
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            <DetailRow
-              label="Bảo hiểm"
-              value={`-${formatCurrency(payroll.deductions.insurance)}`}
-              color="#f44336"
-            />
-            <DetailRow
-              label="Thuế TNCN"
-              value={`-${formatCurrency(payroll.deductions.tax)}`}
-              color="#f44336"
-            />
-            <DetailRow
-              label="Tổng khấu trừ"
-              value={`-${formatCurrency(totalDeductions)}`}
-              color="#c62828"
-            />
+            <span style={{ fontSize: "16px" }}>Thực nhận</span>
+            <span style={{ fontSize: "24px", fontWeight: "700" }}>
+              {formatCurrency(payroll.netSalary)}
+            </span>
           </div>
-        </div>
-
-        <div
-          style={{
-            padding: "16px",
-            background: "linear-gradient(135deg, #1565c0 0%, #42a5f5 100%)",
-            borderRadius: "12px",
-            color: "white",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <span style={{ fontSize: "16px" }}>Thực nhận</span>
-          <span style={{ fontSize: "24px", fontWeight: "700" }}>
-            {formatCurrency(payroll.netSalary)}
-          </span>
         </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
 
 function DetailRow({
   label,

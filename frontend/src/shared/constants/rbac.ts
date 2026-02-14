@@ -67,10 +67,10 @@ export const ROUTE_ACCESS: Record<string, Role[]> = {
     '/admin/audit-log': [Role.ADMIN],
     
     // HR routes (Employee management - PIM)
-    '/pim/employees': [Role.HR],
-    '/pim/employees/new': [Role.HR],
-    '/pim/employees/:id': [Role.HR],
-    '/pim/employees/:id/edit': [Role.HR],
+    '/hr/employees': [Role.HR],
+    '/hr/employees/new': [Role.HR],
+    '/hr/employees/:id': [Role.HR],
+    '/hr/employees/:id/edit': [Role.HR],
     
     // HR routes (Recruitment management)
     '/recruitment': [Role.HR],
@@ -97,7 +97,7 @@ export const ROUTE_ACCESS: Record<string, Role[]> = {
 // ============================================
 export const DEFAULT_ROUTE_BY_ROLE: Partial<Record<Role, string>> = {
     [Role.ADMIN]: '/admin/users',
-    [Role.HR]: '/pim/employees',
+    [Role.HR]: '/my-profile',
     [Role.EMPLOYEE]: '/my-profile',
 };
 

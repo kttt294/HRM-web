@@ -10,10 +10,10 @@ export const ROUTES = {
   ADMIN_EMPLOYEES: "/admin/employees",
 
   // HR - Employee Management (PIM)
-  EMPLOYEES: "/pim/employees",
-  EMPLOYEE_NEW: "/pim/employees/new",
-  EMPLOYEE_DETAIL: "/pim/employees/:id",
-  EMPLOYEE_EDIT: "/pim/employees/:id/edit",
+  EMPLOYEES: "/hr/employees",
+  EMPLOYEE_NEW: "/hr/employees/new",
+  EMPLOYEE_DETAIL: "/hr/employees/:id",
+  EMPLOYEE_EDIT: "/hr/employees/:id/edit",
 
   // HR - Leave & Payroll Management
   LEAVE_MANAGEMENT: "/hr/leaves",

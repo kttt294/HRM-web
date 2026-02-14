@@ -789,6 +789,15 @@ body {
   background-color: var(--danger-500);
 }
 
+.status-badge.no-dot::before {
+  display: none !important;
+}
+
+.status-badge.no-dot {
+  gap: 0;
+  justify-content: center;
+}
+
 /* ===== SUMMARY CARDS ===== */
 .summary-cards {
   display: grid;

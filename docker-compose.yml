@@ -20,7 +20,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "3000:80" # Map port 3000 ở máy bạn -> port 80 của Nginx trong container
+      - "3000:80" # Map port 3000 ở máy local -> port 80 của Nginx trong container
     depends_on:
       - backend
     restart: always

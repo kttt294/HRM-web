@@ -19,7 +19,7 @@ function VacancyStatusBadge({ status }: { status: string }) {
   };
 
   return (
-    <span className={`status-badge ${statusInfo.className}`}>
+    <span className={`status-badge no-dot ${statusInfo.className}`}>
       {statusInfo.label}
     </span>
   );
@@ -33,6 +33,7 @@ export function VacancyListPage() {
     {
       key: "title",
       header: "Vị trí",
+      width: "30%",
       render: (vacancy: Vacancy) => (
         <span className="font-medium">{vacancy.title}</span>
       ),
@@ -40,12 +41,15 @@ export function VacancyListPage() {
     {
       key: "jobTitle",
       header: "Chức danh",
+      width: "30%",
       render: (vacancy: Vacancy) => <span>{vacancy.jobTitle || "—"}</span>,
     },
-    { key: "department", header: "Phòng ban" },
+    { key: "department", header: "Phòng ban", width: "20%" },
     {
       key: "status",
       header: "Trạng thái",
+      width: "20%",
+      align: "center" as const,
       render: (vacancy: Vacancy) => (
         <VacancyStatusBadge status={vacancy.status} />
       ),

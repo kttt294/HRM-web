@@ -2,15 +2,34 @@ import { useParams } from 'react-router-dom';
 import { Button } from '../../../components/ui/Button';
 import { InterviewSchedule } from '../components/InterviewSchedule';
 import { OfferForm } from '../components/OfferForm';
-import { useCandidates } from '../hooks/useCandidates';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Candidate } from '../models/candidate.model';
+import { candidateApi } from '../services/candidate.api';
 
 export function CandidateDetailPage() {
     const { id } = useParams<{ id: string }>();
-    const { candidates, isLoading } = useCandidates();
+    const [candidate, setCandidate] = useState<Candidate | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
     const [showOfferForm, setShowOfferForm] = useState(false);
 
-    const candidate = candidates.find((c) => c.id === id);
+    useEffect(() => {
+        if (!id) return;
+
+        const fetchCandidate = async () => {
+            setIsLoading(true);
+            try {
+                const data = await candidateApi.getById(id);
+                setCandidate(data);
+            } catch (error) {
+                console.error("Failed to fetch candidate:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchCandidate();
+    }, [id]);
+
 
     if (isLoading) {
         return <div>Đang tải...</div>;
