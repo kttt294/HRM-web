@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { Button } from '../../../components/ui/Button';
 import { ROUTES } from '../../../shared/constants/routes';
 
@@ -7,40 +8,36 @@ import { ROUTES } from '../../../shared/constants/routes';
  */
 export function JobListPage() {
     const navigate = useNavigate();
-    
-    // Mock data - trong production sẽ fetch từ API
-    const jobs = [
-        {
-            id: '1',
-            title: 'Lập trình viên Frontend',
-            department: 'Phòng Công nghệ',
-            location: 'Hà Nội',
-            type: 'Full-time',
-            salary: '15-25 triệu',
-            deadline: '2026-03-01',
-        },
-        {
-            id: '2', 
-            title: 'Lập trình viên Backend',
-            department: 'Phòng Công nghệ',
-            location: 'Hà Nội',
-            type: 'Full-time', 
-            salary: '18-30 triệu',
-            deadline: '2026-03-15',
-        },
-        {
-            id: '3',
-            title: 'Nhân viên Nhân sự',
-            department: 'Phòng Nhân sự',
-            location: 'Hà Nội',
-            type: 'Full-time',
-            salary: '12-18 triệu',
-            deadline: '2026-02-28',
-        },
-    ];
+    const [jobs, setJobs] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const handleApply = (job: typeof jobs[0]) => {
+    useEffect(() => {
+        fetch('/api/recruitment/vacancies?status=open')
+            .then(res => res.json())
+            .then(data => {
+                setJobs(data);
+                setIsLoading(false);
+            })
+            .catch(err => {
+                console.error('Failed to fetch jobs:', err);
+                setIsLoading(false);
+            });
+    }, []);
+
+    const handleApply = (job: any) => {
         navigate(`${ROUTES.APPLY_JOB}?jobId=${job.id}&title=${encodeURIComponent(job.title)}`);
+    };
+
+    const formatSalary = (min: number, max: number) => {
+        return `${(min / 1000000)} - ${(max / 1000000)} triệu`;
+    };
+
+    const formatDate = (dateString: string) => {
+        try {
+            return new Date(dateString).toLocaleDateString('vi-VN');
+        } catch {
+            return dateString;
+        }
     };
 
     return (
@@ -59,7 +56,9 @@ export function JobListPage() {
                 </div>
             </div>
 
-            {jobs.length === 0 ? (
+            {isLoading ? (
+                <div style={{ textAlign: 'center', padding: '40px' }}>Đang tải danh sách việc làm...</div>
+            ) : jobs.length === 0 ? (
                 <div style={{
                     display: 'flex',
                     justifyContent: 'center',
@@ -68,7 +67,7 @@ export function JobListPage() {
                     color: '#666',
                     fontSize: '16px'
                 }}>
-                    Không có việc làm nào
+                    Hiện tại chưa có vị trí nào đang tuyển dụng
                 </div>
             ) : (
             <div style={{ display: 'grid', gap: '16px' }}>
@@ -98,16 +97,18 @@ export function JobListPage() {
                                         fontSize: '14px',
                                     }}>
                                         <span>{job.department} |</span>
-                                        <span>{job.location} |</span>
-                                        <span>{job.type} |</span>
-                                        <span>{job.salary}</span>
+                                        <span>{job.location || 'Hà Nội'} |</span>
+                                        <span>Full-time |</span>
+                                        <span style={{ fontWeight: 500, color: '#2e7d32' }}>
+                                            {formatSalary(job.minSalary, job.maxSalary)}
+                                        </span>
                                     </div>
                                     <p style={{ 
                                         marginTop: '8px',
                                         fontSize: '13px',
                                         color: '#999' 
                                     }}>
-                                        Hạn nộp: {job.deadline}
+                                        Hạn nộp: {formatDate(job.deadline)}
                                     </p>
                                 </div>
                                 <Button onClick={() => handleApply(job)}>Ứng tuyển</Button>

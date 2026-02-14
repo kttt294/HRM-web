@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSnackbarStore } from '../../../store/snackbar.store';
 import { Input } from '../../../components/ui/Input';
@@ -18,13 +18,45 @@ export function CandidateFormPage() {
     resumeUrl: '',
     notes: '',
   });
+  const [vacancies, setVacancies] = useState<any[]>([]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    fetch('/api/recruitment/vacancies')
+      .then(res => res.json())
+      .then(data => setVacancies(data))
+      .catch(err => console.error('Failed to fetch vacancies:', err));
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Submitting candidate:', formData);
-    // TODO: Call API to save candidate
-    showSnackbar("Thêm ứng viên thành công (Mô phỏng)", "success");
-    navigate(ROUTES.CANDIDATES);
+    
+    try {
+      const response = await fetch('/api/recruitment/candidates', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          fullName: formData.fullName,
+          email: formData.email,
+          phone: formData.phone,
+          vacancyId: formData.vacancyId ? parseInt(formData.vacancyId) : null,
+          resumeUrl: formData.resumeUrl,
+          notes: formData.notes
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create candidate');
+      }
+
+      showSnackbar("Thêm ứng viên thành công", "success");
+      navigate(ROUTES.CANDIDATES);
+    } catch (error) {
+      console.error(error);
+      showSnackbar("Có lỗi xảy ra khi thêm ứng viên", "error");
+    }
   };
 
   const handleReset = () => {
@@ -73,11 +105,7 @@ export function CandidateFormPage() {
             <Select
               label="Vị trí ứng tuyển"
               name="vacancyId"
-              options={[
-                { value: '1', label: 'Lập trình viên Frontend' },
-                { value: '2', label: 'Lập trình viên Backend' },
-                { value: '3', label: 'Nhân viên Kinh doanh' },
-              ]}
+              options={vacancies.map(v => ({ value: String(v.id), label: v.title }))}
               placeholder="Chọn vị trí"
               value={formData.vacancyId}
               onChange={(e) => setFormData({ ...formData, vacancyId: e.target.value })}

@@ -4,14 +4,14 @@ const vacancyController = require('../controllers/vacancyController');
 const authMiddleware = require('../middleware/auth');
 const { requirePermission } = require('../middleware/checkPermission');
 
-// Tất cả routes cần authentication
-router.use(authMiddleware);
-
 // GET /api/recruitment/vacancies - Lấy danh sách vị trí tuyển dụng
 router.get('/', vacancyController.getAll);
 
 // GET /api/recruitment/vacancies/:id - Chi tiết vị trí tuyển dụng
 router.get('/:id', vacancyController.getById);
+
+// Tất cả routes DUOI DAY cần authentication
+router.use(authMiddleware);
 
 // POST /api/recruitment/vacancies - Tạo vị trí mới (chỉ HR)
 router.post('/', requirePermission('manage_recruitment'), vacancyController.create);

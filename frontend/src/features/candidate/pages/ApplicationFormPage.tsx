@@ -10,7 +10,7 @@ import { ROUTES } from '../../../shared/constants/routes';
 export function ApplicationFormPage() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    // const jobId = searchParams.get('jobId'); // TODO: Use this when implementing backend API
+    const jobId = searchParams.get('jobId');
     const jobTitle = searchParams.get('title') || 'Vị trí tuyển dụng';
     
     const [formData, setFormData] = useState({
@@ -32,11 +32,34 @@ export function ApplicationFormPage() {
         e.preventDefault();
         setIsSubmitting(true);
         
-        // Giả lập gửi form - trong production sẽ gọi API
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        setIsSubmitting(false);
-        setIsSubmitted(true);
+        try {
+            const response = await fetch('/api/recruitment/candidates', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    vacancyId: jobId ? parseInt(jobId) : null,
+                    fullName: formData.fullName,
+                    email: formData.email,
+                    phone: formData.phone,
+                    resumeUrl: formData.cvLink,
+                    notes: formData.coverLetter,
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Có lỗi xảy ra khi nộp hồ sơ');
+            }
+
+            setIsSubmitted(true);
+        } catch (error) {
+            console.error('Submission error:', error);
+            alert(error instanceof Error ? error.message : 'Có lỗi xảy ra, vui lòng thử lại');
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     if (isSubmitted) {

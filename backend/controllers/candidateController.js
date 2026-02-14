@@ -78,7 +78,7 @@ const candidateController = {
         `INSERT INTO candidates (
                     full_name, email, phone, vacancy_id, 
                     resume_url, notes, status, applied_at
-                ) VALUES (?, ?, ?, ?, ?, ?, 'pending', NOW())`,
+                ) VALUES (?, ?, ?, ?, ?, ?, 'new', NOW())`,
         [fullName, email, phone, vacancyId, resumeUrl, notes],
       );
 
@@ -86,6 +86,10 @@ const candidateController = {
         "SELECT * FROM candidates WHERE id = ?",
         [result.insertId],
       );
+
+      if (!newCandidate || newCandidate.length === 0) {
+        return res.status(500).json({ message: 'Lỗi hệ thống: Không thể lấy thông tin ứng viên vừa tạo' });
+      }
 
       res.status(201).json(toCamelCase(newCandidate[0]));
     } catch (error) {

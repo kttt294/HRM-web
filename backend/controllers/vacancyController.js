@@ -10,7 +10,8 @@ const vacancyController = {
 
       let query = `SELECT v.*, 
                 v.job_title AS job_title,
-                          d.name AS department
+                          d.name AS department,
+                          d.location
                    FROM vacancies v
                    LEFT JOIN departments d ON v.department_id = d.id
                    WHERE 1=1`;
@@ -63,7 +64,8 @@ const vacancyController = {
       const [vacancies] = await db.query(
         `SELECT v.*, 
                     v.job_title AS job_title,
-                    d.name AS department
+                    d.name AS department,
+                    d.location
                 FROM vacancies v
                 LEFT JOIN departments d ON v.department_id = d.id
                 WHERE v.id = ?`,
