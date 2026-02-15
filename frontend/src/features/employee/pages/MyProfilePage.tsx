@@ -4,6 +4,7 @@ import { useAuthStore } from "../../../store/auth.store";
 import { Button } from "../../../components/ui/Button";
 import { Input } from "../../../components/ui/Input";
 import { employeeApi } from "../services/employee.api";
+import { authApi } from "../../auth/services/auth.api";
 import { departmentApi } from "../../hr/services/department.api";
 import { Employee } from "../models/employee.model";
 import { Department } from "../../hr/models/department.model";
@@ -39,6 +40,14 @@ export function MyProfilePage() {
     address: '',
     phone: '',
   });
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [passwordError, setPasswordError] = useState("");
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+
   const [isSaving, setIsSaving] = useState(false);
   const pageRef = useRef<HTMLDivElement>(null);
   const { showSnackbar } = useSnackbarStore();
@@ -186,6 +195,39 @@ export function MyProfilePage() {
       showSnackbar(`Cập nhật thất bại: ${msg}`, 'error');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    setPasswordError("");
+    if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
+      setPasswordError("Vui lòng nhập đầy đủ thông tin");
+      return;
+    }
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setPasswordError("Mật khẩu xác nhận không khớp");
+      return;
+    }
+
+    if (passwordForm.newPassword.length < 5) {
+      setPasswordError("Mật khẩu mới phải có ít nhất 5 ký tự");
+      return;
+    }
+
+    setIsChangingPassword(true);
+    try {
+      await authApi.changePassword(passwordForm.currentPassword, passwordForm.newPassword);
+      showSnackbar("Đổi mật khẩu thành công!", "success");
+      setShowPasswordModal(false);
+      setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" }); // Reset form
+    } catch (err) {
+      console.error("Change password failed:", err);
+      const msg = err instanceof Error ? err.message : "Đổi mật khẩu thất bại";
+      showSnackbar(msg, "error");
+      setPasswordError(msg);
+    } finally {
+      setIsChangingPassword(false);
     }
   };
 
@@ -583,16 +625,42 @@ export function MyProfilePage() {
           onClose={() => setShowPasswordModal(false)}
         >
           <div style={{ display: "grid", gap: "16px" }}>
-            <Input label="Mật khẩu hiện tại" type="password" />
-            <Input label="Mật khẩu mới" type="password" />
-            <Input label="Xác nhận mật khẩu mới" type="password" />
+            <Input
+              label="Mật khẩu hiện tại"
+              type="password"
+              value={passwordForm.currentPassword}
+              onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+            />
+            <Input
+              label="Mật khẩu mới"
+              type="password"
+              value={passwordForm.newPassword}
+              onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+            />
+            <Input
+              label="Xác nhận mật khẩu mới"
+              type="password"
+              value={passwordForm.confirmPassword}
+              onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+            />
+            
+            {passwordError && (
+              <div style={{ color: "#d32f2f", fontSize: "14px" }}>
+                {passwordError}
+              </div>
+            )}
+
             <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>
-              <Button onClick={() => setShowPasswordModal(false)}>
-                Đổi mật khẩu
+              <Button 
+                onClick={handleChangePassword}
+                disabled={isChangingPassword}
+              >
+                {isChangingPassword ? "Đang xử lý..." : "Đổi mật khẩu"}
               </Button>
               <Button
                 variant="secondary"
                 onClick={() => setShowPasswordModal(false)}
+                disabled={isChangingPassword}
               >
                 Hủy
               </Button>

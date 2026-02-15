@@ -1,15 +1,16 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "HRM Backend API",
+  "description": "HRM Backend API - Nhóm 8 - Kỹ thuật phần mềm kỳ 2 2026 - ĐH Phenikaa",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js --ignore logs/",
-    "init": "node database/init.js"
+    "init": "node database/init.js",
+    "test": "cross-env NODE_ENV=test jest --forceExit --detectOpenHandles --verbose"
   },
   "keywords": [],
-  "author": "",
+  "author": "kttt294",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
@@ -25,6 +26,24 @@
     "mysql2": "^3.6.5"
   },
   "devDependencies": {
-    "nodemon": "^3.0.2"
+    "cross-env": "^10.1.0",
+    "jest": "^30.2.0",
+    "nodemon": "^3.0.2",
+    "supertest": "^7.2.2"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "coveragePathIgnorePatterns": [
+      "/node_modules/"
+    ],
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ],
+    "collectCoverageFrom": [
+      "controllers/**/*.js",
+      "utils/**/*.js",
+      "middleware/**/*.js"
+    ],
+    "testTimeout": 10000
   }
 }

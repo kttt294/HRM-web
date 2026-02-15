@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const errorHandler = require("./middleware/errorHandler");
+const errorHandler = require("./middleware/errorHandler.js");
 require("dotenv").config();
 const app = express();
 const PORT = process.env.SERVER_PORT;
@@ -8,53 +8,40 @@ const helmet = require("helmet");
 const morgan = require("morgan");
 const path = require("path");
 const fs = require("fs");
+const { apiLimiter } = require("./middleware/rateLimiter");
 
 // Middleware
 app.use(helmet());
+app.use(express.json({ limit: "30kb" }));
 
-// Tạo thư mục logs nếu chưa tồn tại
-const logsDir = path.join(__dirname, "logs");
-if (!fs.existsSync(logsDir)) {
-  fs.mkdirSync(logsDir);
-}
+app.use("/api", apiLimiter); // Áp dụng rate limit cho toàn bộ API
 
-// Tạo token date theo giờ Việt Nam
 morgan.token("date", (req, res, tz) => {
   const date = new Date();
-  // Sửa lại format để hiển thị giờ địa phương (dễ đọc hơn)
   return date.toLocaleString("vi-VN", {
     timeZone: "Asia/Ho_Chi_Minh",
     hour12: false
   });
 });
-
-// Ghi log vào file access.log
-const accessLogStream = fs.createWriteStream(path.join(logsDir, "access.log"), { flags: "a" });
-// Sử dụng format custom thay vì 'combined' mặc định để dùng token date mới
+const accessLogStream = fs.createWriteStream(path.join(__dirname, "logs/access.log"), { flags: "a" });
 app.use(morgan(':remote-addr - :remote-user [:date] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"', { stream: accessLogStream }));
 app.use(morgan("dev"));
 app.use(
   cors({
-    origin: process.env.CLIENT_URL,
+    origin: process.env.FRONTEND_URL,
   }),
 );
-app.use(express.json());
-
-// Test route
-app.get("/", (req, res) => {
-  res.json({ message: "HRM Backend API đang chạy" });
-});
 
 // Import routes
-const authRoutes = require("./routes/auth.routes");
-const employeeRoutes = require("./routes/employee.routes");
-const salaryRoutes = require("./routes/salary");
-const vacancyRoutes = require("./routes/vacancy");
-const candidateRoutes = require("./routes/candidate");
-const interviewRoutes = require("./routes/interview");
-const leaveRoutes = require("./routes/leave");
-const departmentRoutes = require("./routes/department");
-const userRoutes = require("./routes/user");
+const authRoutes = require("./routes/auth.routes.js");
+const employeeRoutes = require("./routes/employee.routes.js");
+const salaryRoutes = require("./routes/salary.routes.js");
+const vacancyRoutes = require("./routes/vacancy.routes.js");
+const candidateRoutes = require("./routes/candidate.routes.js");
+const interviewRoutes = require("./routes/interview.routes.js");
+const leaveRoutes = require("./routes/leave.routes.js");
+const departmentRoutes = require("./routes/department.routes.js");
+const userRoutes = require("./routes/user.routes.js");
 
 // API routes
 app.use("/api/auth", authRoutes);
@@ -67,10 +54,8 @@ app.use("/api/leaves", leaveRoutes);
 app.use("/api/departments", departmentRoutes);
 app.use("/api/users", userRoutes);
 
-// Error handler
 app.use(errorHandler);
 
-// Start server
 app.listen(PORT, () => {
   console.log(`---->>> Server đang chạy tại http://localhost:${PORT}`);
 });

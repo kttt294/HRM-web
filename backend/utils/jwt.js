@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
  * Access token chứa thông tin user và được gửi kèm mọi API request
  */
 const generateAccessToken = (payload) => {
-    return jwt.sign(payload, process.env.JWT_SECRET, {
+    return jwt.sign(payload, process.env.JWT_ACCESS_SECRET, {
         expiresIn: process.env.JWT_ACCESS_EXPIRES_IN || '15m'
     });
 };
@@ -15,7 +15,7 @@ const generateAccessToken = (payload) => {
  * Refresh token dùng để lấy access token mới khi hết hạn
  */
 const generateRefreshToken = (payload) => {
-    return jwt.sign(payload, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET, {
+    return jwt.sign(payload, process.env.JWT_REFRESH_SECRET || process.env.JWT_ACCESS_SECRET, {
         expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d'
     });
 };
@@ -25,11 +25,8 @@ const generateRefreshToken = (payload) => {
  */
 const verifyAccessToken = (token) => {
     try {
-        return jwt.verify(token, process.env.JWT_SECRET);
+        return jwt.verify(token, process.env.JWT_ACCESS_SECRET);
     } catch (error) {
-        if (error.name === 'TokenExpiredError') {
-            throw new Error('Access token đã hết hạn');
-        }
         throw new Error('Access token không hợp lệ');
     }
 };

@@ -4,6 +4,8 @@ import { Input } from "../../../components/ui/Input";
 import { Button } from "../../../components/ui/Button";
 import { useAuth } from "../hooks/useAuth";
 import { ROUTES } from "../../../shared/constants/routes";
+import { getDefaultRoute } from "../../../shared/constants/rbac";
+import { useAuthStore } from "../../../store/auth.store";
 import anime from "animejs";
 
 export function LoginPage() {
@@ -49,6 +51,14 @@ export function LoginPage() {
 
     const success = await login(formData.username, formData.password);
     if (success) {
+      // Lấy user sau khi login thành công
+      const currentUser = useAuthStore.getState().user;
+      
+      // Redirect đến trang phù hợp với role, hoặc trang đã lưu trước đó
+      const destination = from !== ROUTES.HOME ? from : (currentUser ? getDefaultRoute(currentUser.role) : ROUTES.HOME);
+      
+      console.log('[LoginPage] Login successful, redirecting to:', destination);
+      
       // Exit animation trước khi navigate
       anime({
         targets: containerRef.current,
@@ -56,7 +66,7 @@ export function LoginPage() {
         scale: [1, 0.95],
         duration: 300,
         easing: "easeInQuart",
-        complete: () => navigate(from, { replace: true }),
+        complete: () => navigate(destination, { replace: true }),
       });
     } else {
       // Shake animation khi login thất bại
@@ -77,13 +87,13 @@ export function LoginPage() {
         style={{ opacity: 0 }}
       >
         {/* Logo */}
-<div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
-  <img
-    src="/favicon.svg"
-    alt="Logo"
-    style={{ width: "66px", height: "66px", marginBottom:"16px" }}
-  />
-</div>
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+          <img
+            src="/favicon.svg"
+            alt="Logo"
+            style={{ width: "66px", height: "66px", marginBottom:"16px" }}
+          />
+        </div>
 
 
         <h1 className="animate-item" style={{ opacity: 0 }}>
@@ -161,11 +171,11 @@ export function LoginPage() {
           >
             <strong>Tài khoản test:</strong>
             <br />
-            Admin: admin / admin123
+            Admin: admin / demo123
             <br />
-            HR: hr / hr123
+            HR: hr / demo123
             <br />
-            Nhân viên: nhanvien / nhanvien123
+            Nhân viên: nhanvien / demo123
           </p>
         </div>
       </div>

@@ -59,10 +59,15 @@ export function RoleGuard({
             const destination = redirectTo || getDefaultRoute(user.role);
             return <Navigate to={destination} replace />;
         }
+        
+        // Đã pass kiểm tra allowedRoles → render children
+        // Không cần kiểm tra canAccessRoute nữa vì đã được validate bởi allowedRoles
+        return <>{children}</>;
     }
 
     // ============================================
     // KIỂM TRA 3: Truy cập cấp route (từ ROUTE_ACCESS config)
+    // Chỉ áp dụng khi KHÔNG có allowedRoles được chỉ định
     // ============================================
     if (!canAccessRoute(user.role, location.pathname)) {
         const destination = redirectTo || getDefaultRoute(user.role);

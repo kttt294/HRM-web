@@ -1,4 +1,4 @@
-const db = require("../config/database");
+const db = require("../config/database.js");
 const bcrypt = require("bcryptjs");
 const { generateAccessToken, generateRefreshToken, verifyRefreshToken } = require("../utils/jwt");
 
@@ -200,17 +200,19 @@ const authController = {
   // POST /api/auth/change-password
   async changePassword(req, res, next) {
     try {
-      const { oldPassword, newPassword } = req.body;
+      const { currentPassword, newPassword } = req.body;
+      const userId = req.user.id; // Lấy userId từ token
 
-      if (!oldPassword || !newPassword) {
+      // Validation đã được thực hiện bởi middleware, nhưng check lại cho chắc
+      if (!currentPassword || !newPassword) {
         return res.status(400).json({
           message: "Vui lòng nhập mật khẩu cũ và mật khẩu mới",
         });
       }
 
-      // Lấy thông tin user
+      // Lấy thông tin user (để lấy password hash cũ)
       const [users] = await db.query("SELECT * FROM users WHERE id = ?", [
-        req.user.id,
+        userId,
       ]);
 
       if (users.length === 0) {
@@ -222,7 +224,7 @@ const authController = {
       const user = users[0];
 
       // Kiểm tra mật khẩu cũ
-      const isValidPassword = await bcrypt.compare(oldPassword, user.password);
+      const isValidPassword = await bcrypt.compare(currentPassword, user.password);
 
       if (!isValidPassword) {
         return res.status(401).json({
@@ -233,19 +235,20 @@ const authController = {
       // Hash mật khẩu mới
       const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-      // Cập nhật password
+      // Cập nhật password mới vào database
       await db.query("UPDATE users SET password = ? WHERE id = ?", [
         hashedPassword,
-        req.user.id,
+        userId,
       ]);
 
       // Xóa tất cả refresh tokens của user để bắt buộc đăng nhập lại
+      // Đây là behavior bảo mật tốt: Đổi pass xong thì kick hết các session khác ra
       await db.query(
         `DELETE FROM refresh_tokens WHERE user_id = ?`,
         [userId]
       );
 
-      res.json({ message: "Đổi mật khẩu thành công và đã đăng xuất khỏi tất cả thiết bị" });
+      res.json({ message: "Đổi mật khẩu thành công. Vui lòng đăng nhập lại." });
     } catch (error) {
       next(error);
     }

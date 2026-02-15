@@ -17,37 +17,30 @@ const loginLimiter = rateLimit({
     skipSuccessfulRequests: true,
 });
 
-/**
- * Rate Limiter chung cho tất cả API
- * Giới hạn: 100 requests / 15 phút / IP
- * Chống DDoS attack
- */
+// Rate limit chung cho toàn bộ API (nhẹ nhàng hơn)
 const apiLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 phút
-    max: 100, // Tối đa 100 requests
-    message: {
-        message: 'Hệ thống quá tải... Vui lòng thử lại sau.',
-    },
-    standardHeaders: true,
-    legacyHeaders: false,
+  windowMs: 15 * 60 * 1000,
+  max: 100, // 100 requests / 15 phút
+  message: {
+    message: "Quá nhiều yêu cầu từ IP này, vui lòng thử lại sau 15 phút",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
-/**
- * Rate Limiter nghiêm ngặt cho các endpoint nhạy cảm
- * Giới hạn: 3 requests / 15 phút / IP
- */
-const strictLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 3,
-    message: {
-        message: 'Vui lòng thử lại sau 15 phút.',
-    },
-    standardHeaders: true,
-    legacyHeaders: false,
+// Rate limit cho đổi mật khẩu (nghiêm ngặt hơn) - Chỉ dùng cho User tự đổi pass
+const changePasswordLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 giờ
+  max: 5, // Giới hạn 5 lần đổi pass/giờ
+  message: {
+    message: "Bạn đã yêu cầu đổi mật khẩu quá nhiều lần. Vui lòng thử lại sau 1 giờ",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
 module.exports = {
     loginLimiter,
     apiLimiter,
-    strictLimiter,
+    changePasswordLimiter,
 };

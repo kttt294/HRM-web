@@ -47,11 +47,14 @@ export const authApi = {
         return response.json();
     },
 
-    async changePassword(oldPassword: string, newPassword: string): Promise<void> {
+    async changePassword(currentPassword: string, newPassword: string): Promise<void> {
         const response = await authFetch(`${API_BASE}/change-password`, {
             method: 'POST',
-            body: JSON.stringify({ oldPassword, newPassword }),
+            body: JSON.stringify({ currentPassword, newPassword }),
         });
-        if (!response.ok) throw new Error('Failed to change password');
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || 'Đổi mật khẩu thất bại');
+        }
     },
 };
