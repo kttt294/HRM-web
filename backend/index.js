@@ -23,7 +23,12 @@ morgan.token("date", (req, res, tz) => {
     hour12: false
   });
 });
-const accessLogStream = fs.createWriteStream(path.join(__dirname, "logs/access.log"), { flags: "a" });
+const logDirectory = path.join(__dirname, "logs");
+if (!fs.existsSync(logDirectory)) {
+  fs.mkdirSync(logDirectory);
+}
+
+const accessLogStream = fs.createWriteStream(path.join(logDirectory, "access.log"), { flags: "a" });
 app.use(morgan(':remote-addr - :remote-user [:date] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"', { stream: accessLogStream }));
 app.use(morgan("dev"));
 app.use(
