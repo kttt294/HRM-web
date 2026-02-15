@@ -52,11 +52,13 @@ const authController = {
       // Cập nhật thời gian đăng nhập gần nhất
       await db.query("UPDATE users SET last_login_at = NOW() WHERE id = ?", [user.id]);
 
+      console.log('Login User:', user);
+      
       // Tạo payload chung cho cả 2 loại token
       const tokenPayload = {
         id: user.id,
         username: user.username,
-        role: user.role_name,
+        role: user.role_name.toLowerCase(),
       };
 
       // Tạo Access Token (15 phút) và Refresh Token (7 ngày)
@@ -81,7 +83,7 @@ const authController = {
         user: {
           id: user.id.toString(),
           username: user.username,
-          role: user.role_name,
+          role: user.role_name.toLowerCase(),
           avatar: user.avatar,
           createdAt: user.created_at,
           updatedAt: user.updated_at,
@@ -138,7 +140,7 @@ const authController = {
       res.json({
         id: user.id.toString(),
         username: user.username,
-        role: user.role_name,
+        role: user.role_name.toLowerCase(),
         avatar: user.avatar,
         createdAt: user.created_at,
         permissions,

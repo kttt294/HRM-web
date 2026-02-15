@@ -58,6 +58,7 @@ app.use("/api/recruitment/interviews", interviewRoutes);
 app.use("/api/leaves", leaveRoutes);
 app.use("/api/departments", departmentRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/ai", require("./routes/ai.routes.js"));
 
 app.use(errorHandler);
 
