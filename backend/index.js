@@ -2,11 +2,37 @@ const express = require("express");
 const cors = require("cors");
 const errorHandler = require("./middleware/errorHandler");
 require("dotenv").config();
-
 const app = express();
 const PORT = process.env.SERVER_PORT;
+const helmet = require("helmet");
+const morgan = require("morgan");
+const path = require("path");
+const fs = require("fs");
 
 // Middleware
+app.use(helmet());
+
+// Tạo thư mục logs nếu chưa tồn tại
+const logsDir = path.join(__dirname, "logs");
+if (!fs.existsSync(logsDir)) {
+  fs.mkdirSync(logsDir);
+}
+
+// Tạo token date theo giờ Việt Nam
+morgan.token("date", (req, res, tz) => {
+  const date = new Date();
+  // Sửa lại format để hiển thị giờ địa phương (dễ đọc hơn)
+  return date.toLocaleString("vi-VN", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    hour12: false
+  });
+});
+
+// Ghi log vào file access.log
+const accessLogStream = fs.createWriteStream(path.join(logsDir, "access.log"), { flags: "a" });
+// Sử dụng format custom thay vì 'combined' mặc định để dùng token date mới
+app.use(morgan(':remote-addr - :remote-user [:date] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"', { stream: accessLogStream }));
+app.use(morgan("dev"));
 app.use(
   cors({
     origin: process.env.CLIENT_URL,
