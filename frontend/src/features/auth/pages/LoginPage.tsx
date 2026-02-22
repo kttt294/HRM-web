@@ -171,11 +171,11 @@ export function LoginPage() {
           >
             <strong>Tài khoản test:</strong>
             <br />
-            Admin: admin / demo123
+            Admin: admin / admin123
             <br />
-            HR: hr / demo123
+            HR: hr / hr123
             <br />
-            Nhân viên: nhanvien / demo123
+            Nhân viên: nhanvien / nhanvien123
           </p>
         </div>
       </div>
