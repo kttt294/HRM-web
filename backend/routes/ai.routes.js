@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const aiController = require("../controllers/aiController");
 
-router.post("/chat", aiController.chat);
+const authMiddleware = require("../middleware/auth");
+router.post("/chat", authMiddleware, aiController.chat);
 
 module.exports = router;

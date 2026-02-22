@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import '../styles/ChatWidget.css';
 import { aiService } from '../services/ai.service';
 
+import { useAuthStore } from '../../../store/auth.store';
+
 interface Message {
     id: string;
     role: 'user' | 'ai';
@@ -9,10 +11,19 @@ interface Message {
 }
 
 export const ChatWidget: React.FC = () => {
+    const { user } = useAuthStore();
     const [isOpen, setIsOpen] = useState(false);
-    const [messages, setMessages] = useState<Message[]>([
-        { id: 'welcome', role: 'ai', text: 'Xin chào! Tôi là trợ lý ảo HRM. Tôi có thể giúp gì cho bạn?' }
-    ]);
+    
+    // Initial welcome message
+    const [messages, setMessages] = useState<Message[]>([]);
+
+    useEffect(() => {
+        if (!user) {
+            setMessages([{ id: 'welcome', role: 'ai', text: 'Xin chào! Mình có thể giúp gì cho bạn?' }]);
+        } else {
+            setMessages([{ id: 'welcome', role: 'ai', text: `Xin chào ${user.name || user.username}! Mình có thể giúp gì cho bạn?` }]);
+        }
+    }, [user?.id]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
