@@ -14,10 +14,9 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "@google-cloud/vertexai": "^1.10.0",
     "@langchain/community": "^1.1.15",
     "@langchain/core": "^1.1.24",
-    "@langchain/google-genai": "^2.1.18",
+    "@langchain/openai": "^1.2.11",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
