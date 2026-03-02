@@ -43,13 +43,31 @@ export function Header() {
         });
     };
 
-    const getInitials = (name: string) => {
-        return name
-            .split(' ')
-            .map((n) => n[0])
-            .join('')
-            .toUpperCase()
-            .slice(0, 2);
+    const getRoleLabel = (role?: string) => {
+        switch (role) {
+            case 'admin': return 'Quản trị viên';
+            case 'hr': return 'Quản lý nhân sự';
+            case 'employee': return 'Nhân viên';
+            default: return 'Người dùng';
+        }
+    };
+
+    const getRoleStyle = (role?: string): React.CSSProperties => {
+        switch (role) {
+            case 'admin': return { background: '#fef3c7', color: '#92400e' };
+            case 'hr': return { background: '#dbeafe', color: '#1e40af' };
+            case 'employee': return { background: '#d1fae5', color: '#065f46' };
+            default: return { background: '#f3f4f6', color: '#6b7280' };
+        }
+    };
+
+    const getAvatarStyle = (role?: string): React.CSSProperties => {
+        switch (role) {
+            case 'admin': return { background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', boxShadow: '0 2px 8px rgba(245, 158, 11, 0.4)' };
+            case 'hr': return { background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', boxShadow: '0 2px 8px rgba(59, 130, 246, 0.4)' };
+            case 'employee': return { background: 'linear-gradient(135deg, #22c55e 0%, #15803d 100%)', boxShadow: '0 2px 8px rgba(34, 197, 94, 0.4)' };
+            default: return { background: 'linear-gradient(135deg, #94a3b8 0%, #64748b 100%)', boxShadow: '0 2px 8px rgba(148, 163, 184, 0.4)' };
+        }
     };
 
     const handleButtonHover = (e: React.MouseEvent<HTMLButtonElement>, isEnter: boolean) => {
@@ -64,41 +82,46 @@ export function Header() {
     return (
         <header ref={headerRef} id="app-header" style={{ opacity: 0 }}>
             <div className="header-left" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <img 
-                    src={logo} 
-                    alt="HRM Logo" 
-                    className="app-logo" 
-                    style={{ 
-                        height: '40px', 
+                <img
+                    src={logo}
+                    alt="HRM Logo"
+                    className="app-logo"
+                    style={{
+                        height: '40px',
                         borderRadius: '8px'
-                    }} 
+                    }}
                 />
                 <h1 className="app-title">Hệ thống Quản lý Nhân sự</h1>
             </div>
 
             <div className="header-right">
                 <div className="user-menu">
-                    <div 
+                    <div
                         className="user-avatar"
-                        style={{
-                            background: 'linear-gradient(135deg, #1976d2 0%, #7c4dff 100%)',
-                            boxShadow: '0 2px 8px rgba(25, 118, 210, 0.3)',
-                        }}
+                        style={getAvatarStyle(user?.role)}
                     >
-                        {user?.name ? getInitials(user.name) : 'AD'}
+                        {user?.role === 'admin' ? 'AD' : user?.role === 'hr' ? 'HR' : user?.role === 'employee' ? 'EM' : 'AD'}
                     </div>
-                    <span className="user-name">{user?.name || 'Quản trị viên'}</span>
+                    <span style={{
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        padding: '3px 8px',
+                        borderRadius: '4px',
+                        ...getRoleStyle(user?.role),
+                    }}>
+                        {getRoleLabel(user?.role)}
+                    </span>
                 </div>
-                <button 
-                    className="logout-btn" 
+                <button
+                    className="logout-btn"
                     onClick={handleLogout}
                     onMouseEnter={(e) => !isLoggingOut && handleButtonHover(e, true)}
                     onMouseLeave={(e) => !isLoggingOut && handleButtonHover(e, false)}
                     disabled={isLoggingOut}
-                    style={{ 
+                    style={{
                         opacity: isLoggingOut ? 0.8 : 1,
                         cursor: isLoggingOut ? 'wait' : 'pointer',
-                        paddingRight: isLoggingOut ? '20px' : '' 
+                        paddingRight: isLoggingOut ? '20px' : ''
                     }}
                 >
                     {isLoggingOut ? (

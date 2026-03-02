@@ -43,7 +43,7 @@ export function Sidebar() {
                     ============================ */}
                     <ShowForRoles roles={[Role.ADMIN]}>
                         <li className="menu-section" style={{ opacity: 0 }}>
-                            <NavLink to="/admin/users">
+                            <NavLink to="/admin/users" end>
                                 <span className="menu-indicator" style={{ background: '#1976d2' }} />
                                 <span className="menu-text">Bảng điều khiển</span>
                             </NavLink>
@@ -56,12 +56,12 @@ export function Sidebar() {
                             </span>
                             <ul className="submenu">
                                 <li>
-                                    <NavLink to="/admin/users">
+                                    <NavLink to="/admin/users" end>
                                         <span className="menu-text">Tài khoản người dùng</span>
                                     </NavLink>
                                 </li>
                                 <li>
-                                    <NavLink to={ROUTES.ADMIN_EMPLOYEES}>
+                                    <NavLink to={ROUTES.ADMIN_EMPLOYEES} end>
                                         <span className="menu-text">Danh sách nhân viên</span>
                                     </NavLink>
                                 </li>
@@ -79,7 +79,7 @@ export function Sidebar() {
                     ============================ */}
                     <ShowForRoles roles={[Role.HR]}>
                         <li className="menu-section" style={{ opacity: 0 }}>
-                            <NavLink to={ROUTES.HOME}>
+                            <NavLink to={ROUTES.HOME} end>
                                 <span className="menu-indicator" style={{ background: '#1976d2' }} />
                                 <span className="menu-text">Bảng điều khiển</span>
                             </NavLink>
@@ -92,7 +92,7 @@ export function Sidebar() {
                             </span>
                             <ul className="submenu">
                                 <li>
-                                    <NavLink to={ROUTES.EMPLOYEES}>
+                                    <NavLink to={ROUTES.EMPLOYEES} end>
                                         <span className="menu-text">Danh sách nhân viên</span>
                                     </NavLink>
                                 </li>
@@ -102,7 +102,7 @@ export function Sidebar() {
                                     </NavLink>
                                 </li>
                                 <li>
-                                    <NavLink to={ROUTES.DEPARTMENTS}>
+                                    <NavLink to={ROUTES.DEPARTMENTS} end>
                                         <span className="menu-text">Phòng ban</span>
                                     </NavLink>
                                 </li>
@@ -116,17 +116,17 @@ export function Sidebar() {
                             </span>
                             <ul className="submenu">
                                 <li>
-                                    <NavLink to={ROUTES.RECRUITMENT}>
+                                    <NavLink to={ROUTES.RECRUITMENT} end>
                                         <span className="menu-text">Tổng quan</span>
                                     </NavLink>
                                 </li>
                                 <li>
-                                    <NavLink to={ROUTES.VACANCIES}>
+                                    <NavLink to={ROUTES.VACANCIES} end>
                                         <span className="menu-text">Vị trí tuyển dụng</span>
                                     </NavLink>
                                 </li>
                                 <li>
-                                    <NavLink to={ROUTES.CANDIDATES}>
+                                    <NavLink to={ROUTES.CANDIDATES} end>
                                         <span className="menu-text">Ứng viên</span>
                                     </NavLink>
                                 </li>
