@@ -8,10 +8,12 @@ const helmet = require("helmet");
 const morgan = require("morgan");
 const path = require("path");
 const fs = require("fs");
+const cookieParser = require("cookie-parser");
 const { apiLimiter } = require("./middleware/rateLimiter");
 
 // Middleware
 app.use(helmet());
+app.use(cookieParser());
 app.use(express.json({ limit: "30kb" }));
 
 app.use("/api", apiLimiter); // Áp dụng rate limit cho toàn bộ API
@@ -34,6 +36,7 @@ app.use(morgan("dev"));
 app.use(
   cors({
     origin: process.env.FRONTEND_URL,
+    credentials: true,
   }),
 );
 

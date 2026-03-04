@@ -52,16 +52,26 @@ const authController = {
       // Cập nhật thời gian đăng nhập gần nhất
       await db.query("UPDATE users SET last_login_at = NOW() WHERE id = ?", [user.id]);
 
-      // Tạo payload chung cho cả 2 loại token
-      const tokenPayload = {
+      // Lấy permissions từ database
+      const { getUserPermissions } = require("../utils/permissions");
+      const permissions = await getUserPermissions(user.id);
+
+      // Tạo payload cho Access Token (bao gồm cả permissions)
+      const accessTokenPayload = {
         id: user.id,
         username: user.username,
         role: user.role_name,
+        permissions: permissions
+      };
+
+      // Tạo payload cho Refresh Token (chỉ thông tin cơ bản)
+      const refreshTokenPayload = {
+        id: user.id
       };
 
       // Tạo Access Token (15 phút) và Refresh Token (7 ngày)
-      const accessToken = generateAccessToken(tokenPayload);
-      const refreshToken = generateRefreshToken(tokenPayload);
+      const accessToken = generateAccessToken(accessTokenPayload);
+      const refreshToken = generateRefreshToken(refreshTokenPayload);
 
       // Lưu refresh token vào database
       const expiresAt = new Date();
@@ -72,11 +82,15 @@ const authController = {
         [user.id, refreshToken, expiresAt]
       );
 
-      // Lấy permissions từ database
-      const { getUserPermissions } = require("../utils/permissions");
-      const permissions = await getUserPermissions(user.id);
+      // Gửi Refresh Token qua HttpOnly Cookie
+      res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production', // Chỉ gửi qua HTTPS ở prod
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 ngày
+      });
 
-      // Trả về user info và cả 2 tokens
+      // Trả về user info và Access Token (KHÔNG trả về permissions ở body nhạy cảm)
       res.json({
         user: {
           id: user.id.toString(),
@@ -85,10 +99,9 @@ const authController = {
           avatar: user.avatar,
           createdAt: user.created_at,
           updatedAt: user.updated_at,
-          permissions,
+          // permissions nằm trong accessToken, FE sẽ decode nếu cần Render UI
         },
-        accessToken,
-        refreshToken,
+        accessToken
       });
     } catch (error) {
       next(error);
@@ -98,7 +111,7 @@ const authController = {
   // POST /api/auth/logout
   async logout(req, res, next) {
     try {
-      const { refreshToken } = req.body;
+      const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
       
       // Xóa refresh token khỏi database nếu có
       if (refreshToken) {
@@ -107,6 +120,9 @@ const authController = {
           [refreshToken]
         );
       }
+      
+      // Xóa cookie
+      res.clearCookie('refreshToken');
       
       res.json({ message: "Đăng xuất thành công" });
     } catch (error) {
@@ -141,7 +157,6 @@ const authController = {
         role: user.role_name,
         avatar: user.avatar,
         createdAt: user.created_at,
-        permissions,
       });
     } catch (error) {
       next(error);
@@ -152,11 +167,11 @@ const authController = {
   // Endpoint này KHÔNG cần authMiddleware vì refresh token tự verify
   async refreshToken(req, res, next) {
     try {
-      const { refreshToken } = req.body;
+      const refreshToken = req.cookies.refreshToken;
 
       if (!refreshToken) {
-        return res.status(400).json({
-          message: "Refresh token là bắt buộc",
+        return res.status(401).json({
+          message: "Phiên đăng nhập hết hạn (No Refresh Token)",
         });
       }
 
@@ -182,11 +197,29 @@ const authController = {
         });
       }
 
-      // Tạo access token mới
+      // Lấy lại thông tin user để build lại payload đầy đủ cho Access Token
+      const [users] = await db.query(
+        `SELECT u.*, r.name as role_name 
+         FROM users u 
+         JOIN roles r ON u.role_id = r.id 
+         WHERE u.id = ?`,
+        [decoded.id]
+      );
+
+      if (users.length === 0) {
+        return res.status(401).json({ message: "Người dùng không tồn tại" });
+      }
+
+      const user = users[0];
+      const { getUserPermissions } = require("../utils/permissions");
+      const permissions = await getUserPermissions(user.id);
+
+      // Tạo access token mới với đầy đủ payload
       const newAccessToken = generateAccessToken({
-        id: decoded.id,
-        username: decoded.username,
-        role: decoded.role,
+        id: user.id,
+        username: user.username,
+        role: user.role_name,
+        permissions: permissions
       });
 
       res.json({ 

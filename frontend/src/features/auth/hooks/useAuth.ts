@@ -13,8 +13,8 @@ export function useAuth() {
         setError(null);
 
         try {
-            const { user, accessToken, refreshToken } = await authApi.login(username, password);
-            storeLogin(user, accessToken, refreshToken);
+            const { user, accessToken } = await authApi.login(username, password);
+            storeLogin(user, accessToken);
             return true;
         } catch (err) {
             setError('Tên đăng nhập hoặc mật khẩu không đúng');
@@ -25,9 +25,8 @@ export function useAuth() {
     }, [storeLogin]);
 
     const logout = useCallback(async () => {
-        const { refreshToken } = useAuthStore.getState();
         try {
-            await authApi.logout(refreshToken);
+            await authApi.logout();
         } catch (err) {
             console.error('Logout error:', err);
         } finally {
