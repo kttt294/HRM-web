@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useRef, useEffect, useState } from 'react';
 import { useAuthStore } from '../../store/auth.store';
+import { useUIStore } from '../../store/ui.store';
 import { ROUTES } from '../../shared/constants/routes';
 import anime from 'animejs';
 import logo from '../../assets/images/logo.svg';
@@ -12,6 +13,7 @@ import logo from '../../assets/images/logo.svg';
 export function Header() {
     const navigate = useNavigate();
     const { user, logout } = useAuthStore();
+    const { isSidebarOpen, toggleSidebar } = useUIStore();
     const headerRef = useRef<HTMLElement>(null);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -82,6 +84,18 @@ export function Header() {
     return (
         <header ref={headerRef} id="app-header" style={{ opacity: 0 }}>
             <div className="header-left" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <button
+                    className="menu-toggle"
+                    onClick={toggleSidebar}
+                    aria-label={isSidebarOpen ? 'Đóng menu' : 'Mở menu'}
+                    title={isSidebarOpen ? 'Đóng menu' : 'Mở menu'}
+                >
+                    <span className={`hamburger-icon ${isSidebarOpen ? 'open' : ''}`}>
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </span>
+                </button>
                 <img
                     src={logo}
                     alt="HRM Logo"
