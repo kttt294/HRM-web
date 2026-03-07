@@ -6,7 +6,7 @@ import { ROUTES } from '../../../shared/constants/routes';
 
 export function CandidateListPage() {
     const navigate = useNavigate();
-    const { candidates, isLoading } = useCandidates();
+    const { candidates, isLoading, fetchCandidates } = useCandidates();
 
     return (
         <>
@@ -40,6 +40,7 @@ export function CandidateListPage() {
                         candidates={candidates}
                         isLoading={isLoading}
                         onViewDetail={(id) => navigate(ROUTES.CANDIDATE_DETAIL.replace(':id', id))}
+                        onStatusUpdated={fetchCandidates}
                     />
                 </div>
             </div>

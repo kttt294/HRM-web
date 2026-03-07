@@ -1,3 +1,11 @@
+export type CandidateStatus =
+  | "new"
+  | "screening"
+  | "interviewing"
+  | "offered"
+  | "hired"
+  | "rejected";
+
 export interface Candidate {
   id: string;
   fullName: string;
@@ -5,13 +13,7 @@ export interface Candidate {
   phone: string;
   vacancyId: string;
   vacancyTitle: string;
-  status:
-    | "new"
-    | "screening"
-    | "interviewing"
-    | "offered"
-    | "hired"
-    | "rejected";
+  status: CandidateStatus;
   resumeUrl?: string;
   notes?: string;
   appliedAt: string;
