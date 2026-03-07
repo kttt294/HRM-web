@@ -105,10 +105,10 @@ INSERT INTO candidates (vacancy_id, full_name, email, phone, status, applied_at)
 (2, 'Võ Thị E', 'vothie@email.com', '0915678902', 'offered',     '2026-02-08');
 
 -- 10. Interviews
-INSERT INTO interviews (candidate_id, interviewer_id, interview_date, location, title, status, result) VALUES
-(1, 'NV005', '2026-02-15 14:00:00', 'Phòng họp A - Tầng 3', 'Phỏng vấn kỹ thuật', 'completed', 'passed'),
-(1, 'NV001', '2026-02-20 10:00:00', 'Phòng họp B - Tầng 2', 'Phỏng vấn HR',        'scheduled', 'pending'),
-(5, 'NV001', '2026-02-25 15:00:00', 'Phòng họp A - Tầng 4', 'Phỏng vấn HR',        'scheduled', 'pending');
+INSERT INTO interviews (candidate_id, vacancy_id, interviewer_id, interview_date, location, title, status, result) VALUES
+(1, 1, 'NV005', '2026-02-15 14:00:00', 'Phòng họp A - Tầng 3', 'Phỏng vấn kỹ thuật', 'completed', 'passed'),
+(1, 1, 'NV001', '2026-02-20 10:00:00', 'Phòng họp B - Tầng 2', 'Phỏng vấn HR',        'scheduled', 'pending'),
+(5, 2, 'NV001', '2026-02-25 15:00:00', 'Phòng họp A - Tầng 4', 'Phỏng vấn HR',        'scheduled', 'pending');
 
 -- 11. Leave Requests
 INSERT INTO leave_requests (employee_id, leave_type, start_date, end_date, reason, status, approved_by) VALUES

@@ -63,7 +63,7 @@ const interviewController = {
     try {
       const {
         candidateId,
-        vacancyId,
+        vacancyId, // This is no longer directly inserted into interviews, but might be useful for other logic
         title,
         interviewDate,
         location,
@@ -80,8 +80,8 @@ const interviewController = {
 
       const [result] = await db.query(
         `INSERT INTO interviews (
-                    candidate_id, vacancy_id, title, interview_date, 
-                    location, interviewer_id, interviewer_name, 
+                    candidate_id, vacancy_id, title, interview_date,
+                    location, interviewer_id, interviewer_name,
                     status, result, notes
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, 'scheduled', 'pending', ?)`,
         [

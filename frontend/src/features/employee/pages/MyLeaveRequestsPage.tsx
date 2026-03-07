@@ -88,8 +88,7 @@ export function MyLeaveRequestsPage() {
          return;
       }
       await leaveApi.create({
-        ...newRequest,
-        employeeId: user.id
+        ...newRequest
       });
       setShowCreateModal(false);
       setNewRequest({

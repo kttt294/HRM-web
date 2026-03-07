@@ -192,7 +192,9 @@ CREATE TABLE IF NOT EXISTS candidates (
 CREATE TABLE IF NOT EXISTS interviews (
     id INT PRIMARY KEY AUTO_INCREMENT,
     candidate_id INT NOT NULL,
+    vacancy_id INT, -- Thêm cột này để truy vấn nhanh hơn
     interviewer_id VARCHAR(20),
+    interviewer_name VARCHAR(100), -- Thêm trường này nếu cần lưu tên trực tiếp
     interview_date DATETIME NOT NULL,
     location VARCHAR(200),
     title VARCHAR(200),
@@ -203,6 +205,7 @@ CREATE TABLE IF NOT EXISTS interviews (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
     FOREIGN KEY (candidate_id) REFERENCES candidates(id) ON DELETE CASCADE,
+    FOREIGN KEY (vacancy_id) REFERENCES vacancies(id) ON DELETE SET NULL,
     FOREIGN KEY (interviewer_id) REFERENCES employees(id) ON DELETE SET NULL,
 
     INDEX idx_candidate (candidate_id),

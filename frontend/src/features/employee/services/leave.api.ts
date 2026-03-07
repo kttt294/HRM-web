@@ -41,13 +41,16 @@ export const leaveApi = {
   },
 
   async create(
-    data: Omit<LeaveRequest, "id" | "status" | "createdAt">,
+    data: Omit<LeaveRequest, "id" | "status" | "createdAt" | "employeeId"> & { employeeId?: string },
   ): Promise<LeaveRequest> {
     const response = await authFetch(API_BASE, {
       method: "POST",
       body: JSON.stringify(data),
     });
-    if (!response.ok) throw new Error("Failed to create leave request");
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || "Failed to create leave request");
+    }
     return response.json();
   },
 

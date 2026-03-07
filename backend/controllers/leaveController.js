@@ -183,19 +183,20 @@ const leaveController = {
     try {
       let { employeeId, leaveType, startDate, endDate, reason } = req.body;
 
-      // Nếu không truyền employeeId, lấy từ user đang đăng nhập
-      if (!employeeId) {
-        const [employees] = await db.query(
-          "SELECT id FROM employees WHERE user_id = ?",
-          [req.user.id],
-        );
-        if (employees.length === 0) {
-          return res.status(400).json({
-            message: "User không liên kết với nhân viên nào",
-          });
-        }
-        employeeId = employees[0].id;
+      // Luôn ưu tiên lấy employeeId từ user đang đăng nhập để tránh lỗi Foreign Key
+      const [employees] = await db.query(
+        "SELECT id FROM employees WHERE user_id = ?",
+        [req.user.id],
+      );
+      
+      if (employees.length === 0) {
+        return res.status(400).json({
+          message: "Tài khoản của bạn chưa được liên kết với hồ sơ nhân viên.",
+        });
       }
+      
+      employeeId = employees[0].id; // Ghi đè luôn kể cả FE có gửi nhầm
+
 
       if (!leaveType || !startDate || !endDate) {
         return res.status(400).json({
