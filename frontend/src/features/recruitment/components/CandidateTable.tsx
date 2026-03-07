@@ -90,38 +90,65 @@ export function CandidateTable({ candidates, isLoading, onViewDetail, onStatusUp
             width: '30%',
             align: 'center' as const,
             render: (candidate: Candidate) => (
-                <div className="action-buttons" style={{ justifyContent: 'center', gap: '8px' }}>
-                    <Button
-                        size="sm"
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '24px' }}>
+                    <button
                         onClick={(e) => {
                             e.stopPropagation();
                             onViewDetail(candidate.id);
                         }}
+                        style={{
+                            padding: '6px 16px',
+                            borderRadius: '6px',
+                            fontSize: '13px',
+                            fontWeight: 500,
+                            backgroundColor: '#f5f5f5',
+                            color: '#424242',
+                            border: '1px solid #e0e0e0',
+                            cursor: 'pointer',
+                        }}
                     >
                         Xem chi tiết
-                    </Button>
-                    <Button
-                        size="sm"
+                    </button>
+                    <button
                         disabled={isUpdating || candidate.status === 'hired'}
                         onClick={(e) => {
                             e.stopPropagation();
                             handleStatusChange(candidate.id, 'hired');
                         }}
-                        style={{ backgroundColor: '#30ac25ff', borderColor: '#388e3c', color: '#fff' }}
+                        style={{
+                            padding: '6px 16px',
+                            borderRadius: '6px',
+                            fontSize: '13px',
+                            fontWeight: 500,
+                            backgroundColor: '#e8f5e9',
+                            color: '#2e7d32',
+                            border: '1px solid #c8e6c9',
+                            cursor: isUpdating || candidate.status === 'hired' ? 'not-allowed' : 'pointer',
+                            opacity: isUpdating || candidate.status === 'hired' ? 0.5 : 1,
+                        }}
                     >
-                        Đồng ý
-                    </Button>
-                    <Button
-                        size="sm"
-                        variant="danger"
+                        Duyệt
+                    </button>
+                    <button
                         disabled={isUpdating || candidate.status === 'rejected'}
                         onClick={(e) => {
                             e.stopPropagation();
                             handleStatusChange(candidate.id, 'rejected');
                         }}
+                        style={{
+                            padding: '6px 16px',
+                            borderRadius: '6px',
+                            fontSize: '13px',
+                            fontWeight: 500,
+                            backgroundColor: '#ffebee',
+                            color: '#c62828',
+                            border: '1px solid #ffcdd2',
+                            cursor: isUpdating || candidate.status === 'rejected' ? 'not-allowed' : 'pointer',
+                            opacity: isUpdating || candidate.status === 'rejected' ? 0.5 : 1,
+                        }}
                     >
                         Từ chối
-                    </Button>
+                    </button>
                 </div>
             ),
         },
