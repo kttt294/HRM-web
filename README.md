@@ -19,13 +19,15 @@ Bài Tập Lớn - Nhóm 8 - Kỳ 2 2026 - ĐH Phenikaa
 - Tối ưu: Sử dụng Connection Pooling để tăng tốc độ truy vấn database.
 - AI (Nhánh ver2): Tích hợp DeepSeek API hỗ trợ phân tích dữ liệu.
 
-4. HƯỚNG DẪN CHẠY DỰ ÁN:
+4. THIẾT KẾ DATABASE:
+
+![Database Diagram](backend/database/diagram.png)
+
+5. HƯỚNG DẪN CHẠY DỰ ÁN:
 
 - Cách 1 (Docker): Chạy lệnh 'docker-compose up --build'.
 - Cách 2 (Manual):
   + Backend: 'npm install' -> 'npm run init' -> 'npm run dev' (Port 5001).
   + Frontend: 'npm install' -> 'npm run dev' (Port 3000).
 
-5. LIÊN HỆ: 24100093@st.phenikaa-uni.edu.vn
-
-![Database Diagram](backend/database/diagram.png)
+6. LIÊN HỆ: 24100093@st.phenikaa-uni.edu.vn
