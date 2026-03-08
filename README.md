@@ -1,4 +1,4 @@
-HỆ THỐNG QUẢN TRỊ NHÂN SỰ - Nhóm 8 - Kỳ 2 2026 - ĐH Phenikaa
+<h2>HỆ THỐNG QUẢN TRỊ NHÂN SỰ - Nhóm 8 - Kỳ 2 2026 - ĐH Phenikaa</h2>
 
 **1. GIỚI THIỆU**
    Dự án là nền tảng quản trị nhân sự toàn diện, hỗ trợ quản lý hồ sơ nhân viên, quy trình tuyển dụng và phân quyền hệ thống.
