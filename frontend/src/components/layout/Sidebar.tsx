@@ -48,59 +48,60 @@ export function Sidebar() {
                 className={isSidebarOpen ? 'open' : 'closed'}
                 style={{ display: 'flex', flexDirection: 'column' }}
             >
-                {/* Nút đóng (X) bên trong Sidebar */}
-                <button
-                    onClick={closeSidebar}
-                    className="sidebar-close-btn"
-                    style={{
-                        position: 'absolute',
-                        top: '12px',
-                        right: '12px',
-                        background: 'transparent',
-                        border: 'none',
-                        color: 'rgba(255, 255, 255, 0.6)',
-                        cursor: 'pointer',
-                        padding: '8px',
+                {/* Sidebar Header: Nút đóng + Tiêu đề */}
+                <div style={{ paddingBottom: '8px' }}>
+                    <div style={{
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'center',
-                        zIndex: 100,
-                        transition: 'all 0.2s ease',
-                    }}
-                    onMouseEnter={(e) => {
-                        e.currentTarget.style.color = 'white';
-                        e.currentTarget.style.transform = 'scale(1.1)';
-                    }}
-                    onMouseLeave={(e) => {
-                        e.currentTarget.style.color = 'rgba(255, 255, 255, 0.6)';
-                        e.currentTarget.style.transform = 'scale(1)';
-                    }}
-                >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                        <line x1="18" y1="6" x2="6" y2="18" />
-                        <line x1="6" y1="6" x2="18" y2="18" />
-                    </svg>
-                </button>
+                        padding: '12px 16px 4px 16px',
+                        gap: '10px',
+                    }}>
+                        <button
+                            onClick={closeSidebar}
+                            className="sidebar-close-btn"
+                            style={{
+                                background: 'transparent',
+                                border: 'none',
+                                color: 'rgba(255, 255, 255, 0.6)',
+                                cursor: 'pointer',
+                                padding: '4px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                transition: 'all 0.2s ease',
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.color = 'white';
+                                e.currentTarget.style.transform = 'scale(1.1)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.color = 'rgba(255, 255, 255, 0.6)';
+                                e.currentTarget.style.transform = 'scale(1)';
+                            }}
+                        >
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18" />
+                                <line x1="6" y1="6" x2="18" y2="18" />
+                            </svg>
+                        </button>
 
-                {/* Logo Section */}
-                <div style={{
-                    padding: '32px 24px 16px 24px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                }}>
-                    <img 
-                        src="/favicon.png" 
-                        alt="Logo" 
-                        style={{ 
-                            width: '50px', 
-                            height: '50px'
-                        }} 
-                    />
+                        <span className="menu-section-title" style={{ padding: 0, fontSize: '13.5px', marginTop: '2px' }}>
+                            BẢNG ĐIỀU KHIỂN
+                        </span>
+                    </div>
+                    {/* Đường kẻ ngang chỉ dưới phần chữ, không qua nút X */}
+                    <div style={{ 
+                        height: '1px', 
+                        background: 'rgba(255, 255, 255, 0.35)', 
+                        marginLeft: '54px',
+                        marginRight: '30px'
+                    }} />
                 </div>
 
-                <nav className="main-menu" style={{ flex: 1, overflowY: 'auto', paddingTop: '16px' }}>
+                <nav className="main-menu" style={{ flex: 1, overflowY: 'auto', paddingTop: '10px' }}>
                     <ul>
+
+
                         {/* ============================
                             ADMIN MENU - Quản lý hệ thống
                         ============================ */}
@@ -244,7 +245,7 @@ export function Sidebar() {
                         backdropFilter: 'blur(10px)',
                         border: '1.5px solid rgba(255, 255, 255, 0.7)',
                         borderRadius: '8px',
-                        fontSize: '8.4px',
+                        fontSize: '9.7px',
                         color: '#ffffff',
                         textAlign: 'center',
                         fontWeight: '400',
@@ -285,7 +286,7 @@ export function Sidebar() {
                                 border: '1.5px solid rgba(255, 255, 255, 0.7)',
                                 borderRadius: '12px',
                                 color: '#ffffff',
-                                fontSize: '10.7px',
+                                fontSize: '12.3px',
                                 fontWeight: 400,
                                 cursor: isLoggingOut ? 'wait' : 'pointer',
                                 display: 'flex',
