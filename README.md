@@ -28,4 +28,4 @@ Bài Tập Lớn - Nhóm 8 - Kỳ 2 2026 - ĐH Phenikaa
 
 5. LIÊN HỆ: 24100093@st.phenikaa-uni.edu.vn
 
-`<img src = "backend/database/diagram.png">`
+![Database Diagram](backend/database/diagram.png)
