@@ -56,9 +56,9 @@ export function Header() {
 
     const getRoleStyle = (role?: string): React.CSSProperties => {
         switch (role) {
-            case 'admin': return { background: '#fef3c7', color: '#92400e' };
-            case 'hr': return { background: '#dbeafe', color: '#1e40af' };
-            case 'employee': return { background: '#d1fae5', color: '#065f46' };
+            case 'admin': return { background: 'transparent', color: '#92400e', padding: 0 };
+            case 'hr': return { background: 'transparent', color: '#1e40af', padding: 0 };
+            case 'employee': return { background: 'transparent', color: '#065f46', padding: 0 };
             default: return { background: '#f3f4f6', color: '#6b7280' };
         }
     };
