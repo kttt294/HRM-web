@@ -18,9 +18,12 @@ export function EmployeeDetailPage() {
 
   return (
     <>
-      <header>
-        <h1>HỒ SƠ NHÂN VIÊN</h1>
-      </header>
+      <div className="page-header">
+        <div className="page-title-section">
+          <h1>HỒ SƠ NHÂN VIÊN</h1>
+          <p className="page-subtitle">Xem chi tiết hồ sơ, hợp đồng và thông tin công việc</p>
+        </div>
+      </div>
 
       <main id="employee-profile">
         <section data-section="personal">

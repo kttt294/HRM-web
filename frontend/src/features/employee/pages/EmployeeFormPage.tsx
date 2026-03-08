@@ -161,11 +161,16 @@ export function EmployeeFormPage() {
 
   return (
     <>
-      <header>
-        <h1 style={{ fontSize: "22px" }}>
-          {isEditMode ? "CẬP NHẬT NHÂN VIÊN" : "Thêm nhân viên"}
-        </h1>
-      </header>
+      <div className="page-header">
+        <div className="page-title-section">
+          <h1>{isEditMode ? "CẬP NHẬT NHÂN VIÊN" : "THÊM NHÂN VIÊN MỚI"}</h1>
+          <p className="page-subtitle">
+            {isEditMode
+              ? "Cập nhật thông tin chi tiết cho nhân viên"
+              : "Nhập thông tin để thêm nhân viên mới vào hệ thống"}
+          </p>
+        </div>
+      </div>
       <main style={{ marginTop: "24px" }}>
         <form id="employee-form" onSubmit={handleSubmit}>
           {/* ====== THÔNG TIN CÁ NHÂN ====== */}

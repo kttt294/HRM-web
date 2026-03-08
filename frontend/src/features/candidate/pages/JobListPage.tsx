@@ -44,11 +44,6 @@ export function JobListPage() {
         <>
             <div className="page-header">
                 <div className="page-title-section">
-                    <nav className="breadcrumb">
-                        <a href="/">Trang chủ</a>
-                        <span className="breadcrumb-separator">/</span>
-                        <span>Việc làm</span>
-                    </nav>
                     <h1>Cơ hội nghề nghiệp</h1>
                     <p className="page-subtitle">
                         Khám phá các vị trí đang tuyển dụng

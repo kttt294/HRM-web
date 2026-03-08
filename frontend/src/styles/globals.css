@@ -106,8 +106,8 @@
 
   /* Layout */
   --header-height: 64px;
-  --sidebar-width: 220px;
-  --sidebar-collapsed-width: 64px;
+  --sidebar-width: 200px;
+  --sidebar-collapsed-width: 60px;
 }
 
 /* ===== BASE STYLES ===== */
@@ -162,7 +162,7 @@ body {
 }
 
 #app-header .app-title {
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-base);
   font-weight: var(--font-weight-bold);
   color: var(--gray-900);
   letter-spacing: -0.5px;
@@ -321,10 +321,10 @@ body {
 #app-sidebar {
   position: fixed;
   left: 0;
-  top: var(--header-height);
+  top: 0;
   bottom: 0;
   width: var(--sidebar-width);
-  background-color: #040b5d;
+  background-color: #02025f;
   color: white;
   overflow-y: auto;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -354,11 +354,11 @@ body {
 
 #app-sidebar .menu-section-title {
   padding: var(--space-4) var(--space-3) var(--space-2);
-  font-size: 11px;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.95);
   font-weight: 700;
-  color: white;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.1em;
 }
 
 #app-sidebar .main-menu a,
@@ -367,11 +367,11 @@ body {
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-2) var(--space-3);
-  color: white;
+  color: rgba(255, 255, 255, 0.85);
   text-decoration: none;
   border-radius: var(--radius-md);
   transition: all var(--transition-fast);
-  font-size: var(--font-size-sm);
+  font-size: 11px;
   /* Smaller, tighter font */
   font-weight: 500;
   cursor: pointer;
@@ -381,7 +381,7 @@ body {
 #app-sidebar .main-menu a:hover,
 #app-sidebar .main-menu span.menu-parent:hover {
   background-color: rgba(255, 255, 255, 0.05);
-  color: var(--gray-100);
+  color: white;
 }
 
 #app-sidebar .main-menu a.active {
@@ -411,19 +411,20 @@ body {
   margin-left: 26px;
   /* Align with text */
   padding-left: 10px;
-  border-left: 1px solid rgba(255, 255, 255, 0.543);
+  border-left: 1px solid rgba(255, 255, 255, 0.4);
   margin-top: 2px;
   margin-bottom: 2px;
 }
 
 #app-sidebar .submenu a {
   padding: 6px 12px;
-  font-size: var(--font-size-xs);
-  color: rgba(255, 255, 255, 0.85);
+  font-size: 10.7px;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 500;
 }
 
 #app-sidebar .submenu a:hover {
-  color: var(--gray-300);
+  color: white;
   background: transparent;
 }
 
@@ -454,27 +455,6 @@ body {
   flex: 1;
 }
 
-.page-header .breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  margin-bottom: var(--space-2);
-  font-size: var(--font-size-sm);
-  color: var(--gray-500);
-}
-
-.page-header .breadcrumb a {
-  color: var(--primary-500);
-  text-decoration: none;
-}
-
-.page-header .breadcrumb a:hover {
-  text-decoration: underline;
-}
-
-.page-header .breadcrumb-separator {
-  color: var(--gray-400);
-}
 
 .page-header h1 {
   font-size: var(--font-size-2xl);

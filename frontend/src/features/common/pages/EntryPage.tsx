@@ -54,7 +54,7 @@ export function EntryPage() {
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
 <img src="/favicon.png" alt="Logo" style={{ width: '40px', height: '40px' }} />
-                    <span style={{ fontSize: '20px', fontWeight: '700', color: '#1a237e' }}>CÔNG TY CỔ PHẦN ABC</span>
+                    <span style={{ fontSize: '20px', fontWeight: '700', color: '#1a237e' }}>Hệ Thống Quản Lý Nhân Sự</span>
                 </div>
                 
                 <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>

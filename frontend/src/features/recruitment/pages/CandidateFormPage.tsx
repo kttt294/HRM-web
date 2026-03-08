@@ -65,9 +65,12 @@ export function CandidateFormPage() {
 
   return (
     <>
-      <header>
-        <h1>THÊM ỨNG VIÊN MỚI</h1>
-      </header>
+      <div className="page-header">
+        <div className="page-title-section">
+          <h1>THÊM ỨNG VIÊN MỚI</h1>
+          <p className="page-subtitle">Nhập thông tin ứng viên mới vào danh sách theo dõi tuyển dụng</p>
+        </div>
+      </div>
 
       <main>
         <form id="candidate-form" onSubmit={handleSubmit}>

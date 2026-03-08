@@ -67,13 +67,6 @@ export function ApplicationFormPage() {
             <>
                 <div className="page-header">
                     <div className="page-title-section">
-                        <nav className="breadcrumb">
-                            <a href="/">Trang chủ</a>
-                            <span className="breadcrumb-separator">/</span>
-                            <a href={ROUTES.JOBS}>Việc làm</a>
-                            <span className="breadcrumb-separator">/</span>
-                            <span>Ứng tuyển thành công</span>
-                        </nav>
                         <h1>Nộp hồ sơ thành công!</h1>
                     </div>
                 </div>
@@ -101,13 +94,6 @@ export function ApplicationFormPage() {
         <>
             <div className="page-header">
                 <div className="page-title-section">
-                    <nav className="breadcrumb">
-                        <a href="/">Trang chủ</a>
-                        <span className="breadcrumb-separator">/</span>
-                        <a href={ROUTES.JOBS}>Việc làm</a>
-                        <span className="breadcrumb-separator">/</span>
-                        <span>Ứng tuyển</span>
-                    </nav>
                     <h1>Ứng tuyển: {jobTitle}</h1>
                     <p className="page-subtitle">
                         Điền thông tin của bạn để nộp hồ sơ

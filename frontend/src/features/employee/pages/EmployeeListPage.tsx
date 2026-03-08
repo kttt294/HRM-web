@@ -14,11 +14,6 @@ export function EmployeeListPage() {
       {/* Page Header */}
       <div className="page-header">
         <div className="page-title-section">
-          <nav className="breadcrumb">
-            <a href="/">Trang chủ</a>
-            <span className="breadcrumb-separator">/</span>
-            <span>Quản lý nhân sự</span>
-          </nav>
           <h1>Danh sách nhân viên</h1>
           <p className="page-subtitle">
             Quản lý hồ sơ, hợp đồng và lịch sử làm việc của nhân viên

@@ -102,10 +102,12 @@ export function PayrollListPage() {
     <div ref={containerRef}>
       {/* Header */}
       <div className="page-header">
-        <h1>Bảng lương</h1>
-        <p className="page-subtitle">
-          Quản lý và xem bảng lương của tất cả nhân viên
-        </p>
+        <div className="page-title-section">
+          <h1>Bảng lương</h1>
+          <p className="page-subtitle">
+            Quản lý và xem bảng lương của tất cả nhân viên
+          </p>
+        </div>
       </div>
 
       {/* Stats */}

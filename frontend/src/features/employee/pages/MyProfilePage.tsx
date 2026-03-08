@@ -255,11 +255,6 @@ export function MyProfilePage() {
       {/* Page Header */}
       <div className="page-header animate-item" style={{ opacity: 0 }}>
         <div className="page-title-section">
-          <nav className="breadcrumb">
-            <a href="/">Trang chủ</a>
-            <span className="breadcrumb-separator">/</span>
-            <span>Thông tin cá nhân</span>
-          </nav>
           <h1>Thông tin cá nhân</h1>
           <p className="page-subtitle">
             Xem thông tin và cập nhật liên hệ của bạn

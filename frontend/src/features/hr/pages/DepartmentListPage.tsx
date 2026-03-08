@@ -130,7 +130,7 @@ export function DepartmentListPage() {
             width: "100%",
           }}
         >
-          <div>
+          <div className="page-title-section">
             <h1>Quản lý phòng ban</h1>
             <p className="page-subtitle">
               Danh sách các phòng ban trong công ty

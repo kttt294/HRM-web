@@ -167,14 +167,8 @@ export function UserListPage() {
             {/* Header */}
             <div className="page-header">
                 <div className="page-title-section">
-                    <nav className="breadcrumb">
-                        <a href="/">Trang chủ</a>
-                        <span className="breadcrumb-separator">/</span>
-                        <a href="/admin">Quản lý hệ thống</a>
-                        <span className="breadcrumb-separator">/</span>
-                        <span>Tài khoản người dùng</span>
-                    </nav>
                     <h1>Quản lý tài khoản người dùng</h1>
+                    <p className="page-subtitle">Quản lý danh sách người dùng và phân quyền truy cập</p>
                 </div>
             </div>
 

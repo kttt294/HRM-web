@@ -62,10 +62,12 @@ export function MyPayrollPage() {
         <div ref={containerRef}>
             {/* Header */}
             <div className="page-header animate-item" style={{ opacity: 0 }}>
-                <h1>Bảng lương của tôi</h1>
-                <p className="page-subtitle">
-                    Xem chi tiết lương hàng tháng
-                </p>
+                <div className="page-title-section">
+                    <h1>Bảng lương của tôi</h1>
+                    <p className="page-subtitle">
+                        Xem chi tiết lương hàng tháng
+                    </p>
+                </div>
             </div>
 
             {loading ? (

@@ -89,13 +89,6 @@ export function VacancyListPage() {
     <>
       <div className="page-header">
         <div className="page-title-section">
-          <nav className="breadcrumb">
-            <a href="/">Trang chủ</a>
-            <span className="breadcrumb-separator">/</span>
-            <a href="/recruitment">Tuyển dụng</a>
-            <span className="breadcrumb-separator">/</span>
-            <span>Vị trí tuyển dụng</span>
-          </nav>
           <h1>Vị trí tuyển dụng</h1>
           <p className="page-subtitle">
             Quản lý các vị trí đang cần tuyển dụng

@@ -18,11 +18,6 @@ export function RecruitmentDashboardPage() {
         <>
             <div className="page-header">
                 <div className="page-title-section">
-                    <nav className="breadcrumb">
-                        <a href="/">Trang chủ</a>
-                        <span className="breadcrumb-separator">/</span>
-                        <span>Tuyển dụng</span>
-                    </nav>
                     <h1>Tổng quan Tuyển dụng</h1>
                     <p className="page-subtitle">
                         Theo dõi hoạt động tuyển dụng trong tổ chức

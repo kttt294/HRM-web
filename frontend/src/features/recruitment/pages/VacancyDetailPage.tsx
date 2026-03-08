@@ -126,15 +126,6 @@ export function VacancyDetailPage() {
     <>
       <div className="page-header">
         <div className="page-title-section">
-          <nav className="breadcrumb">
-            <a href="/">Trang chủ</a>
-            <span className="breadcrumb-separator">/</span>
-            <a href="/recruitment">Tuyển dụng</a>
-            <span className="breadcrumb-separator">/</span>
-            <a href="/recruitment/vacancies">Vị trí tuyển dụng</a>
-            <span className="breadcrumb-separator">/</span>
-            <span>Chi tiết</span>
-          </nav>
           <h1>Chi tiết vị trí tuyển dụng</h1>
           <p className="page-subtitle">{vacancy.title}</p>
         </div>

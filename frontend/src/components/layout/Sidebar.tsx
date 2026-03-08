@@ -1,7 +1,8 @@
-import { NavLink } from 'react-router-dom';
-import { useRef, useEffect } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { useRef, useEffect, useState } from 'react';
 import { ROUTES } from '../../shared/constants/routes';
 import { useUIStore } from '../../store/ui.store';
+import { useAuthStore } from '../../store/auth.store';
 import { usePermissions, ShowForRoles } from '../guards/PermissionGuard';
 import { Role } from '../../shared/constants/rbac';
 import anime from 'animejs';
@@ -12,9 +13,12 @@ import anime from 'animejs';
  * ============================================
  */
 export function Sidebar() {
+    const navigate = useNavigate();
+    const { logout } = useAuthStore();
     const { isSidebarOpen, closeSidebar } = useUIStore();
     const { isAdmin, isHR, isEmployee } = usePermissions();
     const sidebarRef = useRef<HTMLElement>(null);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
 
     // Entry animation
     useEffect(() => {
@@ -42,20 +46,66 @@ export function Sidebar() {
                 ref={sidebarRef}
                 id="app-sidebar"
                 className={isSidebarOpen ? 'open' : 'closed'}
+                style={{ display: 'flex', flexDirection: 'column' }}
             >
-                <nav className="main-menu">
+                {/* Nút đóng (X) bên trong Sidebar */}
+                <button
+                    onClick={closeSidebar}
+                    className="sidebar-close-btn"
+                    style={{
+                        position: 'absolute',
+                        top: '12px',
+                        right: '12px',
+                        background: 'transparent',
+                        border: 'none',
+                        color: 'rgba(255, 255, 255, 0.6)',
+                        cursor: 'pointer',
+                        padding: '8px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 100,
+                        transition: 'all 0.2s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.color = 'white';
+                        e.currentTarget.style.transform = 'scale(1.1)';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.color = 'rgba(255, 255, 255, 0.6)';
+                        e.currentTarget.style.transform = 'scale(1)';
+                    }}
+                >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </button>
+
+                {/* Logo Section */}
+                <div style={{
+                    padding: '32px 24px 16px 24px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                }}>
+                    <img 
+                        src="/favicon.png" 
+                        alt="Logo" 
+                        style={{ 
+                            width: '50px', 
+                            height: '50px'
+                        }} 
+                    />
+                </div>
+
+                <nav className="main-menu" style={{ flex: 1, overflowY: 'auto', paddingTop: '16px' }}>
                     <ul>
                         {/* ============================
                             ADMIN MENU - Quản lý hệ thống
                         ============================ */}
                         <ShowForRoles roles={[Role.ADMIN]}>
-                            <li className="menu-section" style={{ opacity: 0 }}>
-                                <NavLink to="/admin/users" end>
-                                    <span className="menu-indicator" style={{ background: '#1976d2' }} />
-                                    <span className="menu-text">Bảng điều khiển</span>
-                                </NavLink>
-                            </li>
-
+    
                             <li className="menu-section" style={{ opacity: 0 }}>
                                 <span className="menu-section-title">
                                     <span className="menu-indicator" style={{ background: '#f44336' }} />
@@ -74,7 +124,7 @@ export function Sidebar() {
                                     </li>
                                     <li>
                                         <NavLink to="/admin/users/new">
-                                            <span className="menu-text">Tạo tài khoản Admin mới</span>
+                                            <span className="menu-text">Tạo tài khoản Admin</span>
                                         </NavLink>
                                     </li>
                                 </ul>
@@ -85,12 +135,6 @@ export function Sidebar() {
                             HR MENU - Quản lý nhân sự
                         ============================ */}
                         <ShowForRoles roles={[Role.HR]}>
-                            <li className="menu-section" style={{ opacity: 0 }}>
-                                <NavLink to={ROUTES.HOME} end>
-                                    <span className="menu-indicator" style={{ background: '#1976d2' }} />
-                                    <span className="menu-text">Bảng điều khiển</span>
-                                </NavLink>
-                            </li>
 
                             <li className="menu-section" style={{ opacity: 0 }}>
                                 <span className="menu-section-title">
@@ -188,30 +232,104 @@ export function Sidebar() {
                                 </ul>
                             </li>
                         </ShowForRoles>
-
                     </ul>
                 </nav>
 
-                {/* Role indicator */}
-                <div style={{
-                    position: 'absolute',
-                    bottom: '16px',
-                    left: '12px',
-                    right: '12px',
-                    padding: '10px 12px',
-                    background: 'rgba(255, 255, 255, 0.1)',
-                    backdropFilter: 'blur(10px)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    borderRadius: '8px',
-                    fontSize: '11px',
-                    color: '#ffffff',
-                    textAlign: 'center',
-                    fontWeight: '600',
-                    letterSpacing: '0.5px',
-                }}>
-                    {isAdmin && 'System Admin'}
-                    {isHR && 'HR Manager'}
-                    {isEmployee && 'Nhân viên'}
+                <div className="sidebar-footer" style={{ marginTop: 'auto' }}>
+                    {/* Role indicator */}
+                    <div style={{
+                        padding: '8px 10px',
+                        margin: '0 12px 10px 12px',
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        backdropFilter: 'blur(10px)',
+                        border: '1.5px solid rgba(255, 255, 255, 0.7)',
+                        borderRadius: '8px',
+                        fontSize: '8.4px',
+                        color: '#ffffff',
+                        textAlign: 'center',
+                        fontWeight: '400',
+                        letterSpacing: '0.8px',
+                        textTransform: 'uppercase'
+                    }}>
+                        {isAdmin && 'System Admin'}
+                        {isHR && 'HR Manager'}
+                        {isEmployee && 'Nhân viên'}
+                    </div>
+
+                    {/* Logout Button */}
+                    <div style={{
+                        padding: '0 12px',
+                        marginBottom: '16px'
+                    }}>
+                        <button
+                            className="logout-btn"
+                            onClick={() => {
+                                setIsLoggingOut(true);
+                                anime({
+                                    targets: sidebarRef.current,
+                                    opacity: [1, 0],
+                                    translateX: [0, -50],
+                                    duration: 500,
+                                    easing: 'easeInQuart',
+                                    complete: () => {
+                                        logout();
+                                        navigate(ROUTES.HOME);
+                                    }
+                                });
+                            }}
+                            disabled={isLoggingOut}
+                            style={{
+                                width: '100%',
+                                padding: '10px',
+                                background: 'transparent',
+                                border: '1.5px solid rgba(255, 255, 255, 0.7)',
+                                borderRadius: '12px',
+                                color: '#ffffff',
+                                fontSize: '10.7px',
+                                fontWeight: 400,
+                                cursor: isLoggingOut ? 'wait' : 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '8px',
+                                transition: 'all 0.3s ease',
+                                opacity: isLoggingOut ? 0.7 : 1,
+                                boxShadow: 'none'
+                            }}
+                            onMouseEnter={(e) => {
+                                if (!isLoggingOut) {
+                                    e.currentTarget.style.background = 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)';
+                                    e.currentTarget.style.borderColor = 'transparent';
+                                    e.currentTarget.style.transform = 'translateY(-2px)';
+                                    e.currentTarget.style.boxShadow = '0 6px 15px rgba(239, 68, 68, 0.3)';
+                                }
+                            }}
+                            onMouseLeave={(e) => {
+                                if (!isLoggingOut) {
+                                    e.currentTarget.style.background = 'transparent';
+                                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.7)';
+                                    e.currentTarget.style.transform = 'translateY(0)';
+                                    e.currentTarget.style.boxShadow = 'none';
+                                }
+                            }}
+                        >
+                            {isLoggingOut ? (
+                                <>
+                                    <div className="logout-spinner" />
+                                    <span>Đang đăng xuất...</span>
+                                </>
+                            ) : (
+                                <>
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                                        <polyline points="16 17 21 12 16 7" />
+                                        <line x1="21" y1="12" x2="9" y2="12" />
+                                    </svg>
+                                    <span>Đăng xuất</span>
+                                </>
+                            )}
+                        </button>
+                    </div>
                 </div>
             </aside>
         </>

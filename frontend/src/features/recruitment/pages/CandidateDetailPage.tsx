@@ -58,9 +58,12 @@ export function CandidateDetailPage() {
 
     return (
         <>
-            <header>
-                <h1>THÔNG TIN ỨNG VIÊN</h1>
-            </header>
+            <div className="page-header">
+                <div className="page-title-section">
+                    <h1>THÔNG TIN ỨNG VIÊN</h1>
+                    <p className="page-subtitle">Xem chi tiết hồ sơ, trạng thái ứng tuyển và lịch phỏng vấn của ứng viên</p>
+                </div>
+            </div>
 
             <main>
                 <section className="candidate-info">

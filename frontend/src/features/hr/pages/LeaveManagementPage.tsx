@@ -144,10 +144,12 @@ export function LeaveManagementPage() {
         <div ref={containerRef}>
             {/* Header */}
             <div className="page-header">
-                <h1>Quản lý nghỉ phép</h1>
-                <p className="page-subtitle">
-                    Xem xét và phê duyệt các đơn xin nghỉ phép từ nhân viên
-                </p>
+                <div className="page-title-section">
+                    <h1>Quản lý nghỉ phép</h1>
+                    <p className="page-subtitle">
+                        Xem xét và phê duyệt các đơn xin nghỉ phép từ nhân viên
+                    </p>
+                </div>
             </div>
 
             {/* Stats Cards */}

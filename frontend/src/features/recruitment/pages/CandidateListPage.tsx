@@ -12,13 +12,6 @@ export function CandidateListPage() {
         <>
             <div className="page-header">
                 <div className="page-title-section">
-                    <nav className="breadcrumb">
-                        <a href="/">Trang chủ</a>
-                        <span className="breadcrumb-separator">/</span>
-                        <a href="/recruitment">Tuyển dụng</a>
-                        <span className="breadcrumb-separator">/</span>
-                        <span>Ứng viên</span>
-                    </nav>
                     <h1>Danh sách ứng viên</h1>
                     <p className="page-subtitle">
                         Quản lý và theo dõi ứng viên trong quy trình tuyển dụng

@@ -120,9 +120,16 @@ export function VacancyFormPage() {
 
   return (
     <>
-      <header>
-        <h1>{isEditMode ? 'CHỈNH SỬA VỊ TRÍ TUYỂN DỤNG' : 'THÊM VỊ TRÍ TUYỂN DỤNG MỚI'}</h1>
-      </header>
+      <div className="page-header">
+        <div className="page-title-section">
+          <h1>{isEditMode ? "CHỈNH SỬA VỊ TRÍ TUYỂN DỤNG" : "THÊM VỊ TRÍ TUYỂN DỤNG MỚI"}</h1>
+          <p className="page-subtitle">
+            {isEditMode
+              ? "Cập nhật thông tin chi tiết cho vị trí đang tuyển dụng"
+              : "Tạo tin tuyển dụng mới để thu hút nhân tài cho công ty"}
+          </p>
+        </div>
+      </div>
 
       <main>
         <form id="vacancy-form" onSubmit={handleSubmit}>

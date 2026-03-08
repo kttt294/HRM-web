@@ -187,7 +187,7 @@ export function MyLeaveRequestsPage() {
             width: "100%",
           }}
         >
-          <div style={{ flex: 1 }}>
+          <div className="page-title-section">
             <h1>Yêu cầu nghỉ phép</h1>
             <p className="page-subtitle">
               Xem và gửi đơn xin nghỉ phép của bạn
