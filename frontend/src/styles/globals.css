@@ -106,7 +106,7 @@
 
   /* Layout */
   --header-height: 64px;
-  --sidebar-width: 250px;
+  --sidebar-width: 220px;
   --sidebar-collapsed-width: 64px;
 }
 
@@ -324,8 +324,8 @@ body {
   top: var(--header-height);
   bottom: 0;
   width: var(--sidebar-width);
-  background-color: var(--gray-800);
-  color: var(--gray-300);
+  background-color: #040b5d;
+  color: white;
   overflow-y: auto;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 90;
@@ -356,7 +356,7 @@ body {
   padding: var(--space-4) var(--space-3) var(--space-2);
   font-size: 11px;
   font-weight: 700;
-  color: var(--gray-500);
+  color: white;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -367,7 +367,7 @@ body {
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-2) var(--space-3);
-  color: var(--gray-400);
+  color: white;
   text-decoration: none;
   border-radius: var(--radius-md);
   transition: all var(--transition-fast);
@@ -411,7 +411,7 @@ body {
   margin-left: 26px;
   /* Align with text */
   padding-left: 10px;
-  border-left: 1px solid var(--gray-700);
+  border-left: 1px solid rgba(255, 255, 255, 0.543);
   margin-top: 2px;
   margin-bottom: 2px;
 }
@@ -419,7 +419,7 @@ body {
 #app-sidebar .submenu a {
   padding: 6px 12px;
   font-size: var(--font-size-xs);
-  color: var(--gray-500);
+  color: rgba(255, 255, 255, 0.85);
 }
 
 #app-sidebar .submenu a:hover {

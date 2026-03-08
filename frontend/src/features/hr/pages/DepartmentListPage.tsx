@@ -137,7 +137,7 @@ export function DepartmentListPage() {
             </p>
           </div>
           <div style={{ marginLeft: "auto" }}>
-            <Button onClick={handleAdd}>+ Thêm phòng ban</Button>
+            <Button onClick={handleAdd}>Thêm phòng ban</Button>
           </div>
         </div>
       </div>

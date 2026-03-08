@@ -89,19 +89,16 @@ export function LoginPage() {
         {/* Logo */}
         <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
           <img
-            src="/favicon.svg"
+            src="/favicon.png"
             alt="Logo"
             style={{ width: "66px", height: "66px", marginBottom:"16px" }}
           />
         </div>
 
 
-        <h1 className="animate-item" style={{ opacity: 0 }}>
-          Hệ thống Quản lý Nhân sự
+        <h1 className="animate-item" style={{ opacity: 0, marginBottom: '60px', color: '#000000ff' }}>
+          Hệ Thống Quản Lý Nhân Sự
         </h1>
-        <h2 className="animate-item" style={{ opacity: 0 }}>
-          Đăng nhập vào tài khoản
-        </h2>
 
         {error && (
           <div className="error-alert animate-item" style={{ opacity: 0 }}>
@@ -155,28 +152,12 @@ export function LoginPage() {
         <div
           className="animate-item"
           style={{
-            marginTop: "32px",
+            marginTop: "60px",
             paddingTop: "24px",
             borderTop: "1px solid #e0e0e0",
             opacity: 0,
           }}
         >
-          <p
-            style={{
-              fontSize: "12px",
-              color: "#757575",
-              textAlign: "center",
-              lineHeight: "1.8",
-            }}
-          >
-            <strong>Tài khoản test:</strong>
-            <br />
-            Admin: admin / admin123
-            <br />
-            HR: hr / hr123
-            <br />
-            Nhân viên: nhanvien / nhanvien123
-          </p>
         </div>
       </div>
     </div>

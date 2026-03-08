@@ -53,8 +53,8 @@ export function EntryPage() {
                 borderBottom: '1px solid #f0f0f0',
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-<img src="/favicon.svg" alt="Logo" style={{ width: '40px', height: '40px' }} />
-                    <span style={{ fontSize: '20px', fontWeight: '700', color: '#1a237e' }}>Hệ thống Quản lý Nhân sự</span>
+<img src="/favicon.png" alt="Logo" style={{ width: '40px', height: '40px' }} />
+                    <span style={{ fontSize: '20px', fontWeight: '700', color: '#1a237e' }}>CÔNG TY CỔ PHẦN ABC</span>
                 </div>
                 
                 <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>

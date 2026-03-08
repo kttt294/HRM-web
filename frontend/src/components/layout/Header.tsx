@@ -4,7 +4,7 @@ import { useAuthStore } from '../../store/auth.store';
 import { useUIStore } from '../../store/ui.store';
 import { ROUTES } from '../../shared/constants/routes';
 import anime from 'animejs';
-import logo from '../../assets/images/logo.svg';
+
 
 /**
  * Header component với animations
@@ -97,7 +97,7 @@ export function Header() {
                     </span>
                 </button>
                 <img
-                    src={logo}
+                    src="/favicon.png"
                     alt="HRM Logo"
                     className="app-logo"
                     style={{
@@ -105,7 +105,7 @@ export function Header() {
                         borderRadius: '8px'
                     }}
                 />
-                <h1 className="app-title">Hệ thống Quản lý Nhân sự</h1>
+                <h1 className="app-title">CÔNG TY CỔ PHẦN ABC</h1>
             </div>
 
             <div className="header-right">

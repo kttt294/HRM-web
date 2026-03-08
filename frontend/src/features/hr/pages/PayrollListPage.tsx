@@ -14,12 +14,19 @@ export function PayrollListPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [payrolls, setPayrolls] = useState<Payroll[]>([]);
   const [loading, setLoading] = useState(true);
-  const [monthFilter, setMonthFilter] = useState<number>(
-    new Date().getMonth() + 1,
-  );
-  const [yearFilter, setYearFilter] = useState<number>(
-    new Date().getFullYear(),
-  );
+  const getDefaultDate = () => {
+    const date = new Date();
+    date.setMonth(date.getMonth() - 1);
+    return {
+      month: date.getMonth() + 1,
+      year: date.getFullYear(),
+    };
+  };
+
+  const defaultDate = getDefaultDate();
+
+  const [monthFilter, setMonthFilter] = useState<number>(defaultDate.month);
+  const [yearFilter, setYearFilter] = useState<number>(defaultDate.year);
   const [selectedPayroll, setSelectedPayroll] = useState<Payroll | null>(null);
 
   const fetchPayrolls = async () => {

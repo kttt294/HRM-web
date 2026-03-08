@@ -26,7 +26,7 @@ export function EmployeeListPage() {
         </div>
         <div className="page-actions">
           <Button onClick={() => navigate(ROUTES.EMPLOYEE_NEW)}>
-            <span style={{ marginRight: "8px" }}>+</span> Thêm nhân viên
+            Thêm nhân viên
           </Button>
         </div>
       </div>

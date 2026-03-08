@@ -34,8 +34,8 @@ export function CandidateLayout() {
                     gap: '12px',
                     textDecoration: 'none',
                 }}>
-                    <img src="/favicon.svg" alt="Logo" style={{ width: '40px', height: '40px' }} />
-                    <span style={{ fontSize: '20px', fontWeight: '700', color: '#1a237e' }}>Hệ thống Quản lý Nhân sự</span>
+                    <img src="/favicon.png" alt="Logo" style={{ width: '40px', height: '40px' }} />
+                    <span style={{ fontSize: '20px', fontWeight: '700', color: '#1a237e' }}>Hệ Thống Quản Lý Nhân Sự</span>
                 </Link>
 
                 {/* Navigation */}

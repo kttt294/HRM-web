@@ -196,15 +196,18 @@ export function Sidebar() {
                 <div style={{
                     position: 'absolute',
                     bottom: '16px',
-                    left: '16px',
-                    right: '16px',
+                    left: '12px',
+                    right: '12px',
                     padding: '10px 12px',
-                    background: 'linear-gradient(135deg, #f5f5f5 0%, #eeeeee 100%)',
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
                     borderRadius: '8px',
                     fontSize: '11px',
-                    color: '#757575',
+                    color: '#ffffff',
                     textAlign: 'center',
-                    fontWeight: '500',
+                    fontWeight: '600',
+                    letterSpacing: '0.5px',
                 }}>
                     {isAdmin && 'System Admin'}
                     {isHR && 'HR Manager'}
