@@ -60,6 +60,11 @@ export const useAuthStore = create<AuthState>()(
         }),
         {
             name: 'auth-storage',
+            // Only persist token and auth status, fetch user data on app load
+            partialize: (state) => ({
+                token: state.token,
+                isAuthenticated: state.isAuthenticated,
+            }),
         }
     )
 );

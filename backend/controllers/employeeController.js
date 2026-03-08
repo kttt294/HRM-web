@@ -5,7 +5,7 @@ const employeeController = {
   // GET /api/employees
   async getAll(req, res, next) {
     try {
-      const { name, id, jobTitle, status } = req.query;
+      const { name, id, jobTitle, status, departmentId } = req.query;
 
       let query = `SELECT e.id, e.full_name, e.job_title, e.department_id, e.status, e.employee_type, 
                           e.phone, e.hire_date,
@@ -32,6 +32,10 @@ const employeeController = {
       if (status) {
         query += " AND e.status = ?";
         params.push(status);
+      }
+      if (departmentId) {
+        query += " AND e.department_id = ?";
+        params.push(departmentId);
       }
 
       const [employees] = await db.query(query, params);
@@ -304,25 +308,6 @@ const employeeController = {
       }
 
       res.json(toCamelCase(updatedEmployee[0]));
-    } catch (error) {
-      next(error);
-    }
-  },
-
-  // DELETE /api/employees/:id
-  async delete(req, res, next) {
-    try {
-      const [result] = await db.query("DELETE FROM employees WHERE id = ?", [
-        req.params.id,
-      ]);
-
-      if (result.affectedRows === 0) {
-        return res.status(404).json({
-          message: "Không tìm thấy nhân viên",
-        });
-      }
-
-      res.json({ message: "Xóa nhân viên thành công" });
     } catch (error) {
       next(error);
     }

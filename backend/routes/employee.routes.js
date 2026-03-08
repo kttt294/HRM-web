@@ -38,11 +38,5 @@ router.patch(
   employeeController.update,
 );
 
-// DELETE - cần quyền delete
-router.delete(
-  "/:id",
-  requirePermission("delete_employees"),
-  employeeController.delete,
-);
 
 module.exports = router;
