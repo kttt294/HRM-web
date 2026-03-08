@@ -1,5 +1,5 @@
 import { Table } from '../../../components/ui/Table';
-import { Button } from '../../../components/ui/Button';
+
 import { Candidate, CandidateStatus } from '../models/candidate.model';
 import { useUpdateCandidateStatus } from '../hooks/useUpdateCandidateStatus';
 
