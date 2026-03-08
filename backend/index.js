@@ -3,7 +3,7 @@ const cors = require("cors");
 const errorHandler = require("./middleware/errorHandler.js");
 require("dotenv").config();
 const app = express();
-const PORT = process.env.SERVER_PORT;
+const PORT = process.env.PORT || process.env.SERVER_PORT || 5001;
 const helmet = require("helmet");
 const morgan = require("morgan");
 const path = require("path");

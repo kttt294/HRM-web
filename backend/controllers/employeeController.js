@@ -49,9 +49,10 @@ const employeeController = {
   async getMe(req, res, next) {
     try {
       const [employees] = await db.query(
-        `SELECT e.*, d.name as department_name 
+        `SELECT e.*, d.name as department_name, s.full_name as supervisor_name 
          FROM employees e
          LEFT JOIN departments d ON e.department_id = d.id
+         LEFT JOIN employees s ON e.supervisor_id = s.id
          WHERE e.user_id = ?`,
         [req.user.id],
       );
@@ -135,9 +136,10 @@ const employeeController = {
       );
 
       const [updatedEmployee] = await db.query(
-        `SELECT e.*, d.name as department_name 
+        `SELECT e.*, d.name as department_name, s.full_name as supervisor_name 
          FROM employees e
          LEFT JOIN departments d ON e.department_id = d.id
+         LEFT JOIN employees s ON e.supervisor_id = s.id
          WHERE e.id = ?`,
         [employeeId],
       );

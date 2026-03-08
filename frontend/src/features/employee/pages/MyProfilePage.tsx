@@ -5,9 +5,7 @@ import { Button } from "../../../components/ui/Button";
 import { Input } from "../../../components/ui/Input";
 import { employeeApi } from "../services/employee.api";
 import { authApi } from "../../auth/services/auth.api";
-import { departmentApi } from "../../hr/services/department.api";
 import { Employee } from "../models/employee.model";
-import { Department } from "../../hr/models/department.model";
 import {
   GENDER_LABELS,
   GENDER_OPTIONS,
@@ -54,8 +52,6 @@ export function MyProfilePage() {
 
   // Data from API
   const [profile, setProfile] = useState<Employee | null>(null);
-  const [departments, setDepartments] = useState<Department[]>([]);
-  const [supervisorName, setSupervisorName] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
   // Fetch profile data
@@ -63,22 +59,10 @@ export function MyProfilePage() {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const depts = await departmentApi.getAll();
-        setDepartments(depts);
-
-        // Fetch employee profile using /me endpoint
+        // Fetch employee profile using updated /me endpoint
+        // Backend now returns departmentName and supervisorName via JOINs
         const emp = await employeeApi.getMe();
         setProfile(emp);
-
-        // Resolve supervisor name
-        if (emp.supervisorId) {
-          try {
-            const sup = await employeeApi.getById(emp.supervisorId);
-            setSupervisorName(sup.fullName);
-          } catch {
-            setSupervisorName(emp.supervisorId);
-          }
-        }
       } catch (err) {
         console.error("Failed to load profile:", err);
       } finally {
@@ -121,12 +105,6 @@ export function MyProfilePage() {
       duration: 200,
       easing: "easeOutQuad",
     });
-  };
-
-  // Helper: resolve department name
-  const getDepartmentName = (deptId: string) => {
-    const dept = departments.find((d) => d.id === deptId);
-    return dept?.name || deptId;
   };
 
   // Helper: resolve gender label
@@ -319,7 +297,7 @@ export function MyProfilePage() {
                 }}
               >
                 {profile?.jobTitle ? `${profile.jobTitle} — ` : ""}
-                {profile ? getDepartmentName(profile.departmentId) : ""}
+                {profile?.departmentName || profile?.departmentId || ""}
                 {profile?.employeeType
                   ? ` • ${getEmployeeTypeLabel(profile.employeeType)}`
                   : ""}
@@ -524,11 +502,7 @@ export function MyProfilePage() {
               />
               <InfoRow
                 label="Phòng ban"
-                value={
-                  profile?.departmentId
-                    ? getDepartmentName(profile.departmentId)
-                    : "—"
-                }
+                value={profile?.departmentName || profile?.departmentId || "—"}
                 color="#7c4dff"
               />
               <InfoRow
@@ -538,7 +512,7 @@ export function MyProfilePage() {
               />
               <InfoRow
                 label="Quản lý trực tiếp"
-                value={supervisorName || "—"}
+                value={profile?.supervisorName || profile?.supervisorId || "—"}
                 color="#00bcd4"
               />
               <InfoRow
