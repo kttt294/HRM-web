@@ -1,52 +1,139 @@
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useEmployeeDetail } from "../hooks/useEmployeeDetail";
-import { JobInfoSection } from "../components/JobInfoSection";
-import { SalarySection } from "../components/SalarySection";
 import { formatDate } from "../../../shared/utils/date.util";
+import { formatCurrency } from "../../../shared/utils/format.util";
+import { Button } from "../../../components/ui/Button";
+import { ROUTES } from "../../../shared/constants/routes";
+import { useMemo } from "react";
 
 export function EmployeeDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { employee, isLoading } = useEmployeeDetail(id!);
 
+  const personalFields = useMemo(() => {
+    if (!employee) return [];
+    return [
+      { label: "Mã nhân viên", value: employee.id || "—" },
+      { label: "Họ và tên", value: employee.fullName || "—" },
+      { label: "Ngày sinh", value: formatDate(employee.dateOfBirth) },
+      { label: "Giới tính", value: employee.gender || "—" },
+      { label: "Số CCCD", value: employee.nationalId || "—" },
+      { label: "Số điện thoại", value: employee.phone || "—" },
+      { label: "Địa chỉ", value: employee.address || "—" },
+    ];
+  }, [employee]);
+
+  const jobFields = useMemo(() => {
+    if (!employee) return [];
+    return [
+      { label: "Phòng ban", value: employee.departmentName || employee.departmentId || "—" },
+      { label: "Chức danh", value: employee.jobTitle || "—" },
+      { label: "Người quản lý", value: employee.supervisorId || "—" },
+      { label: "Ngày vào làm", value: formatDate(employee.hireDate) },
+      { label: "Loại hình nhân viên", value: employee.employeeType || "—" },
+      { label: "Trạng thái", value: employee.status || "—" },
+    ];
+  }, [employee]);
+
+  const salaryFields = useMemo(() => {
+    if (!employee) return [];
+    return [
+      { label: "Lương cơ bản", value: formatCurrency(employee.baseSalary) },
+      { label: "Phụ cấp", value: formatCurrency(employee.allowance) },
+    ];
+  }, [employee]);
+
   if (isLoading) {
-    return <div>Đang tải...</div>;
+    return <div className="loading">Đang tải chi tiết nhân viên...</div>;
   }
 
   if (!employee) {
-    return <div>Không tìm thấy nhân viên</div>;
+    return (
+      <div className="card">
+        <div className="card-body">
+          <p>Không tìm thấy nhân viên</p>
+          <Button onClick={() => navigate(ROUTES.EMPLOYEES)}>
+            Quay lại danh sách
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   return (
     <>
       <div className="page-header">
         <div className="page-title-section">
-          <h1>HỒ SƠ NHÂN VIÊN</h1>
-          <p className="page-subtitle">Xem chi tiết hồ sơ, hợp đồng và thông tin công việc</p>
+          <h1>Hồ sơ nhân viên</h1>
+          <p className="page-subtitle">{employee.fullName} - {employee.jobTitle}</p>
+        </div>
+        <div className="page-actions">
+          <Button
+            variant="secondary"
+            onClick={() => navigate(ROUTES.EMPLOYEES)}
+          >
+            Quay lại danh sách
+          </Button>
+          <Button onClick={() => navigate(ROUTES.EMPLOYEE_EDIT.replace(":id", employee.id))}>
+            Chỉnh sửa
+          </Button>
         </div>
       </div>
 
-      <main id="employee-profile">
-        <section data-section="personal">
+      <div className="card" style={{ marginBottom: '24px' }}>
+        <div className="card-header">
           <h2>Thông tin cá nhân</h2>
-          <ul id="personal-info">
-            <li>
-              <strong>Họ và tên:</strong> {employee.fullName}
-            </li>
-            <li>
-              <strong>Ngày sinh:</strong> {formatDate(employee.dateOfBirth)}
-            </li>
-            <li>
-              <strong>Giới tính:</strong> {employee.gender}
-            </li>
-            <li>
-              <strong>Số CCCD:</strong> {employee.nationalId}
-            </li>
-          </ul>
-        </section>
+        </div>
+        <div className="card-body">
+          <table className="data-table">
+            <tbody>
+              {personalFields.map((field) => (
+                <tr key={field.label}>
+                  <td style={{ width: "260px", fontWeight: 600 }}>{field.label}</td>
+                  <td>{field.value}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-        <JobInfoSection employee={employee} />
-        <SalarySection employee={employee} />
-      </main>
+      <div className="card" style={{ marginBottom: '24px' }}>
+        <div className="card-header">
+          <h2>Thông tin công việc</h2>
+        </div>
+        <div className="card-body">
+          <table className="data-table">
+            <tbody>
+              {jobFields.map((field) => (
+                <tr key={field.label}>
+                  <td style={{ width: "260px", fontWeight: 600 }}>{field.label}</td>
+                  <td>{field.value}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="card" style={{ marginBottom: '24px' }}>
+        <div className="card-header">
+          <h2>Thông tin lương</h2>
+        </div>
+        <div className="card-body">
+          <table className="data-table">
+            <tbody>
+              {salaryFields.map((field) => (
+                <tr key={field.label}>
+                  <td style={{ width: "260px", fontWeight: 600 }}>{field.label}</td>
+                  <td>{field.value}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </>
   );
 }
