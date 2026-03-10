@@ -16,7 +16,7 @@ const authController = {
 
       // Tìm user và lấy luôn employeeId (nếu có)
       const [users] = await db.query(
-        `SELECT u.*, r.name as role_name, e.id as employee_id
+        `SELECT u.*, r.name as role_name, e.id as employee_id, e.full_name as name
                  FROM users u 
                  JOIN roles r ON u.role_id = r.id 
                  LEFT JOIN employees e ON u.id = e.user_id
@@ -60,6 +60,7 @@ const authController = {
         id: user.id,
         employeeId: user.employee_id,
         username: user.username,
+        name: user.name || user.username,
         role: user.role_name,
         permissions: permissions
       };
@@ -95,11 +96,11 @@ const authController = {
         user: {
           id: user.id.toString(),
           username: user.username,
+          name: user.name || user.username,
           role: user.role_name,
           avatar: user.avatar,
           createdAt: user.created_at,
           updatedAt: user.updated_at,
-          // permissions nằm trong accessToken, FE sẽ decode nếu cần Render UI
         },
         accessToken
       });
@@ -134,9 +135,10 @@ const authController = {
   async me(req, res, next) {
     try {
       const [users] = await db.query(
-        `SELECT u.*, r.name as role_name 
+        `SELECT u.*, r.name as role_name, e.full_name as name
                  FROM users u 
                  JOIN roles r ON u.role_id = r.id 
+                 LEFT JOIN employees e ON u.id = e.user_id
                  WHERE u.id = ?`,
         [req.user.id],
       );
@@ -154,6 +156,7 @@ const authController = {
       res.json({
         id: user.id.toString(),
         username: user.username,
+        name: user.name || user.username,
         role: user.role_name,
         avatar: user.avatar,
         createdAt: user.created_at,
@@ -199,7 +202,7 @@ const authController = {
 
       // Lấy lại thông tin user kèm employeeId
       const [users] = await db.query(
-        `SELECT u.*, r.name as role_name, e.id as employee_id
+        `SELECT u.*, r.name as role_name, e.id as employee_id, e.full_name as name
          FROM users u 
          JOIN roles r ON u.role_id = r.id 
          LEFT JOIN employees e ON u.id = e.user_id
@@ -220,6 +223,7 @@ const authController = {
         id: user.id,
         employeeId: user.employee_id,
         username: user.username,
+        name: user.name || user.username,
         role: user.role_name,
         permissions: permissions
       });

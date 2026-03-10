@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { useUIStore } from '../../store/ui.store';
+import { Chatbot } from '../../features/chatbot/components/Chatbot';
 
 export function MainLayout() {
     const { isSidebarOpen, toggleSidebar } = useUIStore();
@@ -80,6 +81,9 @@ export function MainLayout() {
             <footer id="app-footer">
                 <p>[Nhóm 8] BTL Kỹ thuật phần mềm - kỳ 2 - năm 2026 - ĐH Phenikaa</p>
             </footer>
+
+            {/* AI Chatbot Floating Component */}
+            <Chatbot />
         </div>
     );
 }
