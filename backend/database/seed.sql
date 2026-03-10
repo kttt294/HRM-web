@@ -99,3 +99,24 @@ INSERT INTO employees (
 -- 8. Cập nhật Manager
 UPDATE departments SET manager_id = 2 WHERE id = 1;
 UPDATE departments SET manager_id = 1 WHERE id = 2;
+
+-- 9. Vacancies
+INSERT INTO vacancies (id, title, job_title_id, department_id, recruiter_id, description, requirements, number_of_positions, min_salary, max_salary, deadline, status) VALUES
+(1, 'Tuyển dụng Lập trình viên Senior Java', 4, 1, 1, 'Làm việc với các dự án lớn, xây dựng hệ thống core CRM...', 'Tối thiểu 3 năm kinh nghiệm với Java Spring Boot. Tiếng Anh đọc hiểu tốt.', 2, 20000000, 35000000, '2027-12-31', 'open'),
+(2, 'Tuyển dụng Chuyên viên Marketing Tương tác', 6, 2, 1, 'Quản trị các kênh truyền thông xã hội, lên plan nội dung hằng tháng', 'Sáng tạo, hiểu biết về các nền tảng Tiktok, Facebook. Có 1 năm kinh nghiệm trở lên.', 1, 10000000, 15000000, '2027-10-15', 'open'),
+(3, 'Thực tập sinh Lập trình', 5, 1, 2, 'Thực tập sinh cho dự án internal, có cơ hội thăng tiến lên nhân viên chính thức.', 'Sinh viên năm cuối các trường CNTT, nắm vững kiến thức cơ bản về OOP, Database.', 5, 3000000, 5000000, '2027-08-30', 'closed');
+
+-- 10. Candidates
+INSERT INTO candidates (id, vacancy_id, full_name, email, phone, resume_url, status) VALUES
+(1, 1, 'Nguyễn Văn Ứng Viên', 'ungvien1@gmail.com', '0987654321', 'https://example.com/cv/ungvien1.pdf', 'interviewing'),
+(2, 1, 'Trần Thị Giỏi', 'gioidt@gmail.com', '0911223344', 'https://example.com/cv/gioidt.pdf', 'screening'),
+(3, 2, 'Lê Marketing', 'lektm@gmail.com', '0955667788', 'https://example.com/cv/lektm.pdf', 'new'),
+(4, 3, 'Phạm Thực Tập', 'phamtt@gmail.com', '0999888777', 'https://example.com/cv/phamtt.pdf', 'hired');
+
+-- 11. Interviews
+INSERT INTO interviews (id, candidate_id, interviewer_id, interview_date, location, status, result, notes) VALUES
+(1, 1, 2, '2027-09-10 09:00:00', 'Phòng họp Tầng 3', 'completed', 'passed', 'Ứng viên nắm vững kiến thức, thái độ tốt, phù hợp văn hóa.'),
+(2, 1, 1, '2027-09-15 14:00:00', 'Phòng họp Tầng 3', 'scheduled', 'pending', 'Vòng phỏng vấn thứ 2 với Manager'),
+(3, 2, 2, '2027-09-12 10:00:00', 'Online qua Zoom', 'completed', 'failed', 'Ứng viên chưa hiểu rõ về Spring Boot, cần thêm thời gian trau dồi.'),
+(4, 4, 2, '2027-07-20 15:30:00', 'Phòng họp Tầng 2', 'completed', 'passed', 'Ứng viên tiềm năng, đã offer thành công.');
+
