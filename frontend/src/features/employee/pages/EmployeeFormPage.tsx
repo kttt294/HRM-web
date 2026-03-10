@@ -151,8 +151,8 @@ export function EmployeeFormPage() {
       if (isEditMode && id) {
         await employeeApi.update(id, payload);
         
-        // Cập nhật role nếu thay đổi
-        if (formData.roleId !== String((employee as any).roleId)) {
+        // Cập nhật role nếu thay đổi (chỉ khi nhân viên đã có tài khoản hệ thống)
+        if (employee?.userId && formData.roleId !== String((employee as any).roleId)) {
           await employeeApi.updateRole(id, Number(formData.roleId));
         }
 

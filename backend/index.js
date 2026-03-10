@@ -16,7 +16,7 @@ app.use(helmet());
 app.use(cookieParser());
 app.use(express.json({ limit: "30kb" }));
 
-// app.use("/api", apiLimiter); // Áp dụng rate limit cho toàn bộ API
+app.use("/api", apiLimiter); // Áp dụng rate limit cho toàn bộ API
 
 morgan.token("date", (req, res, tz) => {
   const date = new Date();

@@ -18,10 +18,11 @@ import {
   MaritalStatus,
 } from "../constants/employeeStatus";
 import { Select } from "../../../components/ui/Select";
-import { formatDate } from "../../../shared/utils/date.util";
+import { formatEmployeeId } from "../../../shared/utils/format.util";
 import anime from "animejs";
 import { useSnackbarStore } from "../../../store/snackbar.store";
 import { getAvatarUrl, compressImage } from "../../../shared/utils/avatar.util";
+import { formatDate } from "../../../shared/utils/date.util";
 
 /**
  * ============================================
@@ -160,7 +161,7 @@ export function MyProfilePage() {
       const updated = await employeeApi.updateMe(updateData);
       setProfile(updated);
       setIsEditing(false);
-      showSnackbar("Thông tin đã được gửi. Vui lòng chờ HR xác thực!", "success");
+      showSnackbar("Thông tin đã được gửi. Vui lòng chờ được xác thực!", "success");
     } catch (err) {
       console.error('Failed to update profile:', err);
       const msg = err instanceof Error ? err.message : 'Lỗi không xác định';
@@ -205,7 +206,7 @@ export function MyProfilePage() {
 
   const displayName = profile?.fullName || user?.name || "Nhân viên";
   const displayStatus = profile ? getStatusLabel(profile.status) : "";
-  const displayId = profile?.id || "";
+  const displayId = profile?.id ? formatEmployeeId(profile.id) : "";
 
   if (isLoading) {
     return (

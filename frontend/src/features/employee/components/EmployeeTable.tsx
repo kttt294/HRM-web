@@ -100,11 +100,13 @@ export function EmployeeTable({ employees, isLoading }: EmployeeTableProps) {
       header: "Hồ sơ",
       render: (employee: Employee) => (
         employee.profileStatus === 'pending' ? (
-          <span className="status-badge status-working" style={{ fontSize: '11px', whiteSpace: 'nowrap' }}>
+          <span className="status-badge status-pending" style={{ fontSize: '11px', whiteSpace: 'nowrap' }}>
             Chờ duyệt hồ sơ
           </span>
         ) : (
-          <span style={{ fontSize: '11px', color: '#4caf50' }}>Đã xác thực</span>
+          <span className="status-badge status-completed no-dot" style={{ fontSize: '11px', whiteSpace: 'nowrap' }}>
+            Đã xác thực
+          </span>
         )
       ),
     },

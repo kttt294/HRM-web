@@ -80,6 +80,7 @@ export function UserListPage() {
         switch (role) {
             case Role.ADMIN: return 'System Admin';
             case Role.HR: return 'HR Manager';
+            case Role.MANAGER: return 'Trưởng phòng';
             case Role.EMPLOYEE: return 'Nhân viên';
             default: return role;
         }
@@ -89,6 +90,7 @@ export function UserListPage() {
         switch (role) {
             case Role.ADMIN: return '#f44336';
             case Role.HR: return '#1976d2';
+            case Role.MANAGER: return '#9c27b0';
             case Role.EMPLOYEE: return '#757575';
             default: return '#757575';
         }
@@ -249,6 +251,7 @@ export function UserListPage() {
                         <option value="">Tất cả</option>
                         <option value={Role.ADMIN}>System Admin</option>
                         <option value={Role.HR}>HR Manager</option>
+                        <option value={Role.MANAGER}>Trưởng phòng</option>
                         <option value={Role.EMPLOYEE}>Nhân viên</option>
 
                     </select>
@@ -517,6 +520,7 @@ export function UserListPage() {
                         >
                             <option value={Role.ADMIN}>System Admin</option>
                             <option value={Role.HR}>HR Manager</option>
+                            <option value={Role.MANAGER}>Trưởng phòng</option>
                             <option value={Role.EMPLOYEE}>Nhân viên</option>
 
                         </select>

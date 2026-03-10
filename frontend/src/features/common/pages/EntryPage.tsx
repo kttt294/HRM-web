@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { ROUTES } from '../../../shared/constants/routes';
@@ -241,6 +241,180 @@ export function EntryPage() {
             }}>
                 <p>[Nhóm 8] BTL Kỹ thuật phần mềm - kỳ 2 - năm 2026 - ĐH Phenikaa</p>
             </footer>
+
+            {/* Public Chatbot Bubble */}
+            <PublicChatBubble />
+        </div>
+    );
+}
+
+function PublicChatBubble() {
+    const [isOpen, setIsOpen] = useState(false);
+    const [message, setMessage] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [chatHistory, setChatHistory] = useState<{ role: 'user' | 'model'; parts: { text: string }[] }[]>([
+        {
+            role: 'model',
+            parts: [{ text: 'Xin chào! Tôi là trợ lý AI của hệ thống HRM. Tôi có thể giúp bạn tìm hiểu về hệ thống và các tính năng. Bạn cần hỗ trợ gì không?' }]
+        }
+    ]);
+    const scrollRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (scrollRef.current) {
+            scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+        }
+    }, [chatHistory, isOpen]);
+
+    const handleSend = async () => {
+        if (!message.trim() || isLoading) return;
+        const text = message.trim();
+        setMessage('');
+        const userMsg = { role: 'user' as const, parts: [{ text }] };
+        setChatHistory(prev => [...prev, userMsg]);
+        setIsLoading(true);
+
+        try {
+            const validHistory = chatHistory
+                .filter((msg, idx) => !(idx === 0 && msg.role === 'model'))
+                .map(msg => ({ role: msg.role, parts: msg.parts }));
+
+            const res = await fetch('/api/chatbot/ask-public', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: text, history: validHistory }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message);
+            setChatHistory(prev => [...prev, { role: 'model', parts: [{ text: data.reply }] }]);
+        } catch {
+            setChatHistory(prev => [...prev, { role: 'model', parts: [{ text: 'Xin lỗi, tôi đang gặp sự cố. Vui lòng thử lại!' }] }]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return (
+        <div style={{ position: 'fixed', bottom: '30px', right: '30px', zIndex: 1000 }}>
+            {!isOpen && (
+                <button
+                    onClick={() => setIsOpen(true)}
+                    title="Trợ lý AI"
+                    style={{
+                        width: '60px', height: '60px', borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #1976d2, #64b5f6)',
+                        color: 'white', border: 'none',
+                        boxShadow: '0 8px 32px rgba(25, 118, 210, 0.4)',
+                        cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        animation: 'pulse-blue 2s infinite',
+                        transition: 'transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.1) rotate(5deg)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+                >
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                </button>
+            )}
+
+            {isOpen && (
+                <div style={{
+                    width: '380px', height: '550px', background: 'white',
+                    borderRadius: '24px', boxShadow: '0 12px 60px rgba(0,0,0,0.2)',
+                    display: 'flex', flexDirection: 'column', overflow: 'hidden',
+                    border: '1px solid #eee', animation: 'slideUp 0.3s ease'
+                }}>
+                    {/* Header */}
+                    <div style={{
+                        padding: '20px', background: 'linear-gradient(135deg, #1976d2, #1565c0)',
+                        color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <div style={{ fontWeight: 600, fontSize: '16px' }}>Trợ lý AI</div>
+                                <div style={{ fontSize: '12px', opacity: 0.8 }}>Sẵn sàng hỗ trợ bạn</div>
+                            </div>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <button onClick={() => setIsOpen(false)} style={{ background: 'none', border: 'none', color: 'white', fontSize: '28px', cursor: 'pointer', opacity: 0.7 }}>×</button>
+                        </div>
+                    </div>
+
+                    {/* Messages */}
+                    <div ref={scrollRef} style={{ flex: 1, padding: '20px', overflowY: 'auto', background: '#f8f9fa', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        {chatHistory.map((msg, i) => (
+                            <div key={i} style={{
+                                alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
+                                maxWidth: '85%', padding: '12px 16px',
+                                borderRadius: msg.role === 'user' ? '18px 18px 2px 18px' : '18px 18px 18px 2px',
+                                background: msg.role === 'user' ? '#1976d2' : 'white',
+                                color: msg.role === 'user' ? 'white' : '#333',
+                                fontSize: '14px', lineHeight: '1.5',
+                                boxShadow: '0 2px 8px rgba(0,0,0,0.05)', whiteSpace: 'pre-line'
+                            }}>
+                                {msg.parts[0].text.split('**').map((part, idx) =>
+                                    idx % 2 === 1 ? <strong key={idx}>{part}</strong> : part
+                                )}
+                            </div>
+                        ))}
+                        {isLoading && (
+                            <div style={{ alignSelf: 'flex-start', padding: '12px 16px', borderRadius: '18px 18px 18px 2px', background: 'white', display: 'flex', gap: '4px' }}>
+                                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ccc', display: 'inline-block', animation: 'typingJump 0.6s infinite alternate' }}></span>
+                                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ccc', display: 'inline-block', animation: 'typingJump 0.6s 0.2s infinite alternate' }}></span>
+                                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ccc', display: 'inline-block', animation: 'typingJump 0.6s 0.4s infinite alternate' }}></span>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Input */}
+                    <div style={{ padding: '16px 20px', background: 'white', borderTop: '1px solid #eee', display: 'flex', gap: '10px', alignItems: 'center' }}>
+                        <input
+                            placeholder="Nhập câu hỏi..."
+                            value={message}
+                            onChange={(e) => setMessage(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                            style={{ flex: 1, border: '1px solid #ddd', borderRadius: '20px', padding: '10px 16px', fontSize: '14px', outline: 'none', background: '#f5f5f5' }}
+                        />
+                        <button
+                            onClick={handleSend}
+                            disabled={isLoading || !message.trim()}
+                            style={{
+                                width: '40px', height: '40px', borderRadius: '50%', background: '#1976d2',
+                                color: 'white', border: 'none', cursor: 'pointer',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                opacity: (isLoading || !message.trim()) ? 0.5 : 1
+                            }}
+                        >
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="22" y1="2" x2="11" y2="13"></line>
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            <style>{`
+                @keyframes pulse-blue {
+                    0% { box-shadow: 0 0 0 0 rgba(25, 118, 210, 0.4); }
+                    70% { box-shadow: 0 0 0 20px rgba(25, 118, 210, 0); }
+                    100% { box-shadow: 0 0 0 0 rgba(25, 118, 210, 0); }
+                }
+                @keyframes slideUp {
+                    from { opacity: 0; transform: translateY(20px) scale(0.95); }
+                    to { opacity: 1; transform: translateY(0) scale(1); }
+                }
+                @keyframes typingJump {
+                    from { transform: translateY(0); }
+                    to { transform: translateY(-6px); }
+                }
+            `}</style>
         </div>
     );
 }

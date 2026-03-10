@@ -1,24 +1,30 @@
 /**
  * Format date to Vietnamese locale
  */
-export function formatDate(date: string | Date): string {
+export function formatDate(date: string | Date | null | undefined): string {
+    if (!date) return "—";
     const d = typeof date === 'string' ? new Date(date) : date;
+    if (isNaN(d.getTime())) return "—";
     return d.toLocaleDateString('vi-VN');
 }
 
 /**
  * Format date and time to Vietnamese locale
  */
-export function formatDateTime(date: string | Date): string {
+export function formatDateTime(date: string | Date | null | undefined): string {
+    if (!date) return "—";
     const d = typeof date === 'string' ? new Date(date) : date;
+    if (isNaN(d.getTime())) return "—";
     return d.toLocaleString('vi-VN');
 }
 
 /**
  * Get relative time string (e.g., "2 ngày trước")
  */
-export function getRelativeTime(date: string | Date): string {
+export function getRelativeTime(date: string | Date | null | undefined): string {
+    if (!date) return '—';
     const d = typeof date === 'string' ? new Date(date) : date;
+    if (isNaN(d.getTime())) return '—';
     const now = new Date();
     const diffMs = now.getTime() - d.getTime();
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
@@ -41,8 +47,10 @@ export function parseDate(dateString: string): Date {
 /**
  * Calculate age from date of birth
  */
-export function calculateAge(dob: string | Date): number {
+export function calculateAge(dob: string | Date | null | undefined): number {
+    if (!dob) return 0;
     const birthDate = typeof dob === 'string' ? new Date(dob) : dob;
+    if (isNaN(birthDate.getTime())) return 0;
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();

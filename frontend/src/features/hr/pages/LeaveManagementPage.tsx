@@ -5,6 +5,7 @@ import { Button } from '../../../components/ui/Button';
 import { Modal } from '../../../components/ui/Modal';
 import anime from 'animejs';
 import { useSnackbarStore } from '../../../store/snackbar.store';
+import { formatEmployeeId } from '../../../shared/utils/format.util';
 
 /**
  * ============================================
@@ -262,7 +263,7 @@ export function LeaveManagementPage() {
                                         </div>
                                     </td>
                                     <td style={{ padding: '14px 16px', color: '#616161', fontFamily: 'monospace' }}>
-                                        {request.employeeIdPadded ? request.employeeIdPadded : (request.employeeId ? String(request.employeeId).padStart(5, '0') : '---')}
+                                        {formatEmployeeId(request.employeeId)}
                                     </td>
                                     <td style={{ padding: '14px 16px' }}>
                                         <span style={{

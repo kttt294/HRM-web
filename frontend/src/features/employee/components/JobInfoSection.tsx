@@ -1,5 +1,6 @@
 import { Employee } from "../models/employee.model";
 import { formatDate } from "../../../shared/utils/date.util";
+import { formatEmployeeId } from "../../../shared/utils/format.util";
 
 interface JobInfoSectionProps {
   employee: Employee;
@@ -11,7 +12,7 @@ export function JobInfoSection({ employee }: JobInfoSectionProps) {
       <h2>Thông tin công việc</h2>
       <ul id="job-info">
         <li>
-          <strong>Mã nhân viên:</strong> {employee.id}
+          <strong>Mã nhân viên:</strong> {formatEmployeeId(employee.id)}
         </li>
         <li>
           <strong>Phòng ban:</strong> {employee.departmentId}
