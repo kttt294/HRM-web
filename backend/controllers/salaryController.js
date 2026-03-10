@@ -52,11 +52,18 @@ const salaryController = {
             `;
       const params = [];
 
-      // Nếu là employee, chỉ xem lương của mình
+      // Áp dụng scoping
       if (req.user.role === "employee") {
         query +=
           " AND sr.employee_id = (SELECT id FROM employees WHERE user_id = ?)";
         params.push(req.user.id);
+      } else if (req.user.role === "manager") {
+         // Lấy dept của manager
+         const [mgrData] = await db.query("SELECT department_id FROM employees WHERE user_id = ?", [req.user.id]);
+         if (mgrData.length > 0) {
+           query += " AND e.department_id = ?";
+           params.push(mgrData[0].department_id);
+         }
       } else {
         // HR/Admin có thể filter theo employee_id
         if (employeeId) {

@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../../store/auth.store";
 import { Button } from "../../../components/ui/Button";
 import { Input } from "../../../components/ui/Input";
@@ -7,18 +6,22 @@ import { employeeApi } from "../services/employee.api";
 import { authApi } from "../../auth/services/auth.api";
 import { Employee } from "../models/employee.model";
 import {
-  GENDER_LABELS,
   GENDER_OPTIONS,
+  GENDER_LABELS,
   Gender,
   EMPLOYEE_STATUS_LABELS,
   EmployeeStatus,
   EMPLOYEE_TYPE_LABELS,
   EmployeeType,
+  MARITAL_STATUS_OPTIONS,
+  MARITAL_STATUS_LABELS,
+  MaritalStatus,
 } from "../constants/employeeStatus";
 import { Select } from "../../../components/ui/Select";
 import { formatDate } from "../../../shared/utils/date.util";
 import anime from "animejs";
 import { useSnackbarStore } from "../../../store/snackbar.store";
+import { getAvatarUrl, compressImage } from "../../../shared/utils/avatar.util";
 
 /**
  * ============================================
@@ -28,16 +31,11 @@ import { useSnackbarStore } from "../../../store/snackbar.store";
 
 export function MyProfilePage() {
   const { user } = useAuthStore();
+  const [activeTab, setActiveTab] = useState<'personal' | 'legal' | 'bank' | 'career'>('personal');
   const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [isEditingPersonal, setIsEditingPersonal] = useState(false);
-  const [editForm, setEditForm] = useState({
-    fullName: '',
-    dateOfBirth: '',
-    gender: '',
-    nationalId: '',
-    address: '',
-    phone: '',
-  });
+  const [isEditing, setIsEditing] = useState(false);
+  
+  const [editForm, setEditForm] = useState<Partial<Employee>>({});
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
     newPassword: "",
@@ -59,8 +57,6 @@ export function MyProfilePage() {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        // Fetch employee profile using updated /me endpoint
-        // Backend now returns departmentName and supervisorName via JOINs
         const emp = await employeeApi.getMe();
         setProfile(emp);
       } catch (err) {
@@ -86,43 +82,20 @@ export function MyProfilePage() {
     }
   }, [isLoading]);
 
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  };
+  // Removed local getAvatarUrl
 
-  const handleButtonHover = (
-    e: React.MouseEvent<HTMLButtonElement>,
-    isEnter: boolean,
-  ) => {
-    anime({
-      targets: e.currentTarget,
-      scale: isEnter ? 1.02 : 1,
-      duration: 200,
-      easing: "easeOutQuad",
-    });
-  };
-
-  // Helper: resolve gender label
-  const getGenderLabel = (gender: string) => {
-    return GENDER_LABELS[gender as Gender] || gender;
-  };
-
-  // Helper: resolve status label
   const getStatusLabel = (status: string) => {
     return EMPLOYEE_STATUS_LABELS[status as EmployeeStatus] || status;
   };
 
-  // Helper: resolve employee type label
+  const getGenderLabel = (gender: string) => {
+    return GENDER_LABELS[gender as Gender] || gender;
+  };
+
   const getEmployeeTypeLabel = (type: string) => {
     return EMPLOYEE_TYPE_LABELS[type as EmployeeType] || type;
   };
 
-  // Helper: format salary
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
@@ -130,9 +103,8 @@ export function MyProfilePage() {
     }).format(amount);
   };
 
-  const handleEditPersonal = () => {
+  const handleEdit = () => {
     if (profile) {
-      // Convert ISO date to YYYY-MM-DD for <input type="date">
       let dob = '';
       if (profile.dateOfBirth) {
         try {
@@ -142,31 +114,53 @@ export function MyProfilePage() {
         }
       }
       setEditForm({
-        fullName: profile.fullName || '',
-        dateOfBirth: dob,
-        gender: profile.gender || '',
-        nationalId: profile.nationalId || '',
-        address: profile.address || '',
-        phone: profile.phone || '',
+        ...profile,
+        dateOfBirth: dob
       });
     }
-    setIsEditingPersonal(true);
+    setIsEditing(true);
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        const compressedBase64 = await compressImage(file, 400); // Nén tối ưu
+        setEditForm({ ...editForm, avatarUrl: compressedBase64 });
+      } catch (err) {
+        console.error("Compression failed:", err);
+        showSnackbar("Lỗi khi xử lý ảnh", "error");
+      }
+    }
   };
 
   const handleCancelEdit = () => {
-    setIsEditingPersonal(false);
+    setIsEditing(false);
   };
 
-  const handleSavePersonal = async () => {
+  const handleSave = async () => {
     if (!profile) return;
     setIsSaving(true);
     try {
-      console.log('Saving personal info:', editForm);
-      const updated = await employeeApi.updateMe(editForm);
-      console.log('Update success:', updated);
+      // Allowed fields to update
+      const allowedFields: (keyof Employee)[] = [
+        'fullName', 'avatarUrl', 'dateOfBirth', 'gender', 'maritalStatus', 'personalEmail', 'phone', 
+        'address', 'permanentAddress', 'nationalId', 'taxId', 'insuranceId',
+        'emergencyContactName', 'emergencyContactRelationship', 'emergencyContactPhone',
+        'bankName', 'bankAccount', 'education', 'workProcess'
+      ];
+      
+      const updateData: any = {};
+      allowedFields.forEach(field => {
+        if (editForm[field] !== undefined) {
+          updateData[field] = editForm[field];
+        }
+      });
+
+      const updated = await employeeApi.updateMe(updateData);
       setProfile(updated);
-      setIsEditingPersonal(false);
-      showSnackbar("Cập nhật thông tin thành công!", "success");
+      setIsEditing(false);
+      showSnackbar("Thông tin đã được gửi. Vui lòng chờ HR xác thực!", "success");
     } catch (err) {
       console.error('Failed to update profile:', err);
       const msg = err instanceof Error ? err.message : 'Lỗi không xác định';
@@ -198,7 +192,7 @@ export function MyProfilePage() {
       await authApi.changePassword(passwordForm.currentPassword, passwordForm.newPassword);
       showSnackbar("Đổi mật khẩu thành công!", "success");
       setShowPasswordModal(false);
-      setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" }); // Reset form
+      setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
     } catch (err) {
       console.error("Change password failed:", err);
       const msg = err instanceof Error ? err.message : "Đổi mật khẩu thất bại";
@@ -215,14 +209,7 @@ export function MyProfilePage() {
 
   if (isLoading) {
     return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          minHeight: "400px",
-        }}
-      >
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "400px" }}>
         <p style={{ color: "#757575" }}>Đang tải thông tin...</p>
       </div>
     );
@@ -233,648 +220,272 @@ export function MyProfilePage() {
       {/* Page Header */}
       <div className="page-header animate-item" style={{ opacity: 0 }}>
         <div className="page-title-section">
-          <h1>Thông tin cá nhân</h1>
-          <p className="page-subtitle">
-            Xem thông tin và cập nhật liên hệ của bạn
-          </p>
+          <h1>Hồ sơ của tôi</h1>
+          <p className="page-subtitle">Quản lý thông tin cá nhân và hồ sơ nhân viên</p>
         </div>
+        {profile?.profileStatus === 'pending' && (
+          <div style={{ 
+            background: '#fff9c4', 
+            color: '#f57f17', 
+            padding: '8px 16px', 
+            borderRadius: '8px', 
+            fontSize: '14px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            fontWeight: 500
+          }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Hồ sơ đang chờ xác thực bởi HR/Manager
+          </div>
+        )}
       </div>
 
-      {/* ============================================
-                PROFILE HEADER - Avatar + Basic Info
-            ============================================ */}
-      <div
-        className="card animate-item"
-        style={{ marginBottom: "24px", opacity: 0 }}
-      >
+      {/* Header Info Card */}
+      <div className="card animate-item" style={{ marginBottom: "24px", opacity: 0 }}>
         <div className="card-body">
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "24px",
-              flexWrap: "wrap",
-            }}
-          >
-            {/* Avatar */}
-            <div
-              className="profile-avatar"
-              style={{
-                width: "96px",
-                height: "96px",
-                borderRadius: "50%",
-                background: "linear-gradient(135deg, #1976d2 0%, #7c4dff 100%)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "white",
-                fontSize: "32px",
-                fontWeight: "600",
-                flexShrink: 0,
-                boxShadow: "0 8px 24px rgba(25, 118, 210, 0.3)",
-              }}
-            >
-              {getInitials(displayName)}
-            </div>
-
-            {/* Basic info */}
-            <div style={{ flex: 1, minWidth: "200px" }}>
-              <h2
-                style={{
-                  fontSize: "24px",
-                  fontWeight: "600",
-                  marginBottom: "4px",
-                  color: "#212121",
-                }}
-              >
-                {displayName}
-              </h2>
-              <p
-                style={{
-                  color: "#757575",
-                  marginBottom: "12px",
-                  fontSize: "15px",
-                }}
-              >
-                {profile?.jobTitle ? `${profile.jobTitle} — ` : ""}
-                {profile?.departmentName || profile?.departmentId || ""}
-                {profile?.employeeType
-                  ? ` • ${getEmployeeTypeLabel(profile.employeeType)}`
-                  : ""}
-              </p>
-              <div
-                style={{
-                  display: "flex",
-                  gap: "12px",
-                  flexWrap: "wrap",
-                  alignItems: "center",
-                }}
-              >
-                {displayStatus && (
-                  <span className="status-badge status-active">
-                    {displayStatus}
-                  </span>
-                )}
-                {displayId && (
-                  <span
+          <div style={{ display: "flex", alignItems: "center", gap: "24px", flexWrap: "wrap" }}>
+            <div style={{ position: 'relative' }}>
+              <img 
+                src={getAvatarUrl(isEditing ? editForm.avatarUrl : profile?.avatarUrl, displayName)} 
+                alt={displayName}
+                style={{ width: "96px", height: "96px", borderRadius: "16px", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", objectFit: 'cover' }}
+              />
+              {isEditing && (
+                <>
+                  <input
+                    type="file"
+                    id="my-avatar-upload"
+                    hidden
+                    accept="image/*"
+                    onChange={handleFileChange}
+                  />
+                  <label 
+                    htmlFor="my-avatar-upload"
                     style={{
-                      color: "#9e9e9e",
-                      fontSize: "13px",
-                      padding: "4px 12px",
-                      background: "#f5f5f5",
-                      borderRadius: "20px",
+                      position: 'absolute',
+                      bottom: '-5px',
+                      right: '-5px',
+                      background: '#2196f3',
+                      color: 'white',
+                      width: '28px',
+                      height: '28px',
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      border: '2px solid white'
                     }}
                   >
-                    {displayId}
-                  </span>
-                )}
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>
+                    </svg>
+                  </label>
+                </>
+              )}
+            </div>
+            <div style={{ flex: 1, minWidth: "200px" }}>
+              <h2 style={{ fontSize: "24px", fontWeight: "600", marginBottom: "4px" }}>{displayName}</h2>
+              <p style={{ color: "#757575", fontSize: "15px", marginBottom: "12px" }}>
+                {profile?.jobTitle || 'Nhân viên'} — {profile?.departmentName || 'Phòng ban'}
+              </p>
+              <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+                <span className="status-badge status-active">{displayStatus}</span>
+                <span style={{ fontSize: "13px", color: "#9e9e9e", background: "#f5f5f5", padding: "4px 12px", borderRadius: "20px" }}>
+                  Mã NV: {displayId}
+                </span>
               </div>
             </div>
-
-            {/* Actions */}
-            <div
-              style={{
-                display: "flex",
-                gap: "12px",
-                flexShrink: 0,
-              }}
-            >
-              <Button
-                variant="secondary"
-                onClick={() => setShowPasswordModal(true)}
-                onMouseEnter={(e) => handleButtonHover(e, true)}
-                onMouseLeave={(e) => handleButtonHover(e, false)}
-              >
-                Đổi mật khẩu
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ============================================
-                TWO COLUMN LAYOUT
-            ============================================ */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(360px, 1fr))",
-          gap: "24px",
-        }}
-      >
-        {/* THÔNG TIN CÁ NHÂN */}
-        <div className="card animate-item" style={{ opacity: 0 }}>
-          <div
-            className="card-header"
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <h3>Thông tin cá nhân</h3>
-            {!isEditingPersonal && (
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={handleEditPersonal}
-                onMouseEnter={(e) => handleButtonHover(e, true)}
-                onMouseLeave={(e) => handleButtonHover(e, false)}
-              >
-                Sửa thông tin
-              </Button>
-            )}
-          </div>
-          <div className="card-body">
-            {isEditingPersonal ? (
-              <div style={{ display: "grid", gap: "16px" }}>
-                <Input
-                  label="Họ và tên"
-                  value={editForm.fullName}
-                  onChange={(e) => setEditForm({ ...editForm, fullName: e.target.value })}
-                />
-                <Input
-                  type="date"
-                  label="Ngày sinh"
-                  value={editForm.dateOfBirth}
-                  onChange={(e) => setEditForm({ ...editForm, dateOfBirth: e.target.value })}
-                />
-                <Select
-                  label="Giới tính"
-                  options={GENDER_OPTIONS}
-                  placeholder="Chọn giới tính"
-                  value={editForm.gender}
-                  onChange={(e) => setEditForm({ ...editForm, gender: e.target.value })}
-                />
-                <Input
-                  label="Số CCCD"
-                  value={editForm.nationalId}
-                  onChange={(e) => setEditForm({ ...editForm, nationalId: e.target.value })}
-                />
-                <Input
-                  label="Địa chỉ"
-                  value={editForm.address}
-                  onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
-                />
-                <Input
-                  label="Số điện thoại"
-                  value={editForm.phone}
-                  onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-                />
-                <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>
-                  <Button onClick={handleSavePersonal} disabled={isSaving}>
-                    {isSaving ? 'Đang lưu...' : 'Lưu thay đổi'}
-                  </Button>
-                  <Button variant="secondary" onClick={handleCancelEdit} disabled={isSaving}>
-                    Hủy
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div style={{ display: "grid", gap: "20px" }}>
-                <InfoRow
-                  label="Họ và tên"
-                  value={profile?.fullName || "—"}
-                  color="#1976d2"
-                />
-                <InfoRow
-                  label="Ngày sinh"
-                  value={
-                    profile?.dateOfBirth ? formatDate(profile.dateOfBirth) : "—"
-                  }
-                  color="#7c4dff"
-                />
-                <InfoRow
-                  label="Giới tính"
-                  value={profile?.gender ? getGenderLabel(profile.gender) : "—"}
-                  color="#00bcd4"
-                />
-                <InfoRow
-                  label="CCCD"
-                  value={profile?.nationalId || "—"}
-                  color="#ff9800"
-                />
-                <InfoRow
-                  label="Địa chỉ"
-                  value={profile?.address || "—"}
-                  color="#9c27b0"
-                />
-                <InfoRow
-                  label="Số điện thoại"
-                  value={profile?.phone || "—"}
-                  color="#4caf50"
-                />
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* THÔNG TIN CÔNG VIỆC */}
-        <div className="card animate-item" style={{ opacity: 0 }}>
-          <div
-            className="card-header"
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <h3>Thông tin công việc</h3>
-            <span
-              style={{
-                fontSize: "11px",
-                color: "#757575",
-                background: "#f5f5f5",
-                padding: "4px 10px",
-                borderRadius: "12px",
-                fontWeight: "500",
-              }}
-            >
-              Do HR quản lý
-            </span>
-          </div>
-          <div className="card-body">
-            <div style={{ display: "grid", gap: "20px" }}>
-              <InfoRow
-                label="Mã nhân viên"
-                value={profile?.id || "—"}
-                color="#1976d2"
-              />
-              <InfoRow
-                label="Phòng ban"
-                value={profile?.departmentName || profile?.departmentId || "—"}
-                color="#7c4dff"
-              />
-              <InfoRow
-                label="Chức danh"
-                value={profile?.jobTitle || "—"}
-                color="#e040fb"
-              />
-              <InfoRow
-                label="Quản lý trực tiếp"
-                value={profile?.supervisorName || profile?.supervisorId || "—"}
-                color="#00bcd4"
-              />
-              <InfoRow
-                label="Ngày vào làm"
-                value={profile?.hireDate ? formatDate(profile.hireDate) : "—"}
-                color="#4caf50"
-              />
-              <InfoRow
-                label="Trạng thái"
-                value={profile?.status ? getStatusLabel(profile.status) : "—"}
-                color="#ff9800"
-              />
-              <InfoRow
-                label="Lương cơ bản"
-                value={
-                  profile?.baseSalary ? formatCurrency(profile.baseSalary) : "—"
-                }
-                color="#e91e63"
-              />
-              <InfoRow
-                label="Phụ cấp"
-                value={
-                  profile?.allowance ? formatCurrency(profile.allowance) : "—"
-                }
-                color="#607d8b"
-              />
-              <InfoRow
-                label="Loại hình"
-                value={
-                  profile?.employeeType
-                    ? getEmployeeTypeLabel(profile.employeeType)
-                    : "—"
-                }
-                color="#795548"
-              />
+            <div style={{ display: "flex", gap: "12px" }}>
+              <Button variant="secondary" onClick={() => setShowPasswordModal(true)}>Đổi mật khẩu</Button>
+              {!isEditing && <Button onClick={handleEdit}>Cập nhật hồ sơ</Button>}
             </div>
           </div>
         </div>
       </div>
 
-      {/* ============================================
-                QUICK LINKS
-            ============================================ */}
-      <div
-        className="card animate-item"
-        style={{ marginTop: "24px", opacity: 0 }}
-      >
-        <div className="card-header">
-          <h3>Truy cập nhanh</h3>
+      {/* Tabs Navigation */}
+      <div className="animate-item" style={{ marginBottom: '24px', opacity: 0 }}>
+        <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid #eee' }}>
+          {[
+            { id: 'personal', label: 'Cá nhân', color: '#1976d2' },
+            { id: 'legal', label: 'Pháp lý & Liên hệ', color: '#4caf50' },
+            { id: 'bank', label: 'Ngân hàng', color: '#ff9800' },
+            { id: 'career', label: 'Công việc', color: '#7c4dff' },
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              style={{
+                padding: '12px 24px',
+                border: 'none',
+                background: 'none',
+                cursor: 'pointer',
+                fontSize: '15px',
+                fontWeight: activeTab === tab.id ? 600 : 400,
+                color: activeTab === tab.id ? tab.color : '#757575',
+                borderBottom: activeTab === tab.id ? `3px solid ${tab.color}` : '3px solid transparent',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
+      </div>
+
+      {/* Main Content Areas */}
+      <div className="card animate-item" style={{ opacity: 0 }}>
         <div className="card-body">
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-              gap: "12px",
-            }}
-          >
-            <QuickLink
-              title="Yêu cầu nghỉ phép"
-              description="Gửi đơn xin nghỉ"
-              color="#4caf50"
-              href="/my-leaves"
-            />
-            <QuickLink
-              title="Bảng lương"
-              description="Xem lịch sử lương"
-              color="#1976d2"
-              href="/my-payroll"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* PASSWORD MODAL */}
-      {showPasswordModal && (
-        <AnimatedModal
-          title="Đổi mật khẩu"
-          onClose={() => setShowPasswordModal(false)}
-        >
-          <div style={{ display: "grid", gap: "16px" }}>
-            <Input
-              label="Mật khẩu hiện tại"
-              type="password"
-              value={passwordForm.currentPassword}
-              onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
-            />
-            <Input
-              label="Mật khẩu mới"
-              type="password"
-              value={passwordForm.newPassword}
-              onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-            />
-            <Input
-              label="Xác nhận mật khẩu mới"
-              type="password"
-              value={passwordForm.confirmPassword}
-              onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-            />
-            
-            {passwordError && (
-              <div style={{ color: "#d32f2f", fontSize: "14px" }}>
-                {passwordError}
+          {isEditing ? (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+              {activeTab === 'personal' && (
+                <>
+                  <Input label="Họ và tên" value={editForm.fullName} onChange={e => setEditForm({...editForm, fullName: e.target.value})} />
+                  <Input label="Email cá nhân" type="email" value={editForm.personalEmail} onChange={e => setEditForm({...editForm, personalEmail: e.target.value})} />
+                  <Input label="Số điện thoại" value={editForm.phone} onChange={e => setEditForm({...editForm, phone: e.target.value})} />
+                  <Input label="Ngày sinh" type="date" value={editForm.dateOfBirth} onChange={e => setEditForm({...editForm, dateOfBirth: e.target.value})} />
+                  <Select label="Giới tính" options={GENDER_OPTIONS} value={editForm.gender} onChange={e => setEditForm({...editForm, gender: e.target.value})} />
+                  <Select label="Tình trạng hôn nhân" options={MARITAL_STATUS_OPTIONS} value={editForm.maritalStatus} onChange={e => setEditForm({...editForm, maritalStatus: e.target.value})} />
+                  <Input label="Địa chỉ hiện tại" value={editForm.address} onChange={e => setEditForm({...editForm, address: e.target.value})} style={{ gridColumn: 'span 2' }} />
+                  <Input label="Địa chỉ thường trú" value={editForm.permanentAddress} onChange={e => setEditForm({...editForm, permanentAddress: e.target.value})} style={{ gridColumn: 'span 2' }} />
+                </>
+              )}
+              {activeTab === 'legal' && (
+                <>
+                  <Input label="Số CCCD" value={editForm.nationalId} onChange={e => setEditForm({...editForm, nationalId: e.target.value})} />
+                  <Input label="Mã số thuế" value={editForm.taxId} onChange={e => setEditForm({...editForm, taxId: e.target.value})} />
+                   <Input label="Số sổ BHXH" value={editForm.insuranceId} onChange={e => setEditForm({...editForm, insuranceId: e.target.value})} />
+                  <Input label="Người liên hệ khẩn cấp" value={editForm.emergencyContactName} onChange={e => setEditForm({...editForm, emergencyContactName: e.target.value})} />
+                  <Input label="Mối quan hệ" value={editForm.emergencyContactRelationship} onChange={e => setEditForm({...editForm, emergencyContactRelationship: e.target.value})} />
+                  <Input label="SĐT khẩn cấp" value={editForm.emergencyContactPhone} onChange={e => setEditForm({...editForm, emergencyContactPhone: e.target.value})} />
+                </>
+              )}
+              {activeTab === 'bank' && (
+                <>
+                  <Input label="Tên ngân hàng" value={editForm.bankName} onChange={e => setEditForm({...editForm, bankName: e.target.value})} />
+                  <Input label="Số tài khoản" value={editForm.bankAccount} onChange={e => setEditForm({...editForm, bankAccount: e.target.value})} />
+                  <Input label="Số người phụ thuộc" type="number" value={editForm.dependentsCount} onChange={e => setEditForm({...editForm, dependentsCount: parseInt(e.target.value)})} />
+                </>
+              )}
+              {activeTab === 'career' && (
+                <>
+                  <Input label="Trình độ học vấn" value={editForm.education} onChange={e => setEditForm({...editForm, education: e.target.value})} style={{ gridColumn: 'span 2' }} />
+                  <div style={{ gridColumn: 'span 2' }}>
+                    <label style={{ display: 'block', fontSize: '14px', marginBottom: '8px', color: '#616161' }}>Quá trình làm việc / Kinh nghiệm</label>
+                    <textarea 
+                      style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #ddd', minHeight: '120px' }}
+                      value={editForm.workProcess} 
+                      onChange={e => setEditForm({...editForm, workProcess: e.target.value})} 
+                    />
+                  </div>
+                </>
+              )}
+              <div style={{ gridColumn: 'span 2', display: "flex", gap: "12px", marginTop: "20px" }}>
+                <Button onClick={handleSave} disabled={isSaving}>{isSaving ? 'Đang gửi...' : 'Gửi yêu cầu xác thực'}</Button>
+                <Button variant="secondary" onClick={handleCancelEdit} disabled={isSaving}>Hủy</Button>
               </div>
-            )}
-
-            <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>
-              <Button 
-                onClick={handleChangePassword}
-                disabled={isChangingPassword}
-              >
-                {isChangingPassword ? "Đang xử lý..." : "Đổi mật khẩu"}
-              </Button>
-              <Button
-                variant="secondary"
-                onClick={() => setShowPasswordModal(false)}
-                disabled={isChangingPassword}
-              >
-                Hủy
-              </Button>
             </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px' }}>
+              {activeTab === 'personal' && (
+                <>
+                  <InfoItem label="Họ và tên" value={profile?.fullName} color="#1976d2" />
+                  <InfoItem label="Giới tính" value={getGenderLabel(profile?.gender || '')} color="#00bcd4" />
+                  <InfoItem label="Ngày sinh" value={profile?.dateOfBirth ? formatDate(profile.dateOfBirth) : '—'} color="#7c4dff" />
+                  <InfoItem label="Tình trạng hôn nhân" value={MARITAL_STATUS_LABELS[profile?.maritalStatus as MaritalStatus] || '—'} color="#e91e63" />
+                  <InfoItem label="Email cá nhân" value={profile?.personalEmail} color="#f44336" />
+                  <InfoItem label="Số điện thoại" value={profile?.phone} color="#4caf50" />
+                  <InfoItem label="Địa chỉ hiện tại" value={profile?.address} color="#ff9800" span={2} />
+                  <InfoItem label="Địa chỉ thường trú" value={profile?.permanentAddress} color="#795548" span={2} />
+                </>
+              )}
+              {activeTab === 'legal' && (
+                <>
+                  <InfoItem label="Số CCCD" value={profile?.nationalId} color="#607d8b" />
+                  <InfoItem label="Mã số thuế" value={profile?.taxId} color="#3f51b5" />
+                  <InfoItem label="Số sổ BHXH" value={profile?.insuranceId} color="#009688" />
+                  <InfoItem label="Liên hệ khẩn cấp" value={profile?.emergencyContactName} color="#e53935" />
+                  <InfoItem label="Mối quan hệ" value={profile?.emergencyContactRelationship} color="#7b1fa2" />
+                  <InfoItem label="SĐT khẩn cấp" value={profile?.emergencyContactPhone} color="#2e7d32" />
+                </>
+              )}
+              {activeTab === 'bank' && (
+                <>
+                  <InfoItem label="Ngân hàng" value={profile?.bankName} color="#1565c0" />
+                  <InfoItem label="Số tài khoản" value={profile?.bankAccount} color="#2e7d32" />
+                  <InfoItem label="Số người phụ thuộc" value={profile?.dependentsCount?.toString()} color="#ef6c00" />
+                </>
+              )}
+              {activeTab === 'career' && (
+                <>
+                  <InfoItem label="Phòng ban" value={profile?.departmentName} color="#1976d2" />
+                  <InfoItem label="Chức danh" value={profile?.jobTitle} color="#7c4dff" />
+                  <InfoItem label="Loại hình" value={getEmployeeTypeLabel(profile?.employeeType || '')} color="#4caf50" />
+                  <InfoItem label="Ngày vào làm" value={profile?.hireDate ? formatDate(profile.hireDate) : '—'} color="#607d8b" />
+                  <InfoItem label="Lương cơ bản" value={profile?.baseSalary ? formatCurrency(profile.baseSalary) : '—'} color="#d32f2f" />
+                  <InfoItem label="Trình độ học vấn" value={profile?.education} color="#009688" span={2} />
+                  <div style={{ gridColumn: 'span 2' }}>
+                    <p style={{ fontSize: '12px', color: '#9e9e9e', marginBottom: '8px', textTransform: 'uppercase' }}>Quá trình làm việc</p>
+                    <div style={{ padding: '16px', background: '#f8f9fa', borderRadius: '12px', whiteSpace: 'pre-line', fontSize: '14px' }}>
+                      {profile?.workProcess || 'Chưa cập nhật dữ liệu'}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <AnimatedModal title="Đổi mật khẩu" onClose={() => setShowPasswordModal(false)} show={showPasswordModal}>
+        <div style={{ display: "grid", gap: "16px" }}>
+          <Input label="Mật khẩu hiện tại" type="password" value={passwordForm.currentPassword} onChange={e => setPasswordForm({...passwordForm, currentPassword: e.target.value})} />
+          <Input label="Mật khẩu mới" type="password" value={passwordForm.newPassword} onChange={e => setPasswordForm({...passwordForm, newPassword: e.target.value})} />
+          <Input label="Xác nhận mật khẩu" type="password" value={passwordForm.confirmPassword} onChange={e => setPasswordForm({...passwordForm, confirmPassword: e.target.value})} />
+          {passwordError && <div style={{ color: "#d32f2f", fontSize: "14px" }}>{passwordError}</div>}
+          <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>
+            <Button onClick={handleChangePassword} disabled={isChangingPassword}>{isChangingPassword ? "Đang xử lý..." : "Đổi mật khẩu"}</Button>
+            <Button variant="secondary" onClick={() => setShowPasswordModal(false)}>Hủy</Button>
           </div>
-        </AnimatedModal>
-      )}
+        </div>
+      </AnimatedModal>
     </div>
   );
 }
 
-/* ============================================
-   HELPER COMPONENTS
-   ============================================ */
-
-function InfoRow({
-  label,
-  value,
-  color,
-}: {
-  label: string;
-  value: string;
-  color: string;
-}) {
-  const rowRef = useRef<HTMLDivElement>(null);
-
-  const handleHover = (isEnter: boolean) => {
-    if (rowRef.current) {
-      anime({
-        targets: rowRef.current,
-        translateX: isEnter ? 4 : 0,
-        duration: 200,
-        easing: "easeOutQuad",
-      });
-    }
-  };
-
+function InfoItem({ label, value, color, span = 1 }: { label: string, value?: string, color: string, span?: number }) {
   return (
-    <div
-      ref={rowRef}
-      style={{
-        display: "flex",
-        alignItems: "flex-start",
-        gap: "12px",
-        cursor: "default",
-      }}
-      onMouseEnter={() => handleHover(true)}
-      onMouseLeave={() => handleHover(false)}
-    >
-      <div
-        style={{
-          width: "4px",
-          height: "100%",
-          minHeight: "40px",
-          background: color,
-          borderRadius: "2px",
-          flexShrink: 0,
-        }}
-      />
-      <div style={{ flex: 1 }}>
-        <div
-          style={{
-            fontSize: "12px",
-            color: "#9e9e9e",
-            marginBottom: "4px",
-            textTransform: "uppercase",
-            letterSpacing: "0.5px",
-            fontWeight: "500",
-          }}
-        >
-          {label}
-        </div>
-        <div
-          style={{
-            fontSize: "14px",
-            color: "#212121",
-            fontWeight: "500",
-            lineHeight: "1.4",
-          }}
-        >
-          {value}
-        </div>
+    <div style={{ gridColumn: `span ${span}` }}>
+      <label style={{ display: "block", fontSize: "12px", color: "#9e9e9e", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "4px" }}>{label}</label>
+      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        <div style={{ width: "3px", height: "16px", background: color, borderRadius: "2px" }} />
+        <span style={{ fontSize: "15px", fontWeight: "500", color: "#212121" }}>{value || "—"}</span>
       </div>
     </div>
   );
 }
 
-function QuickLink({
-  title,
-  description,
-  color,
-  href,
-}: {
-  title: string;
-  description: string;
-  color: string;
-  href?: string;
-}) {
-  const navigate = useNavigate();
-  const linkRef = useRef<HTMLDivElement>(null);
-
-  const handleHover = (isEnter: boolean) => {
-    if (linkRef.current) {
-      anime({
-        targets: linkRef.current,
-        translateY: isEnter ? -2 : 0,
-        scale: isEnter ? 1.02 : 1,
-        boxShadow: isEnter
-          ? "0 6px 20px rgba(0,0,0,0.1)"
-          : "0 0 0 rgba(0,0,0,0)",
-        duration: 200,
-        easing: "easeOutQuad",
-      });
-    }
-  };
-
-  const handleClick = () => {
-    if (href) navigate(href);
-  };
-
-  return (
-    <div
-      ref={linkRef}
-      onClick={handleClick}
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "16px",
-        padding: "16px",
-        background: "#fafafa",
-        borderRadius: "12px",
-        cursor: "pointer",
-        borderLeft: `4px solid ${color}`,
-      }}
-      onMouseEnter={() => handleHover(true)}
-      onMouseLeave={() => handleHover(false)}
-    >
-      <div
-        style={{
-          width: "40px",
-          height: "40px",
-          borderRadius: "50%",
-          background: `${color}15`,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexShrink: 0,
-        }}
-      >
-        <div
-          style={{
-            width: "12px",
-            height: "12px",
-            borderRadius: "50%",
-            background: color,
-          }}
-        />
-      </div>
-      <div>
-        <div
-          style={{
-            fontWeight: "600",
-            fontSize: "14px",
-            color: "#212121",
-            marginBottom: "2px",
-          }}
-        >
-          {title}
-        </div>
-        <div
-          style={{
-            fontSize: "12px",
-            color: "#757575",
-          }}
-        >
-          {description}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function AnimatedModal({
-  title,
-  onClose,
-  children,
-}: {
-  title: string;
-  onClose: () => void;
-  children: React.ReactNode;
-}) {
+function AnimatedModal({ title, onClose, children, show }: { title: string, onClose: () => void, children: React.ReactNode, show: boolean }) {
   const overlayRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    anime({
-      targets: overlayRef.current,
-      opacity: [0, 1],
-      duration: 200,
-      easing: "easeOutQuad",
-    });
-    anime({
-      targets: contentRef.current,
-      opacity: [0, 1],
-      scale: [0.9, 1],
-      translateY: [-30, 0],
-      duration: 400,
-      easing: "easeOutBack",
-    });
-  }, []);
+    if (show) {
+      anime({ targets: overlayRef.current, opacity: [0, 1], duration: 200, easing: "easeOutQuad" });
+      anime({ targets: contentRef.current, opacity: [0, 1], scale: [0.9, 1], translateY: [-30, 0], duration: 400, easing: "easeOutBack" });
+    }
+  }, [show]);
 
-  const handleClose = () => {
-    anime({
-      targets: contentRef.current,
-      opacity: [1, 0],
-      scale: [1, 0.9],
-      duration: 200,
-      easing: "easeInQuad",
-    });
-    anime({
-      targets: overlayRef.current,
-      opacity: [1, 0],
-      duration: 250,
-      easing: "easeInQuad",
-      complete: onClose,
-    });
-  };
+  if (!show) return null;
 
   return (
-    <div
-      ref={overlayRef}
-      className="modal-overlay"
-      onClick={(e) => e.target === overlayRef.current && handleClose()}
-      style={{ opacity: 0 }}
-    >
-      <div ref={contentRef} className="modal-content" style={{ opacity: 0 }}>
+    <div ref={overlayRef} className="modal-overlay" onClick={e => e.target === overlayRef.current && onClose()}>
+      <div ref={contentRef} className="modal-content">
         <div className="modal-header">
           <h3>{title}</h3>
-          <button
-            className="modal-close"
-            onClick={handleClose}
-            aria-label="Close"
-          >
-            ×
-          </button>
+          <button className="modal-close" onClick={onClose}>×</button>
         </div>
         <div className="modal-body">{children}</div>
       </div>

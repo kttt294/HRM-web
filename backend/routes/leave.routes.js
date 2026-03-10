@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const leaveController = require("../controllers/leaveController");
 const authMiddleware = require("../middleware/auth");
-const { requirePermission } = require("../middleware/checkPermission");
+const { dataScope } = require("../middleware/dataScope");
 
 // Tất cả routes cần authentication
 router.use(authMiddleware);
@@ -13,8 +13,8 @@ router.get("/my", leaveController.getMy);
 // GET /api/leaves/my/balance - Lấy số ngày phép còn lại của user hiện tại
 router.get("/my/balance", leaveController.getMyBalance);
 
-// GET /api/leaves - Lấy danh sách đơn nghỉ phép (HR: xem tất cả, Employee: chỉ của mình)
-router.get("/", leaveController.getAll);
+// GET /api/leaves - Lấy danh sách đơn nghỉ phép (Tích hợp Data Scoping cho Manager/Employee)
+router.get("/", dataScope("leave_request"), leaveController.getAll);
 
 // GET /api/leaves/employee/:employeeId - Lấy đơn nghỉ phép của 1 nhân viên
 router.get("/employee/:employeeId", leaveController.getByEmployee);
@@ -25,18 +25,16 @@ router.get("/balance/:employeeId", leaveController.getBalance);
 // POST /api/leaves - Tạo đơn nghỉ phép mới
 router.post("/", leaveController.create);
 
-// PATCH /api/leaves/:id/approve - Duyệt đơn (chỉ HR)
+// PATCH /api/leaves/:id/approve - Duyệt đơn (Manager hoặc HR)
 router.patch(
   "/:id/approve",
-  requirePermission("manage_employees"),
-  leaveController.approve,
+  leaveController.approve
 );
 
-// PATCH /api/leaves/:id/reject - Từ chối đơn (chỉ HR)
+// PATCH /api/leaves/:id/reject - Từ chối đơn (Manager hoặc HR)
 router.patch(
   "/:id/reject",
-  requirePermission("manage_employees"),
-  leaveController.reject,
+  leaveController.reject
 );
 
 // DELETE /api/leaves/:id - Hủy đơn (Employee chỉ hủy được đơn pending)

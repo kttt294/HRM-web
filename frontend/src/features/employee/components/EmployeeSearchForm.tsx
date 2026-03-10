@@ -74,7 +74,7 @@ export function EmployeeSearchForm({ onSearch }: EmployeeSearchFormProps) {
                     <Input
                         label="Mã nhân viên"
                         name="employee_id"
-                        placeholder="VD: NV001"
+                        placeholder="VD: 00001"
                         value={searchParams.employeeId}
                         onChange={(e) =>
                             setSearchParams({ ...searchParams, employeeId: e.target.value })
@@ -107,13 +107,12 @@ export function EmployeeSearchForm({ onSearch }: EmployeeSearchFormProps) {
                         }
                     />
                 </div>
-            </div>
-
-            <div className="form-actions">
-                <Button type="submit">Tìm kiếm</Button>
-                <Button type="button" variant="secondary" onClick={handleReset}>
-                    Đặt lại
-                </Button>
+                <div className="form-group" style={{ display: 'flex', gap: '8px', alignItems: 'flex-end', transform: 'translateY(6px)' }}>
+                    <Button type="submit">Tìm kiếm</Button>
+                    <Button type="button" variant="secondary" onClick={handleReset}>
+                        Đặt lại
+                    </Button>
+                </div>
             </div>
         </form>
     );

@@ -8,13 +8,23 @@ import {
   GENDER_OPTIONS,
   EMPLOYEE_STATUS_OPTIONS,
   EMPLOYEE_TYPE_OPTIONS,
+  MARITAL_STATUS_OPTIONS,
 } from "../constants/employeeStatus";
+
+const SYSTEM_ROLE_OPTIONS = [
+  { value: '2', label: 'HR' },
+  { value: '3', label: 'Manager' },
+  { value: '4', label: 'Employee' }
+];
 import { ROUTES } from "../../../shared/constants/routes";
 import { departmentApi } from "../../hr/services/department.api";
 import { employeeApi } from "../services/employee.api";
+import { jobTitleApi } from "../../hr/services/jobTitle.api.ts";
+import { getAvatarUrl, compressImage } from "../../../shared/utils/avatar.util";
 import { Department } from "../../hr/models/department.model";
 import { Employee } from "../models/employee.model";
 import { useSnackbarStore } from "../../../store/snackbar.store";
+import { formatEmployeeId } from "../../../shared/utils/format.util";
 
 export function EmployeeFormPage() {
   const { id } = useParams<{ id: string }>();
@@ -25,6 +35,7 @@ export function EmployeeFormPage() {
 
   // Dropdown data
   const [departments, setDepartments] = useState<Department[]>([]);
+  const [jobTitles, setJobTitles] = useState<any[]>([]);
   const [allEmployees, setAllEmployees] = useState<Employee[]>([]);
 
   // Supervisor search
@@ -32,63 +43,70 @@ export function EmployeeFormPage() {
   const [showSupervisorDropdown, setShowSupervisorDropdown] = useState(false);
   const supervisorRef = useRef<HTMLDivElement>(null);
 
-  const [formData, setFormData] = useState({
-    employeeId: "",
+  const [formData, setFormData] = useState<any>({
     fullName: "",
+    avatarUrl: "",
     dateOfBirth: "",
     gender: "",
-    nationalId: "",
-    address: "",
+    maritalStatus: "single",
+    personalEmail: "",
     phone: "",
+    address: "",
+    permanentAddress: "",
+    nationalId: "",
+    taxId: "",
+    insuranceId: "",
+    emergencyContactName: "",
+    emergencyContactRelationship: "",
+    emergencyContactPhone: "",
+    bankName: "",
+    bankAccount: "",
+    education: "",
+    workProcess: "",
+    
+    id: "", // Employee ID Mã NV
     departmentId: "",
-    jobTitle: "",
+    jobTitleId: "",
     supervisorId: "",
     hireDate: "",
-    status: "",
-    baseSalary: "",
-    allowance: "",
-    employeeType: "",
+    status: "active",
+    baseSalary: "0",
+    allowance: "0",
+    dependentsCount: "0",
+    employeeType: "full_time",
+    roleId: "4",
   });
 
-  // Fetch departments & employees list for dropdowns
+  // Fetch initial data
   useEffect(() => {
     departmentApi.getAll().then(setDepartments).catch(console.error);
     employeeApi.getAll().then(setAllEmployees).catch(console.error);
+    jobTitleApi.getAll().then(setJobTitles).catch(console.error);
   }, []);
 
   // Populate form in edit mode
   useEffect(() => {
     if (employee && isEditMode) {
       setFormData({
-        employeeId: employee.id || "",
-        fullName: employee.fullName || "",
-        dateOfBirth: employee.dateOfBirth || "",
-        gender: employee.gender || "",
-        nationalId: employee.nationalId || "",
-        address: employee.address || "",
-        phone: employee.phone || "",
-        departmentId: employee.departmentId || "",
-        jobTitle: employee.jobTitle || "",
-        supervisorId: employee.supervisorId || "",
-        hireDate: employee.hireDate || "",
-        status: employee.status || "",
-        baseSalary: String(employee.baseSalary || ""),
-        allowance: String(employee.allowance || ""),
-        employeeType: employee.employeeType || "",
+        ...employee,
+        id: formatEmployeeId(employee.id),
+        baseSalary: String(employee.baseSalary || "0"),
+        allowance: String(employee.allowance || "0"),
+        dependentsCount: String(employee.dependentsCount || "0"),
+        dateOfBirth: employee.dateOfBirth ? new Date(employee.dateOfBirth).toISOString().split('T')[0] : "",
+        hireDate: employee.hireDate ? new Date(employee.hireDate).toISOString().split('T')[0] : "",
+        roleId: String((employee as any).roleId || "4"),
       });
-      // Set supervisor search text for display
+      
       const sup = allEmployees.find((e) => e.id === employee.supervisorId);
-      if (sup) setSupervisorSearch(`${sup.id} - ${sup.fullName}`);
+      if (sup) setSupervisorSearch(`${formatEmployeeId(sup.id)} - ${sup.fullName}`);
     }
   }, [employee, isEditMode, allEmployees]);
 
   // Close supervisor dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (
-        supervisorRef.current &&
-        !supervisorRef.current.contains(e.target as Node)
-      ) {
+      if (supervisorRef.current && !supervisorRef.current.contains(e.target as Node)) {
         setShowSupervisorDropdown(false);
       }
     };
@@ -96,46 +114,48 @@ export function EmployeeFormPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Filter employees for supervisor dropdown
   const filteredSupervisors = useMemo(() => {
     const query = supervisorSearch.toLowerCase().trim();
     if (!query) return allEmployees;
     return allEmployees.filter(
-      (emp) =>
-        emp.id.toLowerCase().includes(query) ||
-        emp.fullName.toLowerCase().includes(query),
+      (emp) => formatEmployeeId(emp.id).toLowerCase().includes(query) || emp.fullName.toLowerCase().includes(query)
     );
   }, [allEmployees, supervisorSearch]);
 
-  // Department options from API
-  const departmentOptions = useMemo(
-    () => departments.map((d) => ({ value: d.id, label: d.name })),
-    [departments],
-  );
+  const departmentOptions = departments.map((d) => ({ value: d.id, label: d.name }));
+  const jobTitleOptions = jobTitles.map((jt) => ({ value: jt.id, label: jt.name }));
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        const compressedBase64 = await compressImage(file, 400); // Nén về Max Width 400px
+        setFormData({ ...formData, avatarUrl: compressedBase64 });
+      } catch (err) {
+        console.error("Compression failed:", err);
+        showSnackbar("Lỗi khi xử lý ảnh", "error");
+      }
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const payload = {
-        id: formData.employeeId,
-        fullName: formData.fullName,
-        dateOfBirth: formData.dateOfBirth || undefined,
-        gender: formData.gender || undefined,
-        nationalId: formData.nationalId || undefined,
-        address: formData.address || undefined,
-        phone: formData.phone || undefined,
-        departmentId: formData.departmentId || undefined,
-        jobTitle: formData.jobTitle || undefined,
-        supervisorId: formData.supervisorId || undefined,
-        hireDate: formData.hireDate || undefined,
-        status: formData.status || "active",
-        baseSalary: formData.baseSalary ? Number(formData.baseSalary) : 0,
-        allowance: formData.allowance ? Number(formData.allowance) : 0,
-        employeeType: formData.employeeType || "full_time",
+        ...formData,
+        baseSalary: Number(formData.baseSalary),
+        allowance: Number(formData.allowance),
+        dependentsCount: Number(formData.dependentsCount),
       };
 
       if (isEditMode && id) {
         await employeeApi.update(id, payload);
+        
+        // Cập nhật role nếu thay đổi
+        if (formData.roleId !== String((employee as any).roleId)) {
+          await employeeApi.updateRole(id, Number(formData.roleId));
+        }
+
         showSnackbar('Cập nhật nhân viên thành công', 'success');
       } else {
         await employeeApi.create(payload);
@@ -149,13 +169,9 @@ export function EmployeeFormPage() {
     }
   };
 
-  const handleReset = () => {
-    navigate(ROUTES.EMPLOYEES);
-  };
-
   const handleSelectSupervisor = (emp: Employee) => {
     setFormData({ ...formData, supervisorId: emp.id });
-    setSupervisorSearch(`${emp.id} - ${emp.fullName}`);
+    setSupervisorSearch(`${formatEmployeeId(emp.id)} - ${emp.fullName}`);
     setShowSupervisorDropdown(false);
   };
 
@@ -164,250 +180,156 @@ export function EmployeeFormPage() {
       <div className="page-header">
         <div className="page-title-section">
           <h1>{isEditMode ? "CẬP NHẬT NHÂN VIÊN" : "THÊM NHÂN VIÊN MỚI"}</h1>
-          <p className="page-subtitle">
-            {isEditMode
-              ? "Cập nhật thông tin chi tiết cho nhân viên"
-              : "Nhập thông tin để thêm nhân viên mới vào hệ thống"}
-          </p>
+          <p className="page-subtitle">Quản lý hồ sơ nhân sự chi tiết</p>
         </div>
       </div>
+      
       <main style={{ marginTop: "24px" }}>
         <form id="employee-form" onSubmit={handleSubmit}>
-          {/* ====== THÔNG TIN CÁ NHÂN ====== */}
-          <section className="form-section" id="personal-details">
-            <h2>Thông tin cá nhân</h2>
-
-            <Input
-              label="Họ và tên *"
-              name="full_name"
-              value={formData.fullName}
-              onChange={(e) =>
-                setFormData({ ...formData, fullName: e.target.value })
-              }
-              required
-            />
-
-            <Input
-              type="date"
-              label="Ngày sinh"
-              name="dob"
-              value={formData.dateOfBirth}
-              onChange={(e) =>
-                setFormData({ ...formData, dateOfBirth: e.target.value })
-              }
-            />
-
-            <Select
-              label="Giới tính"
-              name="gender"
-              options={GENDER_OPTIONS}
-              placeholder="Chọn"
-              value={formData.gender}
-              onChange={(e) =>
-                setFormData({ ...formData, gender: e.target.value })
-              }
-            />
-
-            <Input
-              label="Số CCCD"
-              name="national_id"
-              value={formData.nationalId}
-              onChange={(e) =>
-                setFormData({ ...formData, nationalId: e.target.value })
-              }
-            />
-
-            <Input
-              label="Địa chỉ"
-              name="address"
-              value={formData.address}
-              onChange={(e) =>
-                setFormData({ ...formData, address: e.target.value })
-              }
-            />
-
-            <Input
-              label="Số điện thoại"
-              name="phone"
-              value={formData.phone}
-              onChange={(e) =>
-                setFormData({ ...formData, phone: e.target.value })
-              }
-            />
-          </section>
-
-          {/* ====== THÔNG TIN CÔNG VIỆC ====== */}
-          <section className="form-section" id="job-details">
-            <h2>Thông tin công việc</h2>
-
-            <Input
-              label="Mã nhân viên (ID) *"
-              name="employee_id"
-              value={formData.employeeId}
-              onChange={(e) =>
-                setFormData({ ...formData, employeeId: e.target.value })
-              }
-              required
-            />
-
-            <Select
-              label="Phòng ban"
-              name="department_id"
-              options={departmentOptions}
-              placeholder="Chọn phòng ban"
-              value={formData.departmentId}
-              onChange={(e) =>
-                setFormData({ ...formData, departmentId: e.target.value })
-              }
-            />
-
-            <Input
-              label="Chức danh"
-              name="job_title"
-              placeholder="Nhập chức danh (VD: Trưởng phòng, Nhân viên...)"
-              value={formData.jobTitle}
-              onChange={(e) =>
-                setFormData({ ...formData, jobTitle: e.target.value })
-              }
-            />
-
-            {/* Supervisor - Searchable Dropdown */}
-            <div className="form-group" ref={supervisorRef}>
-              <label>Quản lý trực tiếp</label>
-              <div style={{ position: "relative" }}>
-                <input
-                  className="form-input"
-                  placeholder="Tìm theo ID hoặc họ tên..."
-                  value={supervisorSearch}
-                  onChange={(e) => {
-                    setSupervisorSearch(e.target.value);
-                    setShowSupervisorDropdown(true);
-                    // Clear selection if user edits text
-                    if (formData.supervisorId) {
-                      setFormData({ ...formData, supervisorId: "" });
-                    }
-                  }}
-                  onFocus={() => setShowSupervisorDropdown(true)}
-                />
-                {showSupervisorDropdown && (
-                  <div
+          {/* SECTION 1: CÁ NHÂN */}
+          <section className="form-section">
+            <h2>1. Thông tin cá nhân</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '30px' }}>
+              {/* Avatar Column */}
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ position: 'relative', width: '120px', height: '120px', margin: '0 auto 12px' }}>
+                  <img 
+                    src={getAvatarUrl(formData.avatarUrl, formData.fullName)} 
+                    alt="Avatar Preview" 
+                    style={{ width: '100%', height: '100%', borderRadius: '16px', objectFit: 'cover', border: '2px solid #eee' }}
+                  />
+                  <input
+                    type="file"
+                    id="avatar-upload"
+                    hidden
+                    accept="image/*"
+                    onChange={handleFileChange}
+                  />
+                  <label 
+                    htmlFor="avatar-upload"
                     style={{
-                      position: "absolute",
-                      top: "100%",
-                      left: 0,
-                      right: 0,
-                      maxHeight: "200px",
-                      overflowY: "auto",
-                      background: "white",
-                      border: "1px solid #e0e0e0",
-                      borderRadius: "8px",
-                      boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                      zIndex: 100,
-                      marginTop: "4px",
+                      position: 'absolute',
+                      bottom: '-10px',
+                      right: '-10px',
+                      background: '#2196f3',
+                      color: 'white',
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
                     }}
                   >
-                    {filteredSupervisors.length === 0 ? (
-                      <div
-                        style={{
-                          padding: "12px 16px",
-                          color: "#9e9e9e",
-                          fontSize: "13px",
-                        }}
-                      >
-                        Không tìm thấy nhân viên
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>
+                    </svg>
+                  </label>
+                </div>
+                <p style={{ fontSize: '12px', color: '#666' }}>Ảnh định dạng<br/> Tối đa 2MB (JPG/PNG)</p>
+              </div>
+
+              {/* Fields Column */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                <Input label="Họ và tên *" value={formData.fullName} onChange={e => setFormData({...formData, fullName: e.target.value})} required />
+                <Input label="Email cá nhân" type="email" value={formData.personalEmail} onChange={e => setFormData({...formData, personalEmail: e.target.value})} />
+                <Input label="Ngày sinh" type="date" value={formData.dateOfBirth} onChange={e => setFormData({...formData, dateOfBirth: e.target.value})} />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                  <Select label="Giới tính" options={GENDER_OPTIONS} value={formData.gender} onChange={e => setFormData({...formData, gender: e.target.value})} />
+                  <Select label="Hôn nhân" options={MARITAL_STATUS_OPTIONS} value={formData.maritalStatus} onChange={e => setFormData({...formData, maritalStatus: e.target.value})} />
+                </div>
+                <Input label="Số điện thoại" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} />
+                <Input label="Số CCCD" value={formData.nationalId} onChange={e => setFormData({...formData, nationalId: e.target.value})} />
+                <Input label="Địa chỉ hiện tại" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} style={{ gridColumn: 'span 2' }} />
+                <Input label="Địa chỉ thường trú" value={formData.permanentAddress} onChange={e => setFormData({...formData, permanentAddress: e.target.value})} style={{ gridColumn: 'span 2' }} />
+              </div>
+            </div>
+          </section>
+
+          {/* SECTION 2: PHÁP LÝ & TÀI CHÍNH */}
+          <section className="form-section">
+            <h2>2. Pháp lý & Tài chính</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+              <Input label="Mã số thuế" value={formData.taxId} onChange={e => setFormData({...formData, taxId: e.target.value})} />
+              <Input label="Số sổ BHXH" value={formData.insuranceId} onChange={e => setFormData({...formData, insuranceId: e.target.value})} />
+              <Input label="Tên ngân hàng" value={formData.bankName} onChange={e => setFormData({...formData, bankName: e.target.value})} />
+              <Input label="Số tài khoản" value={formData.bankAccount} onChange={e => setFormData({...formData, bankAccount: e.target.value})} />
+              <Input label="Số người phụ thuộc" type="number" value={formData.dependentsCount} onChange={e => setFormData({...formData, dependentsCount: e.target.value})} />
+            </div>
+          </section>
+
+          {/* SECTION 3: LIÊN HỆ KHẨN CẤP */}
+          <section className="form-section">
+            <h2>3. Liên hệ khẩn cấp</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px' }}>
+              <Input label="Họ tên người liên hệ" value={formData.emergencyContactName} onChange={e => setFormData({...formData, emergencyContactName: e.target.value})} />
+              <Input label="Mối quan hệ" value={formData.emergencyContactRelationship} onChange={e => setFormData({...formData, emergencyContactRelationship: e.target.value})} />
+              <Input label="Số điện thoại" value={formData.emergencyContactPhone} onChange={e => setFormData({...formData, emergencyContactPhone: e.target.value})} />
+            </div>
+          </section>
+
+          {/* SECTION 4: CÔNG VIỆC */}
+          <section className="form-section">
+            <h2>4. Thông tin công việc</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+              {isEditMode && (
+                <Input label="Mã nhân viên (ID)" value={formData.id} disabled />
+              )}
+              <Select label="Phòng ban" options={departmentOptions} value={formData.departmentId} onChange={e => setFormData({...formData, departmentId: e.target.value})} />
+              <Select label="Chức danh" options={jobTitleOptions} value={formData.jobTitleId} onChange={e => setFormData({...formData, jobTitleId: e.target.value})} />
+              
+              <div ref={supervisorRef} style={{ position: 'relative' }}>
+                <label style={{ display: 'block', fontSize: '14px', marginBottom: '8px', color: '#616161' }}>Quản lý trực tiếp</label>
+                <input 
+                  className="form-input" 
+                  value={supervisorSearch} 
+                  onChange={e => { setSupervisorSearch(e.target.value); setShowSupervisorDropdown(true); }}
+                  onFocus={() => setShowSupervisorDropdown(true)}
+                  placeholder="Tìm theo ID/Tên..."
+                />
+                {showSupervisorDropdown && (
+                  <div className="dropdown-panel" style={{ position: 'absolute', width: '100%', zIndex: 10, background: '#fff', border: '1px solid #ddd', maxHeight: '200px', overflowY: 'auto' }}>
+                    {filteredSupervisors.map(emp => (
+                      <div key={emp.id} onClick={() => handleSelectSupervisor(emp)} style={{ padding: '8px 12px', cursor: 'pointer', borderBottom: '1px solid #eee' }}>
+                        {formatEmployeeId(emp.id)} - {emp.fullName}
                       </div>
-                    ) : (
-                      filteredSupervisors.map((emp) => (
-                        <div
-                          key={emp.id}
-                          onClick={() => handleSelectSupervisor(emp)}
-                          style={{
-                            padding: "10px 16px",
-                            cursor: "pointer",
-                            borderBottom: "1px solid #f5f5f5",
-                            fontSize: "14px",
-                            transition: "background 0.15s",
-                          }}
-                          onMouseEnter={(e) =>
-                            (e.currentTarget.style.background = "#f0f7ff")
-                          }
-                          onMouseLeave={(e) =>
-                            (e.currentTarget.style.background = "white")
-                          }
-                        >
-                          <span style={{ fontWeight: 600, color: "#1976d2" }}>
-                            {emp.id}
-                          </span>
-                          <span style={{ margin: "0 8px", color: "#bdbdbd" }}>
-                            —
-                          </span>
-                          <span>{emp.fullName}</span>
-                        </div>
-                      ))
-                    )}
+                    ))}
                   </div>
                 )}
               </div>
+
+              <Input label="Ngày vào làm" type="date" value={formData.hireDate} onChange={e => setFormData({...formData, hireDate: e.target.value})} />
+              <Select label="Trạng thái" options={EMPLOYEE_STATUS_OPTIONS} value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} />
+              <Input label="Lương cơ bản" type="number" value={formData.baseSalary} onChange={e => setFormData({...formData, baseSalary: e.target.value})} />
+              <Input label="Phụ cấp" type="number" value={formData.allowance} onChange={e => setFormData({...formData, allowance: e.target.value})} />
+              <Select label="Loại hình" options={EMPLOYEE_TYPE_OPTIONS} value={formData.employeeType} onChange={e => setFormData({...formData, employeeType: e.target.value})} />
+              
+              {isEditMode && (
+                <Select 
+                  label="Vai trò hệ thống" 
+                  options={SYSTEM_ROLE_OPTIONS} 
+                  value={formData.roleId} 
+                  onChange={e => setFormData({...formData, roleId: e.target.value})} 
+                />
+              )}
+
+              <Input label="Học vấn" value={formData.education} onChange={e => setFormData({...formData, education: e.target.value})} style={{ gridColumn: 'span 2' }} />
+              <div style={{ gridColumn: 'span 2' }}>
+                <label style={{ display: 'block', fontSize: '14px', marginBottom: '8px', color: '#616161' }}>Kinh nghiệm / Quá trình làm việc</label>
+                <textarea 
+                  style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #ddd', minHeight: '80px' }}
+                  value={formData.workProcess} 
+                  onChange={e => setFormData({...formData, workProcess: e.target.value})} 
+                />
+              </div>
             </div>
-
-            <Input
-              type="date"
-              label="Ngày vào làm"
-              name="hire_date"
-              value={formData.hireDate}
-              onChange={(e) =>
-                setFormData({ ...formData, hireDate: e.target.value })
-              }
-            />
-
-            <Select
-              label="Trạng thái làm việc"
-              name="status"
-              options={EMPLOYEE_STATUS_OPTIONS}
-              placeholder="Chọn trạng thái"
-              value={formData.status}
-              onChange={(e) =>
-                setFormData({ ...formData, status: e.target.value })
-              }
-            />
-
-            <Input
-              type="number"
-              label="Lương cơ bản"
-              name="base_salary"
-              value={formData.baseSalary}
-              onChange={(e) =>
-                setFormData({ ...formData, baseSalary: e.target.value })
-              }
-            />
-
-            <Input
-              type="number"
-              label="Phụ cấp"
-              name="allowance"
-              value={formData.allowance}
-              onChange={(e) =>
-                setFormData({ ...formData, allowance: e.target.value })
-              }
-            />
-
-            <Select
-              label="Loại hình"
-              name="employee_type"
-              options={EMPLOYEE_TYPE_OPTIONS}
-              placeholder="Chọn loại hình"
-              value={formData.employeeType}
-              onChange={(e) =>
-                setFormData({ ...formData, employeeType: e.target.value })
-              }
-            />
           </section>
 
-          <div className="form-actions">
-            <Button type="submit">Lưu</Button>
-            <Button type="button" variant="secondary" onClick={handleReset}>
-              Hủy
-            </Button>
+          <div className="form-actions" style={{ marginTop: '30px' }}>
+            <Button type="submit">Lưu thông tin</Button>
+            <Button type="button" variant="secondary" onClick={() => navigate(ROUTES.EMPLOYEES)}>Hủy</Button>
           </div>
         </form>
       </main>

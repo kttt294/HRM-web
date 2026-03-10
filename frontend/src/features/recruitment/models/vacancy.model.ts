@@ -10,6 +10,9 @@ export interface Vacancy {
     minSalary?: number;
     maxSalary?: number;
     deadline?: string;
+    recruiterId?: string;
+    recruiterName?: string;
+    jobTitleId?: string;
     createdAt: string;
     updatedAt?: string;
 }

@@ -111,20 +111,15 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
  */
 export function AdminRoute({ children }: { children: ReactNode }) {
     return (
-        <RoleGuard allowedRoles={[Role.ADMIN]}>
+        <RoleGuard allowedRoles={[Role.ADMIN, Role.HR]}>
             {children}
         </RoleGuard>
     );
 }
 
-/**
- * ============================================
- * ROUTE CHỈ DÀNH CHO HR (Nhân sự)
- * ============================================
- */
 export function HRRoute({ children }: { children: ReactNode }) {
     return (
-        <RoleGuard allowedRoles={[Role.HR]}>
+        <RoleGuard allowedRoles={[Role.ADMIN, Role.HR]}>
             {children}
         </RoleGuard>
     );

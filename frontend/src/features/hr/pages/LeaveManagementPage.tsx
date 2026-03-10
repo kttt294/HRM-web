@@ -13,7 +13,7 @@ import { useSnackbarStore } from '../../../store/snackbar.store';
  * Duyệt / Từ chối đơn nghỉ phép từ nhân viên
  */
 
-type LeaveWithName = LeaveRequest & { employeeName: string };
+type LeaveWithName = LeaveRequest & { employeeName: string; employeeIdPadded?: string; approvedByName?: string; };
 
 export function LeaveManagementPage() {
     const containerRef = useRef<HTMLDivElement>(null);
@@ -262,7 +262,7 @@ export function LeaveManagementPage() {
                                         </div>
                                     </td>
                                     <td style={{ padding: '14px 16px', color: '#616161', fontFamily: 'monospace' }}>
-                                        {request.employeeId}
+                                        {request.employeeIdPadded ? request.employeeIdPadded : (request.employeeId ? String(request.employeeId).padStart(5, '0') : '---')}
                                     </td>
                                     <td style={{ padding: '14px 16px' }}>
                                         <span style={{
@@ -339,7 +339,7 @@ export function LeaveManagementPage() {
                                             </div>
                                         ) : (
                                             <span style={{ fontSize: '12px', color: '#9e9e9e' }}>
-                                                {request.approvedBy && `Bởi ${request.approvedBy}`}
+                                                {request.approvedByName ? `Bởi ${request.approvedByName}` : (request.approvedBy ? `Bởi ID: ${request.approvedBy}` : '')}
                                             </span>
                                         )}
                                     </td>

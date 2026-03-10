@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { CreateUserDto } from "../models/user.model";
 import { userApi } from "../services/user.api";
@@ -6,6 +6,7 @@ import { Role } from "../../../shared/constants/rbac";
 import { Button } from "../../../components/ui/Button";
 import { Input } from "../../../components/ui/Input";
 import { ROUTES } from "../../../shared/constants/routes";
+import { useSnackbarStore } from "../../../store/snackbar.store";
 import anime from "animejs";
 
 /**
@@ -16,6 +17,7 @@ import anime from "animejs";
 export function UserFormPage() {
   const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement>(null);
+  const { showSnackbar } = useSnackbarStore();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -49,17 +51,23 @@ export function UserFormPage() {
 
     // Validate
     if (formData.password !== confirmPassword) {
-      setError("Mật khẩu xác nhận không khớp");
+      const msg = "Mật khẩu xác nhận không khớp";
+      setError(msg);
+      showSnackbar(msg, "error");
       return;
     }
 
     if (formData.password.length < 6) {
-      setError("Mật khẩu phải có ít nhất 6 ký tự");
+      const msg = "Mật khẩu phải có ít nhất 6 ký tự";
+      setError(msg);
+      showSnackbar(msg, "error");
       return;
     }
 
     if (!formData.username.match(/^[a-z0-9_]+$/)) {
-      setError("Tên đăng nhập chỉ được chứa chữ thường, số và dấu gạch dưới");
+      const msg = "Tên đăng nhập chỉ được chứa chữ thường, số và dấu gạch dưới";
+      setError(msg);
+      showSnackbar(msg, "error");
       return;
     }
 
@@ -67,6 +75,7 @@ export function UserFormPage() {
     try {
       await userApi.createUser(formData);
       setSuccess(true);
+      showSnackbar("Tạo tài khoản thành công", "success");
 
       // Success animation
       anime({
@@ -81,7 +90,9 @@ export function UserFormPage() {
         navigate(ROUTES.ADMIN_USERS);
       }, 1500);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Lỗi tạo tài khoản");
+      const msg = err instanceof Error ? err.message : "Lỗi tạo tài khoản";
+      setError(msg);
+      showSnackbar(msg, "error");
     } finally {
       setLoading(false);
     }
@@ -121,13 +132,7 @@ export function UserFormPage() {
     <div ref={containerRef} style={{ maxWidth: "800px", margin: "0 auto" }}>
 
 
-      {/* Header */}
-      <div className="page-header form-section" style={{ opacity: 0 }}>
-        <div className="page-title-section">
-          <h1>Tạo tài khoản Admin</h1>
-          <p className="page-subtitle">Thiết lập tài khoản quản trị mới cho hệ thống</p>
-        </div>
-      </div>
+
 
       <form onSubmit={handleSubmit}>
         <div
@@ -233,6 +238,33 @@ export function UserFormPage() {
                 >
                   a-z, 0-9 và gạch dưới
                 </p>
+              </div>
+
+              <div style={{ gridColumn: "1 / -1" }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#455a64' }}>
+                  Vai trò hệ thống
+                </label>
+                <select
+                  value={formData.role}
+                  onChange={(e) => setFormData({ ...formData, role: e.target.value as Role })}
+                  style={{
+                    width: '100%',
+                    height: '48px',
+                    padding: '0 16px',
+                    borderRadius: '12px',
+                    border: '1px solid #e0e0e0',
+                    fontSize: '15px',
+                    outline: 'none',
+                    transition: 'border-color 0.2s ease',
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = '#1565c0'}
+                  onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
+                >
+                  <option value={Role.ADMIN}>System Admin</option>
+                  <option value={Role.HR}>HR Manager</option>
+                  <option value={Role.MANAGER}>Trưởng phòng (Manager)</option>
+                  <option value={Role.EMPLOYEE}>Nhân viên</option>
+                </select>
               </div>
             </div>
           </div>

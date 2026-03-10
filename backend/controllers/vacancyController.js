@@ -9,13 +9,22 @@ const vacancyController = {
       const { department, status, search } = req.query;
 
       let query = `SELECT v.*, 
-                v.job_title AS job_title,
-                          d.name AS department,
-                          d.location
-                   FROM vacancies v
-                   LEFT JOIN departments d ON v.department_id = d.id
-                   WHERE 1=1`;
+                           jt.name AS job_title,
+                           d.name AS department,
+                           d.location,
+                           e.full_name AS recruiter_name
+                    FROM vacancies v
+                    LEFT JOIN job_titles jt ON v.job_title_id = jt.id
+                    LEFT JOIN departments d ON v.department_id = d.id
+                    LEFT JOIN employees e ON v.recruiter_id = e.id
+                    WHERE 1=1`;
       const params = [];
+
+      // Áp dụng Data Scope nếu có (từ middleware)
+      if (req.queryScope && req.queryScope.recruiter_id) {
+        query += " AND v.recruiter_id = ?";
+        params.push(req.queryScope.recruiter_id);
+      }
 
       if (department) {
         query += " AND v.department_id = ?";
@@ -63,11 +72,14 @@ const vacancyController = {
     try {
       const [vacancies] = await db.query(
         `SELECT v.*, 
-                    v.job_title AS job_title,
+                    jt.name AS job_title,
                     d.name AS department,
-                    d.location
+                    d.location,
+                    e.full_name AS recruiter_name
                 FROM vacancies v
+                LEFT JOIN job_titles jt ON v.job_title_id = jt.id
                 LEFT JOIN departments d ON v.department_id = d.id
+                LEFT JOIN employees e ON v.recruiter_id = e.id
                 WHERE v.id = ?`,
         [req.params.id],
       );
@@ -104,8 +116,9 @@ const vacancyController = {
     try {
       const {
         title,
-        jobTitle,
-        department,
+        jobTitleId,
+        departmentId,
+        recruiterId,
         description,
         requirements,
         numberOfPositions,
@@ -126,28 +139,17 @@ const vacancyController = {
         ? JSON.stringify(requirements)
         : requirements;
 
-      // Get department_id from department name if provided
-      let departmentId = null;
-      if (department) {
-        const [depts] = await db.query(
-          "SELECT id FROM departments WHERE name = ? LIMIT 1",
-          [department]
-        );
-        if (depts.length > 0) {
-          departmentId = depts[0].id;
-        }
-      }
-
       const [result] = await db.query(
         `INSERT INTO vacancies (
-                    title, job_title, department_id, description, requirements, 
+                    title, job_title_id, department_id, recruiter_id, description, requirements, 
                     number_of_positions, min_salary, max_salary, 
                     deadline, status
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           title,
-          jobTitle,
+          jobTitleId,
           departmentId,
+          recruiterId,
           description,
           requirementsStr,
           numberOfPositions || 1,
@@ -181,8 +183,9 @@ const vacancyController = {
       const updates = req.body;
       const fieldMapping = {
         title: "title",
-        jobTitle: "job_title",
-        department: "department_id",
+        jobTitleId: "job_title_id",
+        departmentId: "department_id",
+        recruiterId: "recruiter_id",
         description: "description",
         requirements: "requirements",
         numberOfPositions: "number_of_positions",
@@ -194,19 +197,6 @@ const vacancyController = {
 
       const updateFields = [];
       const params = [];
-
-      // Handle department conversion
-      if (updates.department) {
-        const [depts] = await db.query(
-          "SELECT id FROM departments WHERE name = ? LIMIT 1",
-          [updates.department]
-        );
-        if (depts.length > 0) {
-          updates.department = depts[0].id;
-        } else {
-          updates.department = null;
-        }
-      }
 
       // Handle requirements array conversion
       if (Array.isArray(updates.requirements)) {

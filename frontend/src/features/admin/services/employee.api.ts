@@ -1,4 +1,5 @@
 import { authFetch } from "../../../utils/auth-fetch";
+import { formatEmployeeId } from "../../../shared/utils/format.util";
 
 export interface Employee {
   id: string;
@@ -45,8 +46,8 @@ export const adminEmployeeApi = {
    * Username tự động từ employee ID, password mặc định 123456
    */
   async createUserAccount(employeeId: string, employeeName: string, roleId: number = 3): Promise<any> {
-    // Tạo username từ employee ID (loại bỏ ký tự đặc biệt)
-    const username = employeeId.toLowerCase().replace(/[^a-z0-9]/g, '');
+    // Tạo username từ employee ID đã định dạng (e.g. 00001)
+    const username = formatEmployeeId(employeeId).toLowerCase().replace(/[^a-z0-9]/g, '');
     
     const payload = {
       username: username,

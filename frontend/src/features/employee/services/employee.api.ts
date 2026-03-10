@@ -11,6 +11,8 @@ export const employeeApi = {
     if (params?.status) queryParams.append("status", params.status);
     if (params?.departmentId)
       queryParams.append("departmentId", params.departmentId);
+    if (params?.profileStatus)
+      queryParams.append("profileStatus", params.profileStatus);
 
     const response = await authFetch(`${API_BASE}?${queryParams}`);
     if (!response.ok) throw new Error("Failed to fetch employees");
@@ -71,5 +73,26 @@ export const employeeApi = {
       method: "DELETE",
     });
     if (!response.ok) throw new Error("Failed to delete employee");
+  },
+
+  async updateRole(id: string, roleId: number): Promise<void> {
+    const response = await authFetch(`${API_BASE}/${id}/role`, {
+      method: "PATCH",
+      body: JSON.stringify({ roleId }),
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || "Failed to update role");
+    }
+  },
+
+  async verifyProfile(id: string): Promise<void> {
+    const response = await authFetch(`${API_BASE}/${id}/verify`, {
+      method: "POST"
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || "Failed to verify profile");
+    }
   },
 };

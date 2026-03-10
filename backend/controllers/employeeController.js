@@ -7,26 +7,37 @@ const employeeController = {
     try {
       const { name, id, jobTitle, status, departmentId } = req.query;
 
-      let query = `SELECT e.id, e.full_name, e.job_title, e.department_id, e.status, e.employee_type, 
-                          e.phone, e.hire_date,
-                          d.name as department_name, 
-                          u.id as user_id, u.username, u.avatar
-                   FROM employees e 
-                   LEFT JOIN departments d ON e.department_id = d.id
-                   LEFT JOIN users u ON e.user_id = u.id
-                   WHERE 1=1`;
+      let query = `SELECT e.*, jt.name as job_title, d.name as department_name, 
+                           u.id as user_id, u.username, u.avatar,
+                           m.full_name as supervisor_name
+                    FROM employees e 
+                    LEFT JOIN job_titles jt ON e.job_title_id = jt.id
+                    LEFT JOIN departments d ON e.department_id = d.id
+                    LEFT JOIN users u ON e.user_id = u.id
+                    LEFT JOIN employees m ON e.supervisor_id = m.id
+                    WHERE 1=1`;
       const params = [];
+
+      // Áp dụng Data Scoping cho Manager
+      if (req.queryScope && req.queryScope.filterByDept) {
+        // Lấy dept của manager
+        const [mgrs] = await db.query("SELECT department_id FROM employees WHERE id = ?", [req.user.employeeId]);
+        if (mgrs.length > 0) {
+          query += " AND e.department_id = ?";
+          params.push(mgrs[0].department_id);
+        }
+      }
 
       if (name) {
         query += " AND e.full_name LIKE ?";
         params.push(`%${name}%`);
       }
       if (id) {
-        query += " AND e.id LIKE ?";
-        params.push(`%${id}%`);
+        query += " AND e.id = ?";
+        params.push(id);
       }
       if (jobTitle) {
-        query += " AND e.job_title LIKE ?";
+        query += " AND jt.name LIKE ?";
         params.push(`%${jobTitle}%`);
       }
       if (status) {
@@ -36,6 +47,10 @@ const employeeController = {
       if (departmentId) {
         query += " AND e.department_id = ?";
         params.push(departmentId);
+      }
+      if (req.query.profileStatus) {
+        query += " AND e.profile_status = ?";
+        params.push(req.query.profileStatus);
       }
 
       const [employees] = await db.query(query, params);
@@ -49,10 +64,12 @@ const employeeController = {
   async getMe(req, res, next) {
     try {
       const [employees] = await db.query(
-        `SELECT e.*, d.name as department_name, s.full_name as supervisor_name 
+        `SELECT e.*, jt.name as job_title, d.name as department_name, 
+                m.full_name as supervisor_name
          FROM employees e
+         LEFT JOIN job_titles jt ON e.job_title_id = jt.id
          LEFT JOIN departments d ON e.department_id = d.id
-         LEFT JOIN employees s ON e.supervisor_id = s.id
+         LEFT JOIN employees m ON e.supervisor_id = m.id
          WHERE e.user_id = ?`,
         [req.user.id],
       );
@@ -72,79 +89,54 @@ const employeeController = {
   // PATCH /api/employees/me - Nhân viên tự cập nhật thông tin cá nhân
   async updateMe(req, res, next) {
     try {
-      // Chỉ cho phép cập nhật các trường cá nhân
+      // Các trường nhân viên được phép tự sửa
       const allowedFields = {
         fullName: "full_name",
+        personalEmail: "personal_email",
+        avatarUrl: "avatar_url",
+        phone: "phone",
         dateOfBirth: "date_of_birth",
         gender: "gender",
+        maritalStatus: "marital_status",
         nationalId: "national_id",
-        address: "address",
-        phone: "phone",
+        taxId: "tax_id",
+        insuranceId: "insurance_id",
+        permanentAddress: "permanent_address",
+        currentAddress: "current_address",
+        emergencyContactName: "emergency_contact_name",
+        emergencyContactRelationship: "emergency_contact_relationship",
+        emergencyContactPhone: "emergency_contact_phone",
+        education: "education",
+        experience: "experience",
+        workProcess: "work_process",
+        bankName: "bank_name",
+        bankAccount: "bank_account"
       };
 
       const updates = req.body;
-      const updateFields = [];
+      const updateFields = ["profile_status = 'pending'"]; // Luôn đưa về trạng thái chờ duyệt
       const params = [];
-
-      // Date fields that need special handling
       const dateFields = ['date_of_birth'];
 
       Object.keys(updates).forEach((key) => {
         if (allowedFields[key] && updates[key] !== undefined) {
           updateFields.push(`${allowedFields[key]} = ?`);
           let value = updates[key] === '' ? null : updates[key];
-          // Convert ISO date strings to YYYY-MM-DD for MySQL DATE columns
           if (value && dateFields.includes(allowedFields[key])) {
-            try {
-              const d = new Date(value);
-              if (!isNaN(d.getTime())) {
-                value = d.toISOString().split('T')[0];
-              } else {
-                value = null;
-              }
-            } catch {
-              value = null;
-            }
+            value = new Date(value).toISOString().split('T')[0];
           }
           params.push(value);
         }
       });
 
-      if (updateFields.length === 0) {
-        return res.status(400).json({
-          message: "Không có trường nào để cập nhật",
-        });
+      if (updateFields.length === 1) { // Chỉ có profile_status
+        return res.status(400).json({ message: "Không có thông tin thay đổi" });
       }
 
-      const [existing] = await db.query(
-        "SELECT id FROM employees WHERE user_id = ?",
-        [req.user.id],
-      );
+      params.push(req.user.id);
+      await db.query(`UPDATE employees SET ${updateFields.join(", ")} WHERE user_id = ?`, params);
 
-      if (existing.length === 0) {
-        return res.status(404).json({
-          message: "Không tìm thấy thông tin nhân viên",
-        });
-      }
-
-      const employeeId = existing[0].id;
-      params.push(employeeId);
-
-      await db.query(
-        `UPDATE employees SET ${updateFields.join(", ")} WHERE id = ?`,
-        params,
-      );
-
-      const [updatedEmployee] = await db.query(
-        `SELECT e.*, d.name as department_name, s.full_name as supervisor_name 
-         FROM employees e
-         LEFT JOIN departments d ON e.department_id = d.id
-         LEFT JOIN employees s ON e.supervisor_id = s.id
-         WHERE e.id = ?`,
-        [employeeId],
-      );
-
-      res.json(toCamelCase(updatedEmployee[0]));
+      res.json({ message: "Cập nhật hồ sơ thành công, vui lòng chờ duyệt." });
     } catch (error) {
       console.error('updateMe error:', error.code, error.message);
       console.error('updateMe body was:', JSON.stringify(req.body));
@@ -155,9 +147,17 @@ const employeeController = {
   // GET /api/employees/:id
   async getById(req, res, next) {
     try {
+      const { id } = req.params;
       const [employees] = await db.query(
-        "SELECT * FROM employees WHERE id = ?",
-        [req.params.id],
+        `SELECT e.*, jt.name as job_title, d.name as department_name,
+                m.full_name as supervisor_name, u.role_id
+         FROM employees e
+         LEFT JOIN job_titles jt ON e.job_title_id = jt.id
+         LEFT JOIN departments d ON e.department_id = d.id
+         LEFT JOIN employees m ON e.supervisor_id = m.id
+         LEFT JOIN users u ON e.user_id = u.id
+         WHERE e.id = ?`,
+        [id],
       );
 
       if (employees.length === 0) {
@@ -176,57 +176,63 @@ const employeeController = {
   async create(req, res, next) {
     try {
       const {
-        id,
         fullName,
+        personalEmail,
+        phone,
         dateOfBirth,
         gender,
+        maritalStatus,
         nationalId,
-        address,
-        phone,
+        taxId,
+        insuranceId,
+        permanentAddress,
+        currentAddress,
+        emergencyContactName,
+        emergencyContactRelationship,
+        emergencyContactPhone,
         departmentId,
-        jobTitle,
-        supervisorId,
+        jobTitleId,
         hireDate,
         status,
+        employeeType,
+        education,
+        experience,
+        workProcess,
         baseSalary,
         allowance,
-        employeeType,
+        dependentsCount,
+        bankName,
+        bankAccount,
+        totalLeaveDays,
+        avatarUrl,
+        id // Nếu Client gửi ID cụ thể (Mã NV)
       } = req.body;
 
-      if (!id || !fullName) {
-        return res.status(400).json({
-          message: "Mã nhân viên và họ tên là bắt buộc",
-        });
+      if (!fullName) {
+        return res.status(400).json({ message: "Không được để trống Họ tên" });
       }
 
-      await db.query(
-        `INSERT INTO employees (id, full_name, date_of_birth, gender, national_id, address, phone, department_id, job_title, supervisor_id, hire_date, status, base_salary, allowance, employee_type) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    const [result] = await db.query(
+        `INSERT INTO employees (
+          full_name, personal_email, avatar_url, phone, date_of_birth, gender, marital_status,
+          national_id, tax_id, insurance_id, permanent_address, current_address,
+          emergency_contact_name, emergency_contact_relationship, emergency_contact_phone,
+          department_id, job_title_id, hire_date, status, employee_type,
+          education, experience, work_process, base_salary, allowance, dependents_count,
+          bank_name, bank_account, total_leave_days, remaining_leave_days${id ? ', id' : ''}
+        ) VALUES (${id ? '?,'.repeat(31).slice(0,-1) : '?,'.repeat(30).slice(0,-1)})`,
         [
-          id,
-          fullName,
-          dateOfBirth || null,
-          gender || null,
-          nationalId || null,
-          address || null,
-          phone || null,
-          departmentId || null,
-          jobTitle || null,
-          supervisorId || null,
-          hireDate || null,
-          status || "active",
-          baseSalary || 0,
-          allowance || 0,
-          employeeType || "full_time",
+          fullName, personalEmail || null, avatarUrl || null, phone || null, dateOfBirth || null, gender || null, maritalStatus || 'single',
+          nationalId || null, taxId || null, insuranceId || null, permanentAddress || null, currentAddress || null,
+          emergencyContactName || null, emergencyContactRelationship || null, emergencyContactPhone || null,
+          departmentId || null, jobTitleId || null, hireDate || null, status || "active", employeeType || "full_time",
+          education || null, experience || null, workProcess || null, baseSalary || 0, allowance || 0, dependentsCount || 0,
+          bankName || null, bankAccount || null, totalLeaveDays || 12, totalLeaveDays || 12,
+          ...(id ? [id] : [])
         ],
       );
 
-      const [newEmployee] = await db.query(
-        "SELECT * FROM employees WHERE id = ?",
-        [id],
-      );
-
-      res.status(201).json(toCamelCase(newEmployee[0]));
+      res.status(201).json({ id: result.insertId, message: "Tạo nhân viên thành công" });
     } catch (error) {
       if (error.code === "ER_DUP_ENTRY") {
         return res.status(400).json({
@@ -241,23 +247,39 @@ const employeeController = {
   async update(req, res, next) {
     try {
       const updates = req.body;
-      // Map frontend camelCase fields to DB snake_case columns
       const fieldMapping = {
         fullName: "full_name",
+        personalEmail: "personal_email",
+        avatarUrl: "avatar_url",
+        phone: "phone",
         dateOfBirth: "date_of_birth",
         gender: "gender",
+        maritalStatus: "marital_status",
         nationalId: "national_id",
-        address: "address",
-        phone: "phone",
-        jobTitle: "job_title",
+        taxId: "tax_id",
+        insuranceId: "insurance_id",
+        permanentAddress: "permanent_address",
+        currentAddress: "current_address",
+        emergencyContactName: "emergency_contact_name",
+        emergencyContactRelationship: "emergency_contact_relationship",
+        emergencyContactPhone: "emergency_contact_phone",
+        education: "education",
+        experience: "experience",
+        workProcess: "work_process",
         departmentId: "department_id",
-        supervisorId: "supervisor_id",
+        jobTitleId: "job_title_id",
         hireDate: "hire_date",
         status: "status",
         baseSalary: "base_salary",
         allowance: "allowance",
         employeeType: "employee_type",
-        userId: "user_id",
+        totalLeaveDays: "total_leave_days",
+        remainingLeaveDays: "remaining_leave_days",
+        profileStatus: "profile_status",
+        dependentsCount: "dependents_count",
+        bankName: "bank_name",
+        bankAccount: "bank_account",
+        userId: "user_id"
       };
 
       const updateFields = [];
@@ -268,52 +290,71 @@ const employeeController = {
         if (fieldMapping[key]) {
           updateFields.push(`${fieldMapping[key]} = ?`);
           let value = updates[key] === '' ? null : updates[key];
-          // Convert ISO date strings to YYYY-MM-DD for MySQL DATE columns
           if (value && dateFields.includes(fieldMapping[key])) {
-            try {
-              const d = new Date(value);
-              if (!isNaN(d.getTime())) {
-                value = d.toISOString().split('T')[0];
-              } else {
-                value = null;
-              }
-            } catch {
-              value = null;
-            }
+            value = new Date(value).toISOString().split('T')[0];
           }
           params.push(value);
         }
       });
 
-      if (updateFields.length === 0) {
-        return res.status(400).json({
-          message: "Không có trường nào để cập nhật hoặc trường không hợp lệ",
-        });
-      }
+      if (updateFields.length === 0) return res.status(400).json({ message: "No fields to update" });
 
       params.push(req.params.id);
+      await db.query(`UPDATE employees SET ${updateFields.join(", ")} WHERE id = ?`, params);
 
-      await db.query(
-        `UPDATE employees SET ${updateFields.join(", ")} WHERE id = ?`,
-        params,
-      );
-
-      const [updatedEmployee] = await db.query(
-        "SELECT * FROM employees WHERE id = ?",
-        [req.params.id],
-      );
-
-      if (updatedEmployee.length === 0) {
-        return res.status(404).json({
-          message: "Không tìm thấy nhân viên",
-        });
-      }
-
-      res.json(toCamelCase(updatedEmployee[0]));
+      res.json({ message: "Cập nhật nhân viên thành công" });
     } catch (error) {
       next(error);
     }
   },
+
+  // POST /api/employees/:id/verify
+  async verifyProfile(req, res, next) {
+    try {
+      const { id } = req.params;
+      const verifiedBy = req.user.employeeId;
+
+      await db.query(
+        "UPDATE employees SET profile_status = 'verified', verified_by = ? WHERE id = ?",
+        [verifiedBy, id]
+      );
+
+      res.json({ message: "Đã xác thực hồ sơ nhân viên" });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  // PATCH /api/employees/:id/role
+  async updateRole(req, res, next) {
+    try {
+      const { id } = req.params;
+      const { roleId } = req.body;
+
+      // Chỉ cho phép chuyển đổi giữa HR (2), Manager (3), Employee (4)
+      const allowedRoles = [2, 3, 4];
+      if (!allowedRoles.includes(Number(roleId))) {
+        return res.status(400).json({
+          message: "Vai trò không hợp lệ hoặc không được phép thay đổi sang vai trò này."
+        });
+      }
+
+      // Lấy user_id từ employee
+      const [employees] = await db.query("SELECT user_id FROM employees WHERE id = ?", [id]);
+      if (employees.length === 0 || !employees[0].user_id) {
+        return res.status(404).json({ message: "Không tìm thấy người dùng liên kết với nhân viên này" });
+      }
+
+      const userId = employees[0].user_id;
+
+      // Cập nhật role_id trong bảng users
+      await db.query("UPDATE users SET role_id = ? WHERE id = ?", [roleId, userId]);
+
+      res.json({ message: "Cập nhật vai trò hệ thống thành công" });
+    } catch (error) {
+      next(error);
+    }
+  }
 };
 
 module.exports = employeeController;

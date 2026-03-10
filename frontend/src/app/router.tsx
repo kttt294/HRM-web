@@ -40,6 +40,7 @@ import { CandidateDetailPage } from "../features/recruitment/pages/CandidateDeta
 import { CandidateFormPage } from "../features/recruitment/pages/CandidateFormPage";
 import { VacancyFormPage } from "../features/recruitment/pages/VacancyFormPage";
 import { VacancyDetailPage } from "../features/recruitment/pages/VacancyDetailPage";
+import { MyVacanciesPage } from "../features/recruitment/pages/MyVacanciesPage";
 
 // Pages for other roles
 import { UnauthorizedPage } from "../features/common/pages/UnauthorizedPage";
@@ -62,6 +63,12 @@ import { DepartmentListPage } from "../features/hr/pages/DepartmentListPage";
 // Employee Self-Service pages
 import { MyLeaveRequestsPage } from "../features/employee/pages/MyLeaveRequestsPage";
 import { MyPayrollPage } from "../features/employee/pages/MyPayrollPage";
+
+// Manager pages
+import { DeptEmployeeListPage } from "../features/employee/pages/DeptEmployeeListPage";
+import { DeptLeaveManagementPage } from "../features/employee/pages/DeptLeaveManagementPage";
+import { DeptPayrollListPage } from "../features/employee/pages/DeptPayrollListPage";
+import { EmployeeVerificationPage } from "../features/hr/pages/EmployeeVerificationPage";
 
 // Placeholder for Role Management (to be implemented later)
 function RoleManagementPage() {
@@ -118,7 +125,7 @@ export function AppRouter() {
                 ============================================ */}
         <Route
           element={
-            <RoleGuard allowedRoles={[Role.ADMIN, Role.HR, Role.EMPLOYEE]}>
+            <RoleGuard allowedRoles={[Role.ADMIN, Role.HR, Role.MANAGER, Role.EMPLOYEE]}>
               <MainLayout />
             </RoleGuard>
           }
@@ -195,6 +202,14 @@ export function AppRouter() {
             element={
               <HRRoute>
                 <EmployeeFormPage />
+              </HRRoute>
+            }
+          />
+          <Route
+            path={ROUTES.EMPLOYEE_VERIFICATION}
+            element={
+              <HRRoute>
+                <EmployeeVerificationPage />
               </HRRoute>
             }
           />
@@ -298,7 +313,7 @@ export function AppRouter() {
           <Route
             path={ROUTES.MY_PROFILE}
             element={
-              <RoleGuard allowedRoles={[Role.ADMIN, Role.HR, Role.EMPLOYEE]}>
+              <RoleGuard allowedRoles={[Role.ADMIN, Role.HR, Role.MANAGER, Role.EMPLOYEE]}>
                 <MyProfilePage />
               </RoleGuard>
             }
@@ -306,7 +321,7 @@ export function AppRouter() {
           <Route
             path={ROUTES.MY_LEAVES}
             element={
-              <RoleGuard allowedRoles={[Role.ADMIN, Role.HR, Role.EMPLOYEE]}>
+              <RoleGuard allowedRoles={[Role.ADMIN, Role.HR, Role.MANAGER, Role.EMPLOYEE]}>
                 <MyLeaveRequestsPage />
               </RoleGuard>
             }
@@ -314,8 +329,52 @@ export function AppRouter() {
           <Route
             path={ROUTES.MY_PAYROLL}
             element={
-              <RoleGuard allowedRoles={[Role.ADMIN, Role.HR, Role.EMPLOYEE]}>
+              <RoleGuard allowedRoles={[Role.ADMIN, Role.HR, Role.MANAGER, Role.EMPLOYEE]}>
                 <MyPayrollPage />
+              </RoleGuard>
+            }
+          />
+
+          {/* ============================================
+                        MANAGER ROUTES
+                     ============================================ */}
+          <Route
+            path="/dept/employees"
+            element={
+              <RoleGuard allowedRoles={[Role.MANAGER, Role.ADMIN, Role.HR]}>
+                <DeptEmployeeListPage />
+              </RoleGuard>
+            }
+          />
+          <Route
+            path="/dept/leaves"
+            element={
+              <RoleGuard allowedRoles={[Role.MANAGER, Role.ADMIN, Role.HR]}>
+                <DeptLeaveManagementPage />
+              </RoleGuard>
+            }
+          />
+          <Route
+            path="/dept/verification"
+            element={
+              <RoleGuard allowedRoles={[Role.MANAGER, Role.ADMIN, Role.HR]}>
+                <EmployeeVerificationPage />
+              </RoleGuard>
+            }
+          />
+          <Route
+            path="/dept/payroll"
+            element={
+              <RoleGuard allowedRoles={[Role.MANAGER, Role.ADMIN, Role.HR]}>
+                <DeptPayrollListPage />
+              </RoleGuard>
+            }
+          />
+          <Route
+            path={ROUTES.MY_VACANCIES}
+            element={
+              <RoleGuard allowedRoles={[Role.ADMIN, Role.HR, Role.MANAGER, Role.EMPLOYEE]}>
+                <MyVacanciesPage />
               </RoleGuard>
             }
           />

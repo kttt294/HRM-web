@@ -3,6 +3,7 @@ import { Button } from "../../../components/ui/Button";
 import { Modal } from "../../../components/ui/Modal";
 import { adminEmployeeApi, Employee } from "../services/employee.api";
 import { useSnackbarStore } from "../../../store/snackbar.store";
+import { formatEmployeeId } from "../../../shared/utils/format.util";
 
 export function EmployeeListPage() {
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -21,7 +22,7 @@ export function EmployeeListPage() {
 
 
 
-  const [selectedRole, setSelectedRole] = useState<number>(3);
+  const [selectedRole, setSelectedRole] = useState<number>(4);
   const { showSnackbar } = useSnackbarStore();
 
   useEffect(() => {
@@ -43,7 +44,7 @@ export function EmployeeListPage() {
   };
 
   const handleCreateAccount = (employee: Employee) => {
-    setSelectedRole(3);
+    setSelectedRole(4);
     setConfirmModal({
       isOpen: true,
       type: "create",
@@ -147,7 +148,7 @@ export function EmployeeListPage() {
                 <tbody>
                   {employees.map((employee) => (
                     <tr key={employee.id}>
-                      <td>{employee.id}</td>
+                      <td>{formatEmployeeId(employee.id)}</td>
                       <td style={{ fontWeight: 600 }}>{employee.fullName}</td>
 
                       <td>{employee.jobTitle || "—"}</td>
@@ -256,14 +257,15 @@ export function EmployeeListPage() {
                       outline: "none"
                     }}
                   >
-                    <option value={3}>Nhân viên (Employee)</option>
+                    <option value={4}>Nhân viên (Employee)</option>
+                    <option value={3}>Trưởng phòng (Manager)</option>
                     <option value={2}>Quản lý nhân sự (HR)</option>
                     <option value={1}>Quản trị viên (Admin)</option>
                   </select>
                 </div>
 
                 <div style={{ background: "#e3f2fd", padding: "12px", borderRadius: "8px", fontSize: "13px", color: "#0d47a1" }}>
-                  Tên đăng nhập: <strong>{confirmModal.employee ? confirmModal.employee.id.toLowerCase().replace(/[^a-z0-9]/g, "") : ""}</strong>
+                  Tên đăng nhập: <strong>{confirmModal.employee ? formatEmployeeId(confirmModal.employee.id).toLowerCase().replace(/[^a-z0-9]/g, "") : ""}</strong>
                   <br/>
                   Mật khẩu mặc định: <strong>123456</strong>
                 </div>

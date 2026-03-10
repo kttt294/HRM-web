@@ -30,7 +30,8 @@ export const userApi = {
     const roleIdMap: Record<string, number> = {
       'admin': 1,
       'hr': 2,
-      'employee': 3,
+      'manager': 3,
+      'employee': 4,
     };
     
     const payload = {

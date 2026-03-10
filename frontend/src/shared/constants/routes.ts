@@ -14,6 +14,7 @@ export const ROUTES = {
   EMPLOYEE_NEW: "/hr/employees/new",
   EMPLOYEE_DETAIL: "/hr/employees/:id",
   EMPLOYEE_EDIT: "/hr/employees/:id/edit",
+  EMPLOYEE_VERIFICATION: "/hr/employees/verification",
 
   // HR - Leave & Payroll Management
   LEAVE_MANAGEMENT: "/hr/leaves",
@@ -26,6 +27,7 @@ export const ROUTES = {
   VACANCY_NEW: "/recruitment/vacancies/new",
   VACANCY_DETAIL: "/recruitment/vacancies/:id",
   VACANCY_EDIT: "/recruitment/vacancies/:id/edit",
+  MY_VACANCIES: "/recruitment/my-vacancies",
   CANDIDATES: "/recruitment/candidates",
   CANDIDATE_NEW: "/recruitment/candidates/new",
   CANDIDATE_DETAIL: "/recruitment/candidates/:id",

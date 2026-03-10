@@ -10,6 +10,12 @@ export const recruitmentApi = {
     return response.json();
   },
 
+  async getMyVacancies(): Promise<Vacancy[]> {
+    const response = await authFetch(`${API_BASE}/vacancies?scope=me`);
+    if (!response.ok) throw new Error("Failed to fetch my vacancies");
+    return response.json();
+  },
+
   async getVacancyById(id: string): Promise<Vacancy> {
     const response = await authFetch(`${API_BASE}/vacancies/${id}`);
     if (!response.ok) throw new Error("Failed to fetch vacancy");

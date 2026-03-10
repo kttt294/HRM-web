@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { SystemUser } from '../models/user.model';
 import { userApi } from '../services/user.api';
 import { Role } from '../../../shared/constants/rbac';
@@ -14,6 +15,7 @@ import { useSnackbarStore } from '../../../store/snackbar.store';
  * ============================================
  */
 export function UserListPage() {
+    const navigate = useNavigate();
     const containerRef = useRef<HTMLDivElement>(null);
     
     const [users, setUsers] = useState<SystemUser[]>([]);
@@ -169,6 +171,14 @@ export function UserListPage() {
                 <div className="page-title-section">
                     <h1>Quản lý tài khoản người dùng</h1>
                     <p className="page-subtitle">Quản lý danh sách người dùng và phân quyền truy cập</p>
+                </div>
+                <div className="page-actions">
+                    <Button 
+                        onClick={() => navigate('/admin/users/new')}
+                        className="btn-primary"
+                    >
+                        + Tạo tài khoản mới
+                    </Button>
                 </div>
             </div>
 

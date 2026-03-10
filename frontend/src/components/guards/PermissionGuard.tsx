@@ -155,23 +155,28 @@ export function usePermissions() {
         permissions: user?.permissions,
         
         // Check methods
-        hasRole: (roles: Role | Role[]) => hasRole(user?.role, roles),
+        hasRole: (roles: Role | Role[]) => {
+            if (!user) return false;
+            const roleList = Array.isArray(roles) ? roles : [roles];
+            return roleList.includes(user.role as Role);
+        },
         hasPermission: (permission: Permission) => hasPermission(user?.permissions, permission),
         
         // Role checks
-        isAdmin: hasRole(user?.role, [Role.ADMIN]),
-        isHR: hasRole(user?.role, [Role.HR]),
-        isEmployee: hasRole(user?.role, [Role.EMPLOYEE]),
+        isAdmin: user?.role === Role.ADMIN,
+        isHR: user?.role === Role.HR,
+        isManager: user?.role === Role.MANAGER,
+        isEmployee: user?.role === Role.EMPLOYEE,
 
         
         // Combined checks
-        isInternalUser: hasRole(user?.role, [Role.ADMIN, Role.HR, Role.EMPLOYEE]),
+        isInternalUser: !!user,
         
         // Permission checks
-        canManageSystem: hasRole(user?.role, [Role.ADMIN]),
-        canManageEmployees: hasPermission(user?.permissions, Permission.MANAGE_EMPLOYEES),
-        canManageRecruitment: hasPermission(user?.permissions, Permission.MANAGE_RECRUITMENT),
+        canManageSystem: user?.role === Role.ADMIN,
+        canManageEmployees: user?.role === Role.ADMIN || hasPermission(user?.permissions, Permission.MANAGE_EMPLOYEES) || user?.role === Role.MANAGER,
+        canManageRecruitment: user?.role === Role.ADMIN || hasPermission(user?.permissions, Permission.MANAGE_RECRUITMENT),
         canRequestLeave: hasPermission(user?.permissions, Permission.REQUEST_LEAVE),
-
+        canApproveLeave: user?.role === Role.ADMIN || hasPermission(user?.permissions, Permission.APPROVE_DEPT_LEAVE) || hasPermission(user?.permissions, Permission.MANAGE_EMPLOYEES),
     };
 }

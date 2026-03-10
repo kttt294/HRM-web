@@ -53,3 +53,21 @@ export const EMPLOYEE_TYPE_LABELS: Record<EmployeeType, string> = {
 export const EMPLOYEE_TYPE_OPTIONS = Object.entries(EMPLOYEE_TYPE_LABELS).map(
   ([value, label]) => ({ value, label }),
 );
+
+export enum MaritalStatus {
+  SINGLE = "single",
+  MARRIED = "married",
+  DIVORCED = "divorced",
+  WIDOWED = "widowed",
+}
+
+export const MARITAL_STATUS_LABELS: Record<MaritalStatus, string> = {
+  [MaritalStatus.SINGLE]: "Độc thân",
+  [MaritalStatus.MARRIED]: "Đã kết hôn",
+  [MaritalStatus.DIVORCED]: "Đã ly hôn",
+  [MaritalStatus.WIDOWED]: "Góa",
+};
+
+export const MARITAL_STATUS_OPTIONS = Object.entries(MARITAL_STATUS_LABELS).map(
+  ([value, label]) => ({ value, label }),
+);

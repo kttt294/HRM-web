@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { payrollApi } from "../services/payroll.api";
 import { Payroll } from "../models/payroll.model";
+import { formatEmployeeId } from "../../../shared/utils/format.util";
 import anime from "animejs";
 
 /**
@@ -381,7 +382,7 @@ export function PayrollListPage() {
                           fontFamily: "monospace",
                         }}
                       >
-                        {payroll.employeeId}
+                        {formatEmployeeId(payroll.employeeId)}
                       </td>
                       <td style={{ padding: "14px 16px", color: "#616161" }}>
                         {payroll.department}

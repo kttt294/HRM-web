@@ -14,11 +14,12 @@ const authController = {
         });
       }
 
-      // Tìm user trong database và JOIN với roles
+      // Tìm user và lấy luôn employeeId (nếu có)
       const [users] = await db.query(
-        `SELECT u.*, r.name as role_name 
+        `SELECT u.*, r.name as role_name, e.id as employee_id
                  FROM users u 
                  JOIN roles r ON u.role_id = r.id 
+                 LEFT JOIN employees e ON u.id = e.user_id
                  WHERE u.username = ?`,
         [username],
       );
@@ -38,8 +39,6 @@ const authController = {
         });
       }
 
-
-
       // Kiểm tra password
       const isValidPassword = await bcrypt.compare(password, user.password);
 
@@ -56,9 +55,10 @@ const authController = {
       const { getUserPermissions } = require("../utils/permissions");
       const permissions = await getUserPermissions(user.id);
 
-      // Tạo payload cho Access Token (bao gồm cả permissions)
+      // Tạo payload cho Access Token (bao gồm cả permissions và employeeId)
       const accessTokenPayload = {
         id: user.id,
+        employeeId: user.employee_id,
         username: user.username,
         role: user.role_name,
         permissions: permissions
@@ -197,11 +197,12 @@ const authController = {
         });
       }
 
-      // Lấy lại thông tin user để build lại payload đầy đủ cho Access Token
+      // Lấy lại thông tin user kèm employeeId
       const [users] = await db.query(
-        `SELECT u.*, r.name as role_name 
+        `SELECT u.*, r.name as role_name, e.id as employee_id
          FROM users u 
          JOIN roles r ON u.role_id = r.id 
+         LEFT JOIN employees e ON u.id = e.user_id
          WHERE u.id = ?`,
         [decoded.id]
       );
@@ -217,6 +218,7 @@ const authController = {
       // Tạo access token mới với đầy đủ payload
       const newAccessToken = generateAccessToken({
         id: user.id,
+        employeeId: user.employee_id,
         username: user.username,
         role: user.role_name,
         permissions: permissions

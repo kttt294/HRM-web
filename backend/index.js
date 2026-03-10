@@ -16,7 +16,7 @@ app.use(helmet());
 app.use(cookieParser());
 app.use(express.json({ limit: "30kb" }));
 
-app.use("/api", apiLimiter); // Áp dụng rate limit cho toàn bộ API
+// app.use("/api", apiLimiter); // Áp dụng rate limit cho toàn bộ API
 
 morgan.token("date", (req, res, tz) => {
   const date = new Date();
@@ -50,6 +50,7 @@ const interviewRoutes = require("./routes/interview.routes.js");
 const leaveRoutes = require("./routes/leave.routes.js");
 const departmentRoutes = require("./routes/department.routes.js");
 const userRoutes = require("./routes/user.routes.js");
+const jobTitleRoutes = require("./routes/jobTitle.routes.js");
 
 // API routes
 app.use("/api/auth", authRoutes);
@@ -61,6 +62,7 @@ app.use("/api/recruitment/interviews", interviewRoutes);
 app.use("/api/leaves", leaveRoutes);
 app.use("/api/departments", departmentRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/job-titles", jobTitleRoutes);
 
 app.use(errorHandler);
 

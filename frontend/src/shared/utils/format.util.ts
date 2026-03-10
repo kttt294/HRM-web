@@ -58,3 +58,11 @@ export function slugify(text: string): string {
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-+|-+$/g, '');
 }
+
+/**
+ * Format employee ID to 5 characters with zero-fill (e.g. 00001)
+ */
+export function formatEmployeeId(id: string | number | undefined | null): string {
+    if (id === undefined || id === null) return '-';
+    return String(id).padStart(5, '0');
+}

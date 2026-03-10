@@ -7,6 +7,8 @@ import {
   EMPLOYEE_TYPE_LABELS,
   EmployeeType,
 } from "../constants/employeeStatus";
+import { getAvatarUrl } from "../../../shared/utils/avatar.util";
+import { formatEmployeeId } from "../../../shared/utils/format.util";
 
 interface EmployeeTableProps {
   employees: Employee[];
@@ -47,14 +49,21 @@ export function EmployeeTable({ employees, isLoading }: EmployeeTableProps) {
       key: "id",
       header: "Mã NV",
       render: (employee: Employee) => (
-        <span className="font-medium text-primary">{employee.id}</span>
+        <span className="font-medium text-primary">{formatEmployeeId(employee.id)}</span>
       ),
     },
     {
       key: "fullName",
       header: "Họ tên",
       render: (employee: Employee) => (
-        <span className="font-medium">{employee.fullName}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <img 
+            src={getAvatarUrl(employee.avatarUrl, employee.fullName, 64)}
+            alt={employee.fullName}
+            style={{ width: '32px', height: '32px', borderRadius: '8px', objectFit: 'cover' }}
+          />
+          <span className="font-medium">{employee.fullName}</span>
+        </div>
       ),
     },
     {
@@ -83,6 +92,19 @@ export function EmployeeTable({ employees, isLoading }: EmployeeTableProps) {
       key: "status",
       header: "Trạng thái",
       render: (employee: Employee) => <StatusBadge status={employee.status} />,
+    },
+    {
+      key: "profileStatus",
+      header: "Hồ sơ",
+      render: (employee: Employee) => (
+        employee.profileStatus === 'pending' ? (
+          <span className="status-badge status-working" style={{ fontSize: '11px', whiteSpace: 'nowrap' }}>
+            Chờ duyệt hồ sơ
+          </span>
+        ) : (
+          <span style={{ fontSize: '11px', color: '#4caf50' }}>Đã xác thực</span>
+        )
+      ),
     },
     {
       key: "actions",

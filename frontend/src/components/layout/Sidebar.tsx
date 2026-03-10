@@ -7,6 +7,8 @@ import { usePermissions, ShowForRoles } from '../guards/PermissionGuard';
 import { Role } from '../../shared/constants/rbac';
 import anime from 'animejs';
 
+import { authFetch } from '../../utils/auth-fetch';
+
 /**
  * ============================================
  * SIDEBAR WITH ROLE-BASED MENU + ANIMATIONS
@@ -16,9 +18,22 @@ export function Sidebar() {
     const navigate = useNavigate();
     const { logout } = useAuthStore();
     const { isSidebarOpen, closeSidebar } = useUIStore();
-    const { isAdmin, isHR, isEmployee } = usePermissions();
+    const { isAdmin, isHR, isManager, isEmployee } = usePermissions();
     const sidebarRef = useRef<HTMLElement>(null);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
+    const [hasAssignedVacancies, setHasAssignedVacancies] = useState(false);
+
+    // Kiểm tra xem nhân viên có phụ trách vacancy nào không
+    useEffect(() => {
+        if (isEmployee && !isHR && !isAdmin) {
+            authFetch('/api/recruitment/vacancies')
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.length > 0) setHasAssignedVacancies(true);
+                })
+                .catch(() => setHasAssignedVacancies(false));
+        }
+    }, [isEmployee, isHR, isAdmin]);
 
     // Entry animation
     useEffect(() => {
@@ -125,7 +140,7 @@ export function Sidebar() {
                                     </li>
                                     <li>
                                         <NavLink to="/admin/users/new">
-                                            <span className="menu-text">Tạo tài khoản Admin</span>
+                                            <span className="menu-text">Tạo tài khoản mới</span>
                                         </NavLink>
                                     </li>
                                 </ul>
@@ -151,6 +166,11 @@ export function Sidebar() {
                                     <li>
                                         <NavLink to={ROUTES.EMPLOYEE_NEW}>
                                             <span className="menu-text">Thêm nhân viên</span>
+                                        </NavLink>
+                                    </li>
+                                    <li>
+                                        <NavLink to={ROUTES.EMPLOYEE_VERIFICATION}>
+                                            <span className="menu-text">Duyệt hồ sơ</span>
                                         </NavLink>
                                     </li>
                                     <li>
@@ -206,9 +226,43 @@ export function Sidebar() {
                         </ShowForRoles>
 
                         {/* ============================
+                            MANAGER MENU - Quản lý phòng ban
+                        ============================ */}
+                        <ShowForRoles roles={[Role.MANAGER]}>
+                            <li className="menu-section" style={{ opacity: 0 }}>
+                                <span className="menu-section-title">
+                                    <span className="menu-indicator" style={{ background: '#2196f3' }} />
+                                    <span className="menu-text">Quản lý phòng ban</span>
+                                </span>
+                                <ul className="submenu">
+                                    <li>
+                                        <NavLink to="/dept/employees">
+                                            <span className="menu-text">Nhân viên phòng ban</span>
+                                        </NavLink>
+                                    </li>
+                                    <li>
+                                        <NavLink to="/dept/verification">
+                                            <span className="menu-text">Duyệt hồ sơ nhân viên</span>
+                                        </NavLink>
+                                    </li>
+                                    <li>
+                                        <NavLink to="/dept/leaves">
+                                            <span className="menu-text">Duyệt nghỉ phép</span>
+                                        </NavLink>
+                                    </li>
+                                    <li>
+                                        <NavLink to="/dept/payroll">
+                                            <span className="menu-text">Bảng lương phòng ban</span>
+                                        </NavLink>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ShowForRoles>
+
+                        {/* ============================
                             EMPLOYEE MENU - Cá nhân
                         ============================ */}
-                        <ShowForRoles roles={[Role.HR, Role.EMPLOYEE]}>
+                        <ShowForRoles roles={[Role.ADMIN, Role.HR, Role.MANAGER, Role.EMPLOYEE]}>
                             <li className="menu-section" style={{ opacity: 0 }}>
                                 <span className="menu-section-title">
                                     <span className="menu-indicator" style={{ background: '#9c27b0' }} />
@@ -230,6 +284,13 @@ export function Sidebar() {
                                             <span className="menu-text">Bảng lương của tôi</span>
                                         </NavLink>
                                     </li>
+                                    {hasAssignedVacancies && (
+                                        <li>
+                                            <NavLink to={ROUTES.MY_VACANCIES}>
+                                                <span className="menu-text">Tuyển dụng tôi phụ trách</span>
+                                            </NavLink>
+                                        </li>
+                                    )}
                                 </ul>
                             </li>
                         </ShowForRoles>
@@ -254,7 +315,8 @@ export function Sidebar() {
                     }}>
                         {isAdmin && 'System Admin'}
                         {isHR && 'HR Manager'}
-                        {isEmployee && 'Nhân viên'}
+                        {isManager && 'Trưởng phòng'}
+                        {isEmployee && !isManager && 'Nhân viên'}
                     </div>
 
                     {/* Logout Button */}

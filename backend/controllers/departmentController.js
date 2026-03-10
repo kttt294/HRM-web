@@ -6,7 +6,10 @@ const departmentController = {
   async getAll(req, res, next) {
     try {
       const [departments] = await db.query(
-        "SELECT * FROM departments ORDER BY name ASC",
+        `SELECT d.*, e.full_name as manager_name 
+         FROM departments d
+         LEFT JOIN employees e ON d.manager_id = e.id
+         ORDER BY d.name ASC`,
       );
 
       res.json(toCamelCase(departments));
@@ -38,7 +41,7 @@ const departmentController = {
   // POST /api/departments
   async create(req, res, next) {
     try {
-      const { name, description, location } = req.body;
+      const { name, description, location, managerId } = req.body;
 
       if (!name) {
         return res.status(400).json({
@@ -47,15 +50,26 @@ const departmentController = {
       }
 
       const [result] = await db.query(
-        `INSERT INTO departments (name, description, location, created_at) 
-                 VALUES (?, ?, ?, NOW())`,
-        [name, description, location],
+        `INSERT INTO departments (name, description, location, manager_id, created_at) 
+                 VALUES (?, ?, ?, ?, NOW())`,
+        [name, description, location, managerId],
       );
 
       const [newDepartment] = await db.query(
         "SELECT * FROM departments WHERE id = ?",
         [result.insertId],
       );
+
+      // Nếu có managerId, tự động cập nhật role cho người đó lên manager (ID 3) nếu đang là employee (ID 4)
+      if (managerId) {
+        await db.query(
+          `UPDATE users u
+           JOIN employees e ON u.id = e.user_id
+           SET u.role_id = 3
+           WHERE e.id = ? AND u.role_id = 4`,
+          [managerId]
+        );
+      }
 
       res.status(201).json(toCamelCase(newDepartment[0]));
     } catch (error) {
@@ -76,6 +90,7 @@ const departmentController = {
         name: "name",
         description: "description",
         location: "location",
+        managerId: "manager_id"
       };
 
       const updateFields = [];
@@ -110,6 +125,17 @@ const departmentController = {
         return res.status(404).json({
           message: "Không tìm thấy phòng ban",
         });
+      }
+
+      // Nếu managerId vừa được cập nhật, tự động nâng role lên manager (ID 3) nếu đang là employee (ID 4)
+      if (updates.managerId) {
+        await db.query(
+          `UPDATE users u
+           JOIN employees e ON u.id = e.user_id
+           SET u.role_id = 3
+           WHERE e.id = ? AND u.role_id = 4`,
+          [updates.managerId]
+        );
       }
 
       res.json(toCamelCase(updatedDepartment[0]));

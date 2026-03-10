@@ -6,6 +6,8 @@ export interface LeaveRequest {
     endDate: string;
     reason: string;
     status: 'pending' | 'approved' | 'rejected';
+    managerStatus: 'pending' | 'approved' | 'rejected';
+    hrStatus: 'pending' | 'approved' | 'rejected';
     approvedBy?: string;
     approvedAt?: string;
     createdAt: string;

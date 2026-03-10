@@ -11,7 +11,7 @@ export interface User {
     id: string;
     username: string;
     name: string;
-    role: 'admin' | 'hr' | 'employee';
+    role: 'admin' | 'hr' | 'manager' | 'employee';
     permissions: string[];
     avatar?: string;
     employeeId?: string;

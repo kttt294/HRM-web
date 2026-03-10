@@ -1,7 +1,10 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { departmentApi } from "../services/department.api";
 import { Department } from "../models/department.model";
+import { employeeApi } from "../../employee/services/employee.api";
+import { Employee } from "../../employee/models/employee.model";
 import { Button } from "../../../components/ui/Button";
+import { Select } from "../../../components/ui/Select";
 import anime from "animejs";
 import { useSnackbarStore } from "../../../store/snackbar.store";
 
@@ -220,6 +223,16 @@ export function DepartmentListPage() {
                 <th
                   style={{
                     padding: "14px 16px",
+                    textAlign: "left",
+                    fontWeight: "600",
+                    fontSize: "13px",
+                  }}
+                >
+                  Trưởng phòng
+                </th>
+                <th
+                  style={{
+                    padding: "14px 16px",
                     textAlign: "center",
                     fontWeight: "600",
                     fontSize: "13px",
@@ -257,6 +270,13 @@ export function DepartmentListPage() {
                   </td>
                   <td style={{ padding: "14px 16px", color: "#616161" }}>
                     {dept.location}
+                  </td>
+                  <td style={{ padding: "14px 16px" }}>
+                    {dept.managerName ? (
+                      <span style={{ fontWeight: '600', color: '#2e7d32' }}>{dept.managerName}</span>
+                    ) : (
+                      <span style={{ color: '#9e9e9e', fontStyle: 'italic' }}>Chưa bổ nhiệm</span>
+                    )}
                   </td>
                   <td style={{ padding: "14px 16px", textAlign: "center" }}>
                     <div
@@ -317,12 +337,28 @@ function DepartmentModal({
 }: {
   department: Department | null;
   onClose: () => void;
-  onSave: (data: Omit<Department, "id" | "createdAt">) => void;
+  onSave: (data: any) => void;
 }) {
   const [name, setName] = useState(department?.name || "");
   const [description, setDescription] = useState(department?.description || "");
   const [location, setLocation] = useState(department?.location || "");
+  const [managerId, setManagerId] = useState<string>(department?.managerId?.toString() || "");
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const { showSnackbar } = useSnackbarStore();
+
+  useEffect(() => {
+    employeeApi.getAll().then(setEmployees).catch(console.error);
+  }, []);
+
+  const employeeOptions = useMemo(() => {
+    return [
+      { value: "", label: "-- Không chọn --" },
+      ...employees.map(emp => ({
+        value: String(emp.id),
+        label: `${emp.fullName} (${String(emp.id).padStart(5, '0')})`
+      }))
+    ];
+  }, [employees]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -330,7 +366,12 @@ function DepartmentModal({
       showSnackbar("Vui lòng nhập tên phòng ban", "warning");
       return;
     }
-    onSave({ name, description, location });
+    onSave({ 
+      name, 
+      description, 
+      location, 
+      managerId: managerId ? Number(managerId) : null 
+    });
   };
 
   return (
@@ -461,6 +502,18 @@ function DepartmentModal({
                 boxSizing: "border-box",
               }}
             />
+          </div>
+
+          <div style={{ marginBottom: "24px" }}>
+            <Select
+              label="Trưởng phòng (Manager)"
+              options={employeeOptions}
+              value={managerId}
+              onChange={(e) => setManagerId(e.target.value)}
+            />
+            <p style={{ fontSize: '11px', color: '#757575', marginTop: '4px', fontStyle: 'italic' }}>
+              * Lưu ý: Người này đang là Nhân viên, sau khi sửa sẽ trở thành Trưởng phòng và có quyền quản lý phòng ban đó.
+            </p>
           </div>
 
           <div

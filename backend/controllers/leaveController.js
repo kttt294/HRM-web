@@ -8,12 +8,30 @@ const leaveController = {
       const { status, leaveType, employeeId } = req.query;
 
       let query = `
-                SELECT lr.*, e.full_name as employee_name 
+                SELECT lr.*,
+                    e.full_name as employee_name,
+                    d.name as department_name,
+                    LPAD(e.id, 5, '0') as employee_id_padded,
+                    approver.full_name as approved_by_name
                 FROM leave_requests lr
-                LEFT JOIN employees e ON lr.employee_id = e.id
+                JOIN employees e ON lr.employee_id = e.id
+                LEFT JOIN departments d ON e.department_id = d.id
+                LEFT JOIN employees approver ON lr.approved_by = approver.id
                 WHERE 1=1
             `;
       const params = [];
+
+      // Áp dụng Data Scoping
+      if (req.queryScope && req.queryScope.filterByDept) {
+        const employeeId = req.user.employeeId;
+        if (employeeId) {
+          const [mgrs] = await db.query("SELECT department_id FROM employees WHERE id = ?", [employeeId]);
+          if (mgrs.length > 0) {
+            query += " AND e.department_id = ?";
+            params.push(mgrs[0].department_id);
+          }
+        }
+      }
 
       if (status) {
         query += " AND lr.status = ?";
@@ -226,36 +244,37 @@ const leaveController = {
   // PATCH /api/leaves/:id/approve
   async approve(req, res, next) {
     try {
-      // Lấy tên người duyệt từ employee
-      const [employees] = await db.query(
-        "SELECT full_name FROM employees WHERE user_id = ?",
-        [req.user.id],
-      );
-      const approverName =
-        employees.length > 0 ? employees[0].full_name : req.user.username;
+      const { id } = req.params;
+      const { role } = req.user;
+      const employeeId = req.user.employeeId;
 
+      const [requests] = await db.query("SELECT * FROM leave_requests WHERE id = ?", [id]);
+      if (requests.length === 0) return res.status(404).json({ message: "Không tìm thấy đơn" });
+
+      const request = requests[0];
+      let updates = [];
+      let params = [];
+
+      if (role === 'manager') updates.push("manager_status = 'approved'");
+      if (role === 'hr') updates.push("hr_status = 'approved'");
+
+      // Manager hoặc HR duyệt là chốt luôn (theo yêu cầu mới)
+      updates.push("status = 'approved'");
+      updates.push("approved_by = ?");
+      updates.push("approved_at = NOW()");
+      params.push(employeeId);
+
+      // Trừ ngày phép của nhân viên
+      const days = Math.floor((new Date(request.end_date) - new Date(request.start_date)) / (1000 * 60 * 60 * 24)) + 1;
       await db.query(
-        `UPDATE leave_requests 
-                 SET status = 'approved', 
-                     approved_by = ?, 
-                     approved_at = NOW(),
-                     updated_at = NOW()
-                 WHERE id = ? AND status = 'pending'`,
-        [approverName, req.params.id],
+        "UPDATE employees SET remaining_leave_days = remaining_leave_days - ? WHERE id = ?",
+        [days, request.employee_id]
       );
 
-      const [updated] = await db.query(
-        "SELECT * FROM leave_requests WHERE id = ?",
-        [req.params.id],
-      );
+      params.push(id);
+      await db.query(`UPDATE leave_requests SET ${updates.join(", ")} WHERE id = ?`, params);
 
-      if (updated.length === 0) {
-        return res.status(404).json({
-          message: "Không tìm thấy đơn nghỉ phép hoặc đơn đã được xử lý",
-        });
-      }
-
-      res.json(toCamelCase(updated[0]));
+      res.json({ message: "Đã duyệt đơn nghỉ phép" });
     } catch (error) {
       next(error);
     }
@@ -264,36 +283,20 @@ const leaveController = {
   // PATCH /api/leaves/:id/reject
   async reject(req, res, next) {
     try {
-      // Lấy tên người từ chối từ employee
-      const [employees] = await db.query(
-        "SELECT full_name FROM employees WHERE user_id = ?",
-        [req.user.id],
-      );
-      const approverName =
-        employees.length > 0 ? employees[0].full_name : req.user.username;
+      const { id } = req.params;
+      const { role } = req.user;
 
-      await db.query(
-        `UPDATE leave_requests 
-                 SET status = 'rejected', 
-                     approved_by = ?, 
-                     approved_at = NOW(),
-                     updated_at = NOW()
-                 WHERE id = ? AND status = 'pending'`,
-        [approverName, req.params.id],
-      );
+      const employeeId = req.user.employeeId;
 
-      const [updated] = await db.query(
-        "SELECT * FROM leave_requests WHERE id = ?",
-        [req.params.id],
-      );
+      let updates = ["status = 'rejected'", "approved_by = ?", "approved_at = NOW()"];
+      let params = [employeeId];
 
-      if (updated.length === 0) {
-        return res.status(404).json({
-          message: "Không tìm thấy đơn nghỉ phép hoặc đơn đã được xử lý",
-        });
-      }
+      if (role === 'manager') updates.push("manager_status = 'rejected'");
+      if (role === 'hr') updates.push("hr_status = 'rejected'");
 
-      res.json(toCamelCase(updated[0]));
+      params.push(id);
+      await db.query(`UPDATE leave_requests SET ${updates.join(", ")} WHERE id = ?`, params);
+      res.json({ message: "Đã từ chối đơn nghỉ phép" });
     } catch (error) {
       next(error);
     }

@@ -19,6 +19,7 @@
 export enum Role {
     ADMIN = 'admin',        // System Admin - Quản lý tài khoản, phân quyền
     HR = 'hr',              // Human Resources - Quản lý nhân sự, tuyển dụng
+    MANAGER = 'manager',    // Trưởng phòng ban - Quản lý nhân viên trong phòng
     EMPLOYEE = 'employee',  // Nhân viên - Tự quản lý thông tin cá nhân
 }
 
@@ -49,9 +50,15 @@ export enum Permission {
     VIEW_ALL_REPORTS = 'view_all_reports',    // Xem báo cáo
     CREATE_ACCOUNTS = 'create_accounts',      // Tạo tài khoản nhân viên mới
     
+    // MANAGER permissions
+    VIEW_DEPT_EMPLOYEES = 'view_dept_employees',  // Xem nhân viên trong phòng
+    VIEW_DEPT_PAYROLL = 'view_dept_payroll',      // Xem lương nhân viên trong phòng
+    APPROVE_DEPT_LEAVE = 'approve_dept_leave',    // Duyệt nghỉ phép phòng ban
+
     // Employee permissions
     VIEW_SELF = 'view_self',          // Xem hồ sơ cá nhân
     UPDATE_SELF = 'update_self',      // Cập nhật hồ sơ cá nhân
+    VIEW_MY_LEAVE = 'view_my_leave',  // Xem đơn nghỉ phép của mình
     REQUEST_LEAVE = 'request_leave',  // Xin nghỉ phép
 }
 
@@ -86,9 +93,14 @@ export const ROUTE_ACCESS: Record<string, Role[]> = {
     '/hr/departments': [Role.HR],
     
     // Employee routes (self-service - ADMIN + HR + EMPLOYEE)
-    '/my-profile': [Role.ADMIN, Role.HR, Role.EMPLOYEE],
-    '/my-leaves': [Role.HR, Role.EMPLOYEE],
-    '/my-payroll': [Role.HR, Role.EMPLOYEE],
+    '/my-profile': [Role.ADMIN, Role.HR, Role.MANAGER, Role.EMPLOYEE],
+    '/my-leaves': [Role.HR, Role.MANAGER, Role.EMPLOYEE],
+    '/my-payroll': [Role.HR, Role.MANAGER, Role.EMPLOYEE],
+
+    // Manager specific routes
+    '/dept/employees': [Role.MANAGER, Role.ADMIN, Role.HR],
+    '/dept/leaves': [Role.MANAGER, Role.ADMIN, Role.HR],
+    '/dept/payroll': [Role.MANAGER, Role.ADMIN, Role.HR],
 };
 
 // ============================================
@@ -98,6 +110,7 @@ export const ROUTE_ACCESS: Record<string, Role[]> = {
 export const DEFAULT_ROUTE_BY_ROLE: Partial<Record<Role, string>> = {
     [Role.ADMIN]: '/admin/users',
     [Role.HR]: '/hr/employees',
+    [Role.MANAGER]: '/dept/employees',
     [Role.EMPLOYEE]: '/my-profile',
 };
 
