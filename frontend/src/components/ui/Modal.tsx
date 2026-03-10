@@ -8,9 +8,10 @@ interface ModalProps {
     title: string;
     children: ReactNode;
     footer?: ReactNode;
+    size?: 'md' | 'lg' | 'xl';
 }
 
-export function Modal({ isOpen, onClose, title, children, footer }: ModalProps) {
+export function Modal({ isOpen, onClose, title, children, footer, size = 'md' }: ModalProps) {
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = 'hidden';
@@ -26,7 +27,7 @@ export function Modal({ isOpen, onClose, title, children, footer }: ModalProps) 
 
     return createPortal(
         <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className={`modal-content modal-${size}`} onClick={(e) => e.stopPropagation()}>
                 <div className="modal-header">
                     <h3>{title}</h3>
                     <Button variant="secondary" onClick={onClose}>

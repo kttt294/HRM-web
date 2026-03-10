@@ -232,3 +232,12 @@ CREATE TABLE IF NOT EXISTS interviews (
     FOREIGN KEY (candidate_id) REFERENCES candidates(id) ON DELETE CASCADE,
     FOREIGN KEY (interviewer_id) REFERENCES employees(id) ON DELETE SET NULL
 );
+
+-- 15. Bảng Profile Updates (Lưu tạm các thay đổi hồ sơ chờ duyệt)
+CREATE TABLE IF NOT EXISTS profile_updates (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    employee_id INT(5) ZEROFILL NOT NULL,
+    data JSON NOT NULL, -- Chứa các thông tin nhân viên muốn cập nhật dạng key-value
+    requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE
+);

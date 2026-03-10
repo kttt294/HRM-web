@@ -10,7 +10,7 @@ interface LeaveRequestModalProps {
   onClose: () => void;
   employeeId: string;
   onSubmit: (
-    request: Omit<LeaveRequest, "id" | "status" | "createdAt">,
+    request: Omit<LeaveRequest, "id" | "status" | "createdAt" | "managerStatus" | "hrStatus">,
   ) => void;
 }
 

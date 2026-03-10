@@ -176,17 +176,17 @@ export function AppRouter() {
           <Route
             path={ROUTES.EMPLOYEES}
             element={
-              <HRRoute>
+              <RoleGuard allowedRoles={[Role.HR, Role.MANAGER, Role.ADMIN]}>
                 <EmployeeListPage />
-              </HRRoute>
+              </RoleGuard>
             }
           />
           <Route
             path={ROUTES.EMPLOYEE_DETAIL}
             element={
-              <HRRoute>
+              <RoleGuard allowedRoles={[Role.ADMIN, Role.HR, Role.MANAGER]}>
                 <EmployeeDetailPage />
-              </HRRoute>
+              </RoleGuard>
             }
           />
           <Route

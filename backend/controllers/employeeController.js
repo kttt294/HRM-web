@@ -64,7 +64,7 @@ const employeeController = {
   async getMe(req, res, next) {
     try {
       const [employees] = await db.query(
-        `SELECT e.*, jt.name as job_title, d.name as department_name, 
+        `SELECT e.*, e.current_address as address, jt.name as job_title, d.name as department_name, 
                 m.full_name as supervisor_name
          FROM employees e
          LEFT JOIN job_titles jt ON e.job_title_id = jt.id
@@ -86,10 +86,9 @@ const employeeController = {
     }
   },
 
-  // PATCH /api/employees/me - Nhân viên tự cập nhật thông tin cá nhân
+  // PATCH /api/employees/me - Nhân viên tự gửi yêu cầu cập nhật thông tin cá nhân
   async updateMe(req, res, next) {
     try {
-      // Các trường nhân viên được phép tự sửa
       const allowedFields = {
         fullName: "full_name",
         personalEmail: "personal_email",
@@ -114,32 +113,43 @@ const employeeController = {
       };
 
       const updates = req.body;
-      const updateFields = ["profile_status = 'pending'"]; // Luôn đưa về trạng thái chờ duyệt
-      const params = [];
-      const dateFields = ['date_of_birth'];
-
+      const dataToUpdate = {};
+      
       Object.keys(updates).forEach((key) => {
         if (allowedFields[key] && updates[key] !== undefined) {
-          updateFields.push(`${allowedFields[key]} = ?`);
-          let value = updates[key] === '' ? null : updates[key];
-          if (value && dateFields.includes(allowedFields[key])) {
-            value = new Date(value).toISOString().split('T')[0];
-          }
-          params.push(value);
+          dataToUpdate[key] = updates[key];
         }
       });
 
-      if (updateFields.length === 1) { // Chỉ có profile_status
+      if (Object.keys(dataToUpdate).length === 0) {
         return res.status(400).json({ message: "Không có thông tin thay đổi" });
       }
 
-      params.push(req.user.id);
-      await db.query(`UPDATE employees SET ${updateFields.join(", ")} WHERE user_id = ?`, params);
+      const employeeId = req.user.employeeId;
 
-      res.json({ message: "Cập nhật hồ sơ thành công, vui lòng chờ duyệt." });
+      // Lưu vào bảng profile_updates
+      await db.query(
+        "INSERT INTO profile_updates (employee_id, data, status) VALUES (?, ?, 'pending')",
+        [employeeId, JSON.stringify(dataToUpdate)]
+      );
+
+      // Cập nhật trạng thái profile_status của nhân viên thành pending
+      await db.query("UPDATE employees SET profile_status = 'pending' WHERE id = ?", [employeeId]);
+
+      // Lấy thông tin nhân viên mới nhất sau khi đã đổi profile_status
+      const [newProfile] = await db.query(
+        `SELECT e.*, e.current_address as address, jt.name as job_title, d.name as department_name, 
+                m.full_name as supervisor_name
+         FROM employees e
+         LEFT JOIN job_titles jt ON e.job_title_id = jt.id
+         LEFT JOIN departments d ON e.department_id = d.id
+         LEFT JOIN employees m ON e.supervisor_id = m.id
+         WHERE e.id = ?`,
+        [employeeId],
+      );
+
+      res.json(toCamelCase(newProfile[0]));
     } catch (error) {
-      console.error('updateMe error:', error.code, error.message);
-      console.error('updateMe body was:', JSON.stringify(req.body));
       next(error);
     }
   },
@@ -166,7 +176,20 @@ const employeeController = {
         });
       }
 
-      res.json(toCamelCase(employees[0]));
+      const employee = employees[0];
+
+      // Security check for Managers
+      if (req.user.role === 'manager') {
+          const [mgrs] = await db.query("SELECT department_id FROM employees WHERE id = ?", [req.user.employeeId]);
+          if (mgrs.length > 0 && employee.department_id !== mgrs[0].department_id) {
+              // Manager vẫn có thể xem chính mình ngay cả khi department_id khác (nếu có trường hợp đó)
+              if (employee.id !== req.user.employeeId) {
+                  return res.status(403).json({ message: "Bạn không có quyền xem nhân viên ngoài phòng ban" });
+              }
+          }
+      }
+
+      res.json(toCamelCase(employee));
     } catch (error) {
       next(error);
     }
@@ -351,6 +374,179 @@ const employeeController = {
       await db.query("UPDATE users SET role_id = ? WHERE id = ?", [roleId, userId]);
 
       res.json({ message: "Cập nhật vai trò hệ thống thành công" });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  // GET /api/employees/pending-updates
+  async getPendingUpdates(req, res, next) {
+    try {
+      const { role, employeeId } = req.user;
+      let query = `
+        SELECT pu.*, e.full_name as employee_name, e.department_id
+        FROM profile_updates pu
+        JOIN employees e ON pu.employee_id = e.id
+      `;
+      const params = [];
+
+      // Nếu là Manager, chỉ lấy yêu cầu của nhân viên trong phòng ban của họ
+      if (role === 'manager') {
+        const [depts] = await db.query("SELECT id FROM departments WHERE manager_id = ?", [employeeId]);
+        if (depts.length > 0) {
+          const deptIds = depts.map(d => d.id);
+          query += ` WHERE e.department_id IN (?)`;
+          params.push(deptIds);
+        } else {
+          // Manager không phụ trách phòng ban nào thì không thấy gì
+          return res.json([]);
+        }
+      }
+
+      // Chỉ lấy các yêu cầu đang chờ duyệt (status = 'pending')
+      if (query.includes('WHERE')) {
+          query += " AND pu.status = 'pending'";
+      } else {
+          query += " WHERE pu.status = 'pending'";
+      }
+
+      query += ` ORDER BY pu.requested_at DESC`;
+      
+      const [updates] = await db.query(query, params);
+      res.json(toCamelCase(updates));
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  // POST /api/employees/updates/:updateId/approve
+  async approveUpdate(req, res, next) {
+    const connection = await db.getConnection();
+    try {
+      await connection.beginTransaction();
+      const { updateId } = req.params;
+      const { role, employeeId: processedBy } = req.user;
+
+      const [updates] = await connection.query(`
+        SELECT pu.*, e.department_id 
+        FROM profile_updates pu
+        JOIN employees e ON pu.employee_id = e.id
+        WHERE pu.id = ?
+      `, [updateId]);
+
+      if (updates.length === 0) throw new Error("Không tìm thấy yêu cầu cập nhật");
+      
+      const updateRequest = updates[0];
+
+      // Security Check: Manager only manages their department
+      if (role === 'manager') {
+          const [depts] = await connection.query("SELECT id FROM departments WHERE manager_id = ?", [processedBy]);
+          const deptIds = depts.map(d => d.id);
+          if (!deptIds.includes(updateRequest.department_id)) {
+              return res.status(403).json({ message: "Bạn không có quyền duyệt hồ sơ của nhân viên ngoài phòng ban" });
+          }
+      }
+
+      const updateData = JSON.parse(updateRequest.data);
+      const fieldMapping = {
+        fullName: "full_name",
+        personalEmail: "personal_email",
+        avatarUrl: "avatar_url",
+        phone: "phone",
+        dateOfBirth: "date_of_birth",
+        gender: "gender",
+        maritalStatus: "marital_status",
+        nationalId: "national_id",
+        taxId: "tax_id",
+        insuranceId: "insurance_id",
+        permanentAddress: "permanent_address",
+        currentAddress: "current_address",
+        emergencyContactName: "emergency_contact_name",
+        emergencyContactRelationship: "emergency_contact_relationship",
+        emergencyContactPhone: "emergency_contact_phone",
+        education: "education",
+        experience: "experience",
+        workProcess: "work_process",
+        bankName: "bank_name",
+        bankAccount: "bank_account"
+      };
+
+      const setClausesArr = ["profile_status = 'verified'", "verified_by = ?"];
+      const employeeParams = [processedBy];
+      const dateFields = ['date_of_birth'];
+
+      Object.keys(updateData).forEach(key => {
+        if (fieldMapping[key]) {
+          setClausesArr.push(`${fieldMapping[key]} = ?`);
+          let value = updateData[key];
+          if (value && dateFields.includes(fieldMapping[key])) {
+            value = new Date(value).toISOString().split('T')[0];
+          }
+          employeeParams.push(value);
+        }
+      });
+
+      employeeParams.push(updateRequest.employee_id);
+      await connection.query(`UPDATE employees SET ${setClausesArr.join(", ")} WHERE id = ?`, employeeParams);
+
+      // Cập nhật trạng thái yêu cầu thay vì xóa
+      await connection.query(
+        "UPDATE profile_updates SET status = 'approved', processed_at = NOW(), processed_by = ? WHERE id = ?",
+        [processedBy, updateId]
+      );
+
+      await connection.commit();
+      res.json({ message: "Đã duyệt và cập nhật hồ sơ thành công" });
+    } catch (error) {
+      await connection.rollback();
+      next(error);
+    } finally {
+      connection.release();
+    }
+  },
+
+  // POST /api/employees/updates/:updateId/reject
+  async rejectUpdate(req, res, next) {
+    try {
+      const { updateId } = req.params;
+      const { role, employeeId: processedBy } = req.user;
+
+      const [updates] = await db.query(`
+        SELECT pu.*, e.department_id 
+        FROM profile_updates pu
+        JOIN employees e ON pu.employee_id = e.id
+        WHERE pu.id = ?
+      `, [updateId]);
+
+      if (updates.length > 0 && role === 'manager') {
+          const [depts] = await db.query("SELECT id FROM departments WHERE manager_id = ?", [processedBy]);
+          const deptIds = depts.map(d => d.id);
+          if (!deptIds.includes(updates[0].department_id)) {
+              return res.status(403).json({ message: "Bạn không có quyền từ chối yêu cầu ngoài phòng ban" });
+          }
+      }
+
+      // Cập nhật trạng thái yêu cầu và reset trạng thái hồ sơ nhân viên
+      const connection = await db.getConnection();
+      try {
+          await connection.beginTransaction();
+          
+          await connection.query(
+              "UPDATE profile_updates SET status = 'rejected', processed_at = NOW(), processed_by = ? WHERE id = ?",
+              [processedBy, updateId]
+          );
+
+          // Reset trạng thái hồ sơ nhân viên về verified (vì bản cũ vẫn đang đúng)
+          await connection.query("UPDATE employees SET profile_status = 'verified' WHERE id = ?", [updates[0].employee_id]);
+
+          await connection.commit();
+          res.json({ message: "Đã từ chối yêu cầu cập nhật hồ sơ" });
+      } catch (err) {
+          await connection.rollback();
+          throw err;
+      } finally {
+          connection.release();
+      }
     } catch (error) {
       next(error);
     }

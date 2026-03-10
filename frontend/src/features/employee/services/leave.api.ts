@@ -41,7 +41,7 @@ export const leaveApi = {
   },
 
   async create(
-    data: Omit<LeaveRequest, "id" | "status" | "createdAt" | "employeeId"> & { employeeId?: string },
+    data: Omit<LeaveRequest, "id" | "status" | "createdAt" | "employeeId" | "managerStatus" | "hrStatus"> & { employeeId?: string },
   ): Promise<LeaveRequest> {
     const response = await authFetch(API_BASE, {
       method: "POST",

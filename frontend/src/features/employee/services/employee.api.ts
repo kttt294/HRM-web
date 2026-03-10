@@ -95,4 +95,31 @@ export const employeeApi = {
       throw new Error(errorData.message || "Failed to verify profile");
     }
   },
+
+  async getPendingUpdates(): Promise<any[]> {
+    const response = await authFetch(`${API_BASE}/pending-updates`);
+    if (!response.ok) throw new Error("Failed to fetch pending updates");
+    return response.json();
+  },
+
+  async approveUpdate(updateId: number): Promise<void> {
+    const response = await authFetch(`${API_BASE}/updates/${updateId}/approve`, {
+      method: "POST"
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || "Failed to approve update");
+    }
+  },
+
+  async rejectUpdate(updateId: number, notes?: string): Promise<void> {
+    const response = await authFetch(`${API_BASE}/updates/${updateId}/reject`, {
+      method: "POST",
+      body: JSON.stringify({ notes })
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || "Failed to reject update");
+    }
+  },
 };

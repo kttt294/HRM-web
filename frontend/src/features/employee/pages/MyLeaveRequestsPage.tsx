@@ -88,7 +88,8 @@ export function MyLeaveRequestsPage() {
          return;
       }
       await leaveApi.create({
-        ...newRequest
+        ...newRequest,
+        employeeId: user.id === user.employeeId ? user.employeeId : undefined // Extra safety
       });
       setShowCreateModal(false);
       setNewRequest({

@@ -7,6 +7,8 @@ import {
   EMPLOYEE_TYPE_LABELS,
   EmployeeType,
 } from "../constants/employeeStatus";
+import { Role } from "../../../shared/constants/rbac";
+import { ShowForRoles } from "../../../components/guards/PermissionGuard";
 import { getAvatarUrl } from "../../../shared/utils/avatar.util";
 import { formatEmployeeId } from "../../../shared/utils/format.util";
 
@@ -111,16 +113,18 @@ export function EmployeeTable({ employees, isLoading }: EmployeeTableProps) {
       header: "",
       render: (employee: Employee) => (
         <div className="action-buttons" style={{ justifyContent: "flex-end" }}>
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={(e) => {
-              e.stopPropagation();
-              navigate(ROUTES.EMPLOYEE_EDIT.replace(":id", employee.id));
-            }}
-          >
-            Sửa
-          </Button>
+          <ShowForRoles roles={[Role.HR, Role.ADMIN]}>
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(ROUTES.EMPLOYEE_EDIT.replace(":id", employee.id));
+              }}
+            >
+              Sửa
+            </Button>
+          </ShowForRoles>
         </div>
       ),
     },

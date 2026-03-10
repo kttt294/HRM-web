@@ -74,9 +74,9 @@ export const ROUTE_ACCESS: Record<string, Role[]> = {
     '/admin/audit-log': [Role.ADMIN],
     
     // HR routes (Employee management - PIM)
-    '/hr/employees': [Role.HR],
+    '/hr/employees': [Role.HR, Role.MANAGER],
     '/hr/employees/new': [Role.HR],
-    '/hr/employees/:id': [Role.HR],
+    '/hr/employees/:id': [Role.HR, Role.MANAGER],
     '/hr/employees/:id/edit': [Role.HR],
     
     // HR routes (Recruitment management)

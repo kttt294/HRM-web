@@ -976,13 +976,16 @@ body {
 .modal-content {
   background-color: white;
   border-radius: var(--radius-xl);
-  max-width: 500px;
   width: 90%;
   max-height: 90vh;
   overflow: hidden;
   box-shadow: var(--shadow-xl);
   animation: modalSlideIn 0.2s ease-out;
 }
+
+.modal-md { max-width: 500px; }
+.modal-lg { max-width: 800px; }
+.modal-xl { max-width: 1140px; }
 
 @keyframes modalSlideIn {
   from {

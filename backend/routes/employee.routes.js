@@ -14,6 +14,25 @@ router.get("/me", employeeController.getMe);
 // PATCH /api/employees/me - Nhân viên tự cập nhật thông tin cá nhân
 router.patch("/me", employeeController.updateMe);
 
+// Xử lý yêu cầu cập nhật hồ sơ (Manager/HR) - Đặt TRÊN các route :id để tránh bị bắt nhầm
+router.get(
+  "/pending-updates",
+  requireAnyPermission(["manage_employees", "view_dept_employees"]),
+  employeeController.getPendingUpdates
+);
+
+router.post(
+  "/updates/:updateId/approve",
+  requireAnyPermission(["manage_employees", "view_dept_employees"]),
+  employeeController.approveUpdate
+);
+
+router.post(
+  "/updates/:updateId/reject",
+  requireAnyPermission(["manage_employees", "view_dept_employees"]),
+  employeeController.rejectUpdate
+);
+
 // GET routes - cần quyền view (Tích hợp Data Scoping cho Manager)
 router.get(
   "/",
@@ -35,12 +54,13 @@ router.post(
   "/:id/verify",
   requirePermission("manage_employees"),
   employeeController.verifyProfile
-);// PATCH - Cập nhật vai trò hệ thống (HR/Admin)
+);
+
+// PATCH - Cập nhật vai trò hệ thống (HR/Admin)
 router.patch(
   "/:id/role",
   requirePermission("manage_employees"),
   employeeController.updateRole
 );
-
 
 module.exports = router;
