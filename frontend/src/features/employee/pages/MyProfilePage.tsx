@@ -483,7 +483,7 @@ function AnimatedModal({ title, onClose, children, show }: { title: string, onCl
 
   return (
     <div ref={overlayRef} className="modal-overlay" onClick={e => e.target === overlayRef.current && onClose()}>
-      <div ref={contentRef} className="modal-content">
+      <div ref={contentRef} className="modal-content" style={{ maxWidth: "500px" }}>
         <div className="modal-header">
           <h3>{title}</h3>
           <button className="modal-close" onClick={onClose}>×</button>

@@ -447,7 +447,7 @@ const employeeController = {
           }
       }
 
-      const updateData = JSON.parse(updateRequest.data);
+      const updateData = typeof updateRequest.data === 'string' ? JSON.parse(updateRequest.data) : updateRequest.data;
       const fieldMapping = {
         fullName: "full_name",
         personalEmail: "personal_email",

@@ -170,7 +170,7 @@ export function Sidebar() {
                                     </li>
                                     <li>
                                         <NavLink to={ROUTES.EMPLOYEE_VERIFICATION}>
-                                            <span className="menu-text">Duyệt hồ sơ</span>
+                                            <span className="menu-text">Duyệt hồ sơ nhân viên</span>
                                         </NavLink>
                                     </li>
                                     <li>
