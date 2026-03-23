@@ -3,6 +3,10 @@ const cors = require("cors");
 const errorHandler = require("./middleware/errorHandler.js");
 require("dotenv").config();
 const app = express();
+
+// Trust reverse proxy
+app.set("trust proxy", 1);
+
 const PORT = process.env.PORT || process.env.SERVER_PORT || 5001;
 const helmet = require("helmet");
 const morgan = require("morgan");
