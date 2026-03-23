@@ -238,6 +238,10 @@ CREATE TABLE IF NOT EXISTS profile_updates (
     id INT PRIMARY KEY AUTO_INCREMENT,
     employee_id INT(5) ZEROFILL NOT NULL,
     data JSON NOT NULL, -- Chứa các thông tin nhân viên muốn cập nhật dạng key-value
+    status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
     requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE
+    processed_at TIMESTAMP NULL,
+    processed_by INT(5) ZEROFILL NULL,
+    FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE,
+    FOREIGN KEY (processed_by) REFERENCES employees(id) ON DELETE SET NULL
 );
