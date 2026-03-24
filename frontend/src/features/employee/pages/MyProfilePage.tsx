@@ -15,6 +15,9 @@ import {
   EmployeeType,
   MARITAL_STATUS_OPTIONS,
   MARITAL_STATUS_LABELS,
+  EDUCATION_LEVEL_LABELS,
+  DEGREE_CLASSIFICATION_LABELS,
+  ENGLISH_CERTIFICATE_LABELS,
   MaritalStatus,
 } from "../constants/employeeStatus";
 import { Select } from "../../../components/ui/Select";
@@ -35,7 +38,7 @@ export function MyProfilePage() {
   const [activeTab, setActiveTab] = useState<'personal' | 'legal' | 'bank' | 'career'>('personal');
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  
+
   const [editForm, setEditForm] = useState<Partial<Employee>>({});
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
@@ -145,13 +148,13 @@ export function MyProfilePage() {
     try {
       // Allowed fields to update
       const allowedFields: (keyof Employee)[] = [
-        'fullName', 'avatarUrl', 'dateOfBirth', 'gender', 'maritalStatus', 'personalEmail', 'phone', 
+        'fullName', 'avatarUrl', 'dateOfBirth', 'gender', 'maritalStatus', 'personalEmail', 'phone',
         'address', 'permanentAddress', 'nationalId', 'taxId', 'insuranceId',
         'emergencyContactName', 'emergencyContactRelationship', 'emergencyContactPhone',
         'bankName', 'bankAccount', 'workProcess'
       ];
 
-      
+
       const updateData: any = {};
       allowedFields.forEach(field => {
         if (editForm[field] !== undefined) {
@@ -159,8 +162,34 @@ export function MyProfilePage() {
         }
       });
 
-      const updated = await employeeApi.updateMe(updateData);
-      setProfile(updated);
+      await employeeApi.updateMe(updateData);
+
+      if (editForm.degrees && editForm.degrees.length > 0) {
+        for (const deg of editForm.degrees) {
+          if (deg.id) {
+            try {
+              await employeeApi.updateDegree(deg.id, {
+                educationLevel: deg.educationLevel,
+                major: deg.major,
+                schoolName: deg.schoolName,
+                graduationYear: deg.graduationYear,
+                degreeClassification: deg.degreeClassification,
+                englishCertificate: deg.englishCertificate,
+                englishScore: deg.englishScore,
+                englishIssueDate: deg.englishIssueDate,
+                englishExpiryDate: deg.englishExpiryDate,
+                certificateFileUrl: deg.certificateFileUrl
+              });
+            } catch (err) {
+              console.error("Lỗi cập nhật bằng cấp", deg.id, err);
+            }
+          }
+        }
+      }
+      
+      // Refetch full profile to get all approved/pending updates accurately
+      const finalProfile = await employeeApi.getMe();
+      setProfile(finalProfile);
       setIsEditing(false);
       showSnackbar("Thông tin đã được gửi. Vui lòng chờ được xác thực!", "success");
     } catch (err) {
@@ -226,18 +255,18 @@ export function MyProfilePage() {
           <p className="page-subtitle">Quản lý thông tin cá nhân và hồ sơ nhân viên</p>
         </div>
         {profile?.profileStatus === 'pending' && (
-          <div style={{ 
-            background: '#fff9c4', 
-            color: '#f57f17', 
-            padding: '8px 16px', 
-            borderRadius: '8px', 
+          <div style={{
+            background: '#fff9c4',
+            color: '#f57f17',
+            padding: '8px 16px',
+            borderRadius: '8px',
             fontSize: '14px',
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
             fontWeight: 500
           }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
             Hồ sơ đang chờ xác thực bởi HR/Manager
           </div>
         )}
@@ -248,8 +277,8 @@ export function MyProfilePage() {
         <div className="card-body">
           <div style={{ display: "flex", alignItems: "center", gap: "24px", flexWrap: "wrap" }}>
             <div style={{ position: 'relative' }}>
-              <img 
-                src={getAvatarUrl(isEditing ? editForm.avatarUrl : profile?.avatarUrl, displayName)} 
+              <img
+                src={getAvatarUrl(isEditing ? editForm.avatarUrl : profile?.avatarUrl, displayName)}
                 alt={displayName}
                 style={{ width: "96px", height: "96px", borderRadius: "16px", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", objectFit: 'cover' }}
               />
@@ -262,7 +291,7 @@ export function MyProfilePage() {
                     accept="image/*"
                     onChange={handleFileChange}
                   />
-                  <label 
+                  <label
                     htmlFor="my-avatar-upload"
                     style={{
                       position: 'absolute',
@@ -281,7 +310,7 @@ export function MyProfilePage() {
                     }}
                   >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>
+                      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" /><circle cx="12" cy="13" r="4" />
                     </svg>
                   </label>
                 </>
@@ -344,46 +373,103 @@ export function MyProfilePage() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
               {activeTab === 'personal' && (
                 <>
-                  <Input label="Họ và tên" value={editForm.fullName} onChange={e => setEditForm({...editForm, fullName: e.target.value})} />
-                  <Input label="Email cá nhân" type="email" value={editForm.personalEmail} onChange={e => setEditForm({...editForm, personalEmail: e.target.value})} />
-                  <Input label="Số điện thoại" value={editForm.phone} onChange={e => setEditForm({...editForm, phone: e.target.value})} />
-                  <Input label="Ngày sinh" type="date" value={editForm.dateOfBirth} onChange={e => setEditForm({...editForm, dateOfBirth: e.target.value})} />
-                  <Select label="Giới tính" options={GENDER_OPTIONS} value={editForm.gender} onChange={e => setEditForm({...editForm, gender: e.target.value})} />
-                  <Select label="Tình trạng hôn nhân" options={MARITAL_STATUS_OPTIONS} value={editForm.maritalStatus} onChange={e => setEditForm({...editForm, maritalStatus: e.target.value})} />
-                  <Input label="Địa chỉ hiện tại" value={editForm.address} onChange={e => setEditForm({...editForm, address: e.target.value})} style={{ gridColumn: 'span 2' }} />
-                  <Input label="Địa chỉ thường trú" value={editForm.permanentAddress} onChange={e => setEditForm({...editForm, permanentAddress: e.target.value})} style={{ gridColumn: 'span 2' }} />
+                  <Input label="Họ và tên" value={editForm.fullName} onChange={e => setEditForm({ ...editForm, fullName: e.target.value })} />
+                  <Input label="Email cá nhân" type="email" value={editForm.personalEmail} onChange={e => setEditForm({ ...editForm, personalEmail: e.target.value })} />
+                  <Input label="Số điện thoại" value={editForm.phone} onChange={e => setEditForm({ ...editForm, phone: e.target.value })} />
+                  <Input label="Ngày sinh" type="date" value={editForm.dateOfBirth} onChange={e => setEditForm({ ...editForm, dateOfBirth: e.target.value })} />
+                  <Select label="Giới tính" options={GENDER_OPTIONS} value={editForm.gender} onChange={e => setEditForm({ ...editForm, gender: e.target.value })} />
+                  <Select label="Tình trạng hôn nhân" options={MARITAL_STATUS_OPTIONS} value={editForm.maritalStatus} onChange={e => setEditForm({ ...editForm, maritalStatus: e.target.value })} />
+                  <Input label="Địa chỉ hiện tại" value={editForm.address} onChange={e => setEditForm({ ...editForm, address: e.target.value })} style={{ gridColumn: 'span 2' }} />
+                  <Input label="Địa chỉ thường trú" value={editForm.permanentAddress} onChange={e => setEditForm({ ...editForm, permanentAddress: e.target.value })} style={{ gridColumn: 'span 2' }} />
                 </>
               )}
               {activeTab === 'legal' && (
                 <>
-                  <Input label="Số CCCD" value={editForm.nationalId} onChange={e => setEditForm({...editForm, nationalId: e.target.value})} />
-                  <Input label="Mã số thuế" value={editForm.taxId} onChange={e => setEditForm({...editForm, taxId: e.target.value})} />
-                   <Input label="Số sổ BHXH" value={editForm.insuranceId} onChange={e => setEditForm({...editForm, insuranceId: e.target.value})} />
-                  <Input label="Người liên hệ khẩn cấp" value={editForm.emergencyContactName} onChange={e => setEditForm({...editForm, emergencyContactName: e.target.value})} />
-                  <Input label="Mối quan hệ" value={editForm.emergencyContactRelationship} onChange={e => setEditForm({...editForm, emergencyContactRelationship: e.target.value})} />
-                  <Input label="SĐT khẩn cấp" value={editForm.emergencyContactPhone} onChange={e => setEditForm({...editForm, emergencyContactPhone: e.target.value})} />
+                  <Input label="Số CCCD" value={editForm.nationalId} onChange={e => setEditForm({ ...editForm, nationalId: e.target.value })} />
+                  <Input label="Mã số thuế" value={editForm.taxId} onChange={e => setEditForm({ ...editForm, taxId: e.target.value })} />
+                  <Input label="Số sổ BHXH" value={editForm.insuranceId} onChange={e => setEditForm({ ...editForm, insuranceId: e.target.value })} />
+                  <Input label="Người liên hệ khẩn cấp" value={editForm.emergencyContactName} onChange={e => setEditForm({ ...editForm, emergencyContactName: e.target.value })} />
+                  <Input label="Mối quan hệ" value={editForm.emergencyContactRelationship} onChange={e => setEditForm({ ...editForm, emergencyContactRelationship: e.target.value })} />
+                  <Input label="SĐT khẩn cấp" value={editForm.emergencyContactPhone} onChange={e => setEditForm({ ...editForm, emergencyContactPhone: e.target.value })} />
                 </>
               )}
               {activeTab === 'bank' && (
                 <>
-                  <Input label="Tên ngân hàng" value={editForm.bankName} onChange={e => setEditForm({...editForm, bankName: e.target.value})} />
-                  <Input label="Số tài khoản" value={editForm.bankAccount} onChange={e => setEditForm({...editForm, bankAccount: e.target.value})} />
-                  <Input label="Số người phụ thuộc" type="number" value={editForm.dependentsCount} onChange={e => setEditForm({...editForm, dependentsCount: parseInt(e.target.value)})} />
+                  <Input label="Tên ngân hàng" value={editForm.bankName} onChange={e => setEditForm({ ...editForm, bankName: e.target.value })} />
+                  <Input label="Số tài khoản" value={editForm.bankAccount} onChange={e => setEditForm({ ...editForm, bankAccount: e.target.value })} />
+                  <Input label="Số người phụ thuộc" type="number" value={editForm.dependentsCount} onChange={e => setEditForm({ ...editForm, dependentsCount: parseInt(e.target.value) })} />
                 </>
               )}
               {activeTab === 'career' && (
                 <>
                   <div style={{ gridColumn: 'span 2' }}>
                     <p style={{ fontSize: '12px', color: '#9e9e9e', marginBottom: '8px', textTransform: 'uppercase' }}>Bằng cấp & Chứng chỉ</p>
-                    <p style={{ fontSize: '13px', color: '#757575' }}>Để cập nhật bằng cấp/chứng chỉ, vui lòng liên hệ phòng Nhân sự.</p>
+                    {editForm.degrees && editForm.degrees.length > 0 ? editForm.degrees.map((deg, index) => (
+                      <div key={deg.id || index} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', borderBottom: index < (editForm.degrees?.length || 0) - 1 ? '1px solid #eee' : 'none', paddingBottom: index < (editForm.degrees?.length || 0) - 1 ? '16px' : '0', marginBottom: '16px' }}>
+                        <Select label="Loại bằng" options={Object.entries(EDUCATION_LEVEL_LABELS).map(([v, l]) => ({ value: v, label: l }))} value={deg.educationLevel || ''} onChange={e => {
+                          const newDegs = [...(editForm.degrees || [])];
+                          newDegs[index].educationLevel = e.target.value;
+                          setEditForm({ ...editForm, degrees: newDegs });
+                        }} />
+                        <Input label="Chuyên ngành" value={deg.major} onChange={e => {
+                          const newDegs = [...(editForm.degrees || [])];
+                          newDegs[index].major = e.target.value;
+                          setEditForm({ ...editForm, degrees: newDegs });
+                        }} />
+                        <Input label="Trường" value={deg.schoolName} onChange={e => {
+                          const newDegs = [...(editForm.degrees || [])];
+                          newDegs[index].schoolName = e.target.value;
+                          setEditForm({ ...editForm, degrees: newDegs });
+                        }} />
+                        <Input label="Năm tốt nghiệp" type="number" value={deg.graduationYear || ''} onChange={e => {
+                          const newDegs = [...(editForm.degrees || [])];
+                          newDegs[index].graduationYear = Number(e.target.value);
+                          setEditForm({ ...editForm, degrees: newDegs });
+                        }} />
+                        <Select label="Xếp loại" options={Object.entries(DEGREE_CLASSIFICATION_LABELS).map(([v, l]) => ({ value: v, label: l }))} value={deg.degreeClassification || ''} onChange={e => {
+                          const newDegs = [...(editForm.degrees || [])];
+                          newDegs[index].degreeClassification = e.target.value;
+                          setEditForm({ ...editForm, degrees: newDegs });
+                        }} />
+                        <Select label="Loại ngoại ngữ" options={Object.entries(ENGLISH_CERTIFICATE_LABELS).map(([v, l]) => ({ value: v, label: l }))} value={deg.englishCertificate || 'none'} onChange={e => {
+                          const newDegs = [...(editForm.degrees || [])];
+                          newDegs[index].englishCertificate = e.target.value;
+                          setEditForm({ ...editForm, degrees: newDegs });
+                        }} />
+                        {deg.englishCertificate && deg.englishCertificate !== 'none' && (
+                          <>
+                            <Input label="Điểm NN" value={deg.englishScore || ''} onChange={e => {
+                              const newDegs = [...(editForm.degrees || [])];
+                              newDegs[index].englishScore = e.target.value;
+                              setEditForm({ ...editForm, degrees: newDegs });
+                            }} />
+                            <Input label="Ngày cấp NN" type="date" value={deg.englishIssueDate ? String(deg.englishIssueDate).split('T')[0] : ''} onChange={e => {
+                              const newDegs = [...(editForm.degrees || [])];
+                              newDegs[index].englishIssueDate = e.target.value;
+                              setEditForm({ ...editForm, degrees: newDegs });
+                            }} />
+                            <Input label="Hết hạn NN" type="date" value={deg.englishExpiryDate ? String(deg.englishExpiryDate).split('T')[0] : ''} onChange={e => {
+                              const newDegs = [...(editForm.degrees || [])];
+                              newDegs[index].englishExpiryDate = e.target.value;
+                              setEditForm({ ...editForm, degrees: newDegs });
+                            }} />
+                          </>
+                        )}
+                      </div>
+                    )) : (
+                      <p style={{ fontSize: '13px', color: '#757575' }}>Chưa có dữ liệu bằng cấp.</p>
+                    )}
+                    <p style={{ fontSize: '13px', color: '#1976d2', marginTop: '8px', cursor: 'pointer' }} onClick={() => showSnackbar("Vui lòng liên hệ HR để thêm bằng cấp mới. Bạn hiện tại chỉ có thể sửa thông tin bằng cấp đã có.", "info")}>
+                      + Thêm bằng cấp/chứng chỉ mới
+                    </p>
                   </div>
 
                   <div style={{ gridColumn: 'span 2' }}>
                     <label style={{ display: 'block', fontSize: '14px', marginBottom: '8px', color: '#616161' }}>Quá trình làm việc / Kinh nghiệm</label>
-                    <textarea 
+                    <textarea
                       style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #ddd', minHeight: '120px' }}
-                      value={editForm.workProcess} 
-                      onChange={e => setEditForm({...editForm, workProcess: e.target.value})} 
+                      value={editForm.workProcess}
+                      onChange={e => setEditForm({ ...editForm, workProcess: e.target.value })}
                     />
                   </div>
                 </>
@@ -430,20 +516,35 @@ export function MyProfilePage() {
                   <InfoItem label="Chức danh" value={profile?.jobTitle} color="#7c4dff" />
                   <InfoItem label="Loại hình" value={getEmployeeTypeLabel(profile?.employeeType || '')} color="#4caf50" />
                   <InfoItem label="Ngày vào làm" value={profile?.hireDate ? formatDate(profile.hireDate) : '—'} color="#607d8b" />
+                  <InfoItem label="Ngày tạo hồ sơ" value={profile?.createdAt ? formatDate(profile.createdAt) : '—'} color="#795548" />
+                  <InfoItem label="Ngày cập nhật" value={profile?.updatedAt ? formatDate(profile.updatedAt) : '—'} color="#8d6e63" />
                   <InfoItem label="Lương cơ bản" value={profile?.baseSalary ? formatCurrency(profile.baseSalary) : '—'} color="#d32f2f" />
-                  <div style={{ gridColumn: 'span 2' }}>
-                    <p style={{ fontSize: '12px', color: '#9e9e9e', marginBottom: '8px', textTransform: 'uppercase' }}>Bằng cấp & Chứng chỉ</p>
+                  <InfoItem label="Tổng ngày phép" value={profile?.totalLeaveDays?.toString()} color="#0097a7" />
+                  <InfoItem label="Phép còn lại" value={profile?.remainingLeaveDays?.toString()} color="#00897b" />
+                  {/* Bằng cấp & Chứng chỉ */}
+                  <div style={{ gridColumn: '1 / -1' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                       {profile?.degrees && profile.degrees.length > 0 ? (
                         profile.degrees.map((deg, idx) => (
-                          <div key={deg.id || idx} style={{ padding: '12px', background: '#e3f2fd', borderRadius: '8px', borderLeft: '4px solid #1976d2' }}>
-                             <div style={{ fontWeight: 600, color: '#1565c0' }}>{deg.educationLevel?.toUpperCase()} - {deg.major}</div>
-                             <div style={{ fontSize: '13px', color: '#455a64' }}>{deg.schoolName} ({deg.graduationYear}) - Xếp loại: {deg.degreeClassification}</div>
-                             {deg.englishCertificate !== 'none' && (
-                               <div style={{ fontSize: '12px', color: '#2e7d32', marginTop: '4px', fontWeight: 500 }}>
-                                 Ngoại ngữ: {deg.englishCertificate.toUpperCase()} (Score: {deg.englishScore})
-                               </div>
-                             )}
+                          <div key={deg.id || idx} style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderBottom: idx !== (profile.degrees?.length || 0) - 1 ? '1px solid #eee' : 'none', paddingBottom: idx !== (profile.degrees?.length || 0) - 1 ? '16px' : '0' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px' }}>
+                              <InfoItem label="Loại bằng" value={deg.educationLevel ? (EDUCATION_LEVEL_LABELS[deg.educationLevel] || deg.educationLevel.toUpperCase()) : '—'} color="#1565c0" />
+                              <InfoItem label="Chuyên ngành" value={deg.major || '—'} color="#0288d1" />
+                              {deg.schoolName && <InfoItem label="Trường" value={deg.schoolName} color="#0097a7" />}
+                              {deg.graduationYear && <InfoItem label="Năm tốt nghiệp" value={deg.graduationYear?.toString()} color="#00796b" />}
+                              {deg.degreeClassification && <InfoItem label="Xếp loại" value={DEGREE_CLASSIFICATION_LABELS[deg.degreeClassification] || deg.degreeClassification} color="#388e3c" />}
+                              {deg.englishCertificate && deg.englishCertificate !== 'none' && (
+                                <InfoItem label="Ngoại ngữ" value={`${deg.englishCertificate.toUpperCase()}${deg.englishScore ? ` (${deg.englishScore})` : ''}`} color="#fbc02d" />
+                              )}
+                              {deg.englishIssueDate && <InfoItem label="Ngày cấp NN" value={formatDate(deg.englishIssueDate)} color="#f57c00" />}
+                              {deg.englishExpiryDate && <InfoItem label="Hết hạn NN" value={formatDate(deg.englishExpiryDate)} color="#e64a19" />}
+                            </div>
+                            {deg.certificateFileUrl && (
+                              <a href={deg.certificateFileUrl} target="_blank" rel="noopener noreferrer"
+                                style={{ display: 'inline-block', marginTop: '8px', fontSize: '13px', color: '#1976d2', textDecoration: 'underline' }}>
+                                📎 Xem file bằng cấp/chứng chỉ
+                              </a>
+                            )}
                           </div>
                         ))
                       ) : (
@@ -452,10 +553,27 @@ export function MyProfilePage() {
                     </div>
                   </div>
 
-                  <div style={{ gridColumn: 'span 2' }}>
-                    <p style={{ fontSize: '12px', color: '#9e9e9e', marginBottom: '8px', textTransform: 'uppercase' }}>Quá trình làm việc</p>
-                    <div style={{ padding: '16px', background: '#f8f9fa', borderRadius: '12px', whiteSpace: 'pre-line', fontSize: '14px' }}>
-                      {profile?.workProcess || 'Chưa cập nhật dữ liệu'}
+                  {/* Kinh nghiệm trước đây */}
+                  {profile?.experience && (
+                    <div style={{ gridColumn: '1 / -1' }}>
+                      <p style={{ fontSize: '12px', color: '#9e9e9e', textTransform: 'uppercase', marginBottom: '8px' }}>Kinh nghiệm trước đây</p>
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                        <div style={{ width: '3px', height: '16px', backgroundColor: '#7c4dff', borderRadius: '2px', marginTop: '4px', flexShrink: 0 }}></div>
+                        <div style={{ fontSize: '15px', fontWeight: 500, color: '#212121', whiteSpace: 'pre-line' }}>
+                          {profile.experience}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Quá trình làm việc */}
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <p style={{ fontSize: '12px', color: '#9e9e9e', textTransform: 'uppercase', marginBottom: '8px' }}>Quá trình làm việc tại công ty</p>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                      <div style={{ width: '3px', height: '16px', backgroundColor: '#4caf50', borderRadius: '2px', marginTop: '4px', flexShrink: 0 }}></div>
+                      <div style={{ fontSize: '15px', fontWeight: 500, color: '#212121', whiteSpace: 'pre-line' }}>
+                        {profile?.workProcess || 'Chưa cập nhật dữ liệu'}
+                      </div>
                     </div>
                   </div>
                 </>
@@ -467,9 +585,9 @@ export function MyProfilePage() {
 
       <AnimatedModal title="Đổi mật khẩu" onClose={() => setShowPasswordModal(false)} show={showPasswordModal}>
         <div style={{ display: "grid", gap: "16px" }}>
-          <Input label="Mật khẩu hiện tại" type="password" value={passwordForm.currentPassword} onChange={e => setPasswordForm({...passwordForm, currentPassword: e.target.value})} />
-          <Input label="Mật khẩu mới" type="password" value={passwordForm.newPassword} onChange={e => setPasswordForm({...passwordForm, newPassword: e.target.value})} />
-          <Input label="Xác nhận mật khẩu" type="password" value={passwordForm.confirmPassword} onChange={e => setPasswordForm({...passwordForm, confirmPassword: e.target.value})} />
+          <Input label="Mật khẩu hiện tại" type="password" value={passwordForm.currentPassword} onChange={e => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })} />
+          <Input label="Mật khẩu mới" type="password" value={passwordForm.newPassword} onChange={e => setPasswordForm({ ...passwordForm, newPassword: e.target.value })} />
+          <Input label="Xác nhận mật khẩu" type="password" value={passwordForm.confirmPassword} onChange={e => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })} />
           {passwordError && <div style={{ color: "#d32f2f", fontSize: "14px" }}>{passwordError}</div>}
           <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>
             <Button onClick={handleChangePassword} disabled={isChangingPassword}>{isChangingPassword ? "Đang xử lý..." : "Đổi mật khẩu"}</Button>

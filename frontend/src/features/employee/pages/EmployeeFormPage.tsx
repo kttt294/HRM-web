@@ -9,6 +9,9 @@ import {
   EMPLOYEE_STATUS_OPTIONS,
   EMPLOYEE_TYPE_OPTIONS,
   MARITAL_STATUS_OPTIONS,
+  EDUCATION_LEVEL_LABELS,
+  DEGREE_CLASSIFICATION_LABELS,
+  ENGLISH_CERTIFICATE_LABELS,
 } from "../constants/employeeStatus";
 
 const SYSTEM_ROLE_OPTIONS = [
@@ -75,6 +78,7 @@ export function EmployeeFormPage() {
     dependentsCount: "0",
     employeeType: "full_time",
     roleId: "4",
+    degrees: []
   });
 
   // Fetch initial data
@@ -96,6 +100,7 @@ export function EmployeeFormPage() {
         dateOfBirth: employee.dateOfBirth ? new Date(employee.dateOfBirth).toISOString().split('T')[0] : "",
         hireDate: employee.hireDate ? new Date(employee.hireDate).toISOString().split('T')[0] : "",
         roleId: String((employee as any).roleId || "4"),
+        degrees: employee.degrees || []
       });
       
       const sup = allEmployees.find((e) => e.id === employee.supervisorId);
@@ -173,6 +178,51 @@ export function EmployeeFormPage() {
     setFormData({ ...formData, supervisorId: emp.id });
     setSupervisorSearch(`${formatEmployeeId(emp.id)} - ${emp.fullName}`);
     setShowSupervisorDropdown(false);
+  };
+
+  const handleAddEdu = () => {
+    setFormData({
+      ...formData,
+      degrees: [
+        ...(formData.degrees || []),
+        {
+           _uiType: 'education',
+           educationLevel: 'UNIVERSITY',
+           major: '',
+           schoolName: '',
+           graduationYear: new Date().getFullYear(),
+           degreeClassification: 'average',
+           englishCertificate: 'none'
+        }
+      ]
+    });
+  };
+
+  const handleAddCert = () => {
+    setFormData({
+      ...formData,
+      degrees: [
+        ...(formData.degrees || []),
+        {
+           _uiType: 'certificate',
+           educationLevel: 'none',
+           major: '',
+           schoolName: '',
+           graduationYear: 0,
+           degreeClassification: 'none',
+           englishCertificate: 'TOEIC',
+           englishScore: '',
+           englishIssueDate: '',
+           englishExpiryDate: ''
+        }
+      ]
+    });
+  };
+
+  const handleRemoveDegree = (index: number) => {
+    const newDegs = [...(formData.degrees || [])];
+    newDegs.splice(index, 1);
+    setFormData({ ...formData, degrees: newDegs });
   };
 
   return (
@@ -316,10 +366,90 @@ export function EmployeeFormPage() {
               )}
 
               <div style={{ gridColumn: 'span 2' }}>
-                <p style={{ fontSize: '12px', color: '#9e9e9e', marginBottom: '8px', textTransform: 'uppercase' }}>Học vấn & Bằng cấp</p>
-                <p style={{ fontSize: '13px', color: '#757575', background: '#fff9c4', padding: '10px', borderRadius: '8px' }}>
-                  Thông tin bằng cấp và chứng chỉ được quản lý tại Tab <strong>Bằng cấp</strong> trong trang chi tiết nhân viên.
-                </p>
+                <p style={{ fontSize: '12px', color: '#9e9e9e', marginBottom: '8px', textTransform: 'uppercase' }}>Học vấn</p>
+                {formData.degrees && formData.degrees.some((d: any) => d._uiType === 'education' || (!d._uiType && d.educationLevel && d.educationLevel !== 'none') || (!d._uiType && (!d.englishCertificate || d.englishCertificate === 'none'))) ? 
+                  formData.degrees.map((deg: any, index: number) => {
+                    const isEdu = deg._uiType === 'education' || (!deg._uiType && deg.educationLevel && deg.educationLevel !== 'none') || (!deg._uiType && (!deg.englishCertificate || deg.englishCertificate === 'none'));
+                    if (!isEdu) return null;
+                    return (
+                      <div key={deg.id || index} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', borderBottom: index < (formData.degrees?.length || 0) - 1 ? '1px solid #eee' : 'none', paddingBottom: index < (formData.degrees?.length || 0) - 1 ? '16px' : '0', marginBottom: '16px', position: 'relative' }}>
+                        <div style={{ position: 'absolute', top: '0', right: '0' }}>
+                          <p style={{ fontSize: '13px', color: '#d32f2f', margin: 0, cursor: 'pointer', fontWeight: 500 }} onClick={() => handleRemoveDegree(index)}>Xóa</p>
+                        </div>
+                        <Select label="Loại bằng" options={Object.entries(EDUCATION_LEVEL_LABELS).map(([v, l]) => ({ value: v, label: l }))} value={deg.educationLevel || ''} onChange={e => {
+                          const newDegs = [...(formData.degrees || [])];
+                          newDegs[index].educationLevel = e.target.value;
+                          setFormData({ ...formData, degrees: newDegs });
+                        }} />
+                        <Input label="Chuyên ngành" value={deg.major} onChange={e => {
+                          const newDegs = [...(formData.degrees || [])];
+                          newDegs[index].major = e.target.value;
+                          setFormData({ ...formData, degrees: newDegs });
+                        }} />
+                        <Input label="Trường" value={deg.schoolName} onChange={e => {
+                          const newDegs = [...(formData.degrees || [])];
+                          newDegs[index].schoolName = e.target.value;
+                          setFormData({ ...formData, degrees: newDegs });
+                        }} />
+                        <Input label="Năm tốt nghiệp" type="number" value={deg.graduationYear || ''} onChange={e => {
+                          const newDegs = [...(formData.degrees || [])];
+                          newDegs[index].graduationYear = Number(e.target.value);
+                          setFormData({ ...formData, degrees: newDegs });
+                        }} />
+                        <Select label="Xếp loại" options={Object.entries(DEGREE_CLASSIFICATION_LABELS).map(([v, l]) => ({ value: v, label: l }))} value={deg.degreeClassification || ''} onChange={e => {
+                          const newDegs = [...(formData.degrees || [])];
+                          newDegs[index].degreeClassification = e.target.value;
+                          setFormData({ ...formData, degrees: newDegs });
+                        }} />
+                      </div>
+                    );
+                  }) : (
+                  <p style={{ fontSize: '13px', color: '#757575' }}>Chưa có dữ liệu học vấn.</p>
+                )}
+                <Button type="button" variant="secondary" onClick={handleAddEdu} style={{ marginTop: '10px' }}>
+                  + Thêm học vấn
+                </Button>
+              </div>
+
+              <div style={{ gridColumn: 'span 2', marginTop: '16px' }}>
+                <p style={{ fontSize: '12px', color: '#9e9e9e', marginBottom: '8px', textTransform: 'uppercase' }}>Chứng chỉ ngoại ngữ</p>
+                {formData.degrees && formData.degrees.some((d: any) => d._uiType === 'certificate' || (!d._uiType && d.englishCertificate && d.englishCertificate !== 'none')) ? 
+                  formData.degrees.map((deg: any, index: number) => {
+                    const isCert = deg._uiType === 'certificate' || (!deg._uiType && deg.englishCertificate && deg.englishCertificate !== 'none');
+                    if (!isCert) return null;
+                    return (
+                      <div key={deg.id || index} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', borderBottom: index < (formData.degrees?.length || 0) - 1 ? '1px solid #eee' : 'none', paddingBottom: index < (formData.degrees?.length || 0) - 1 ? '16px' : '0', marginBottom: '16px', position: 'relative' }}>
+                        <div style={{ position: 'absolute', top: '0', right: '0' }}>
+                          <p style={{ fontSize: '13px', color: '#d32f2f', margin: 0, cursor: 'pointer', fontWeight: 500 }} onClick={() => handleRemoveDegree(index)}>Xóa</p>
+                        </div>
+                        <Select label="Loại ngoại ngữ" options={Object.entries(ENGLISH_CERTIFICATE_LABELS).map(([v, l]) => ({ value: v, label: l }))} value={deg.englishCertificate || 'none'} onChange={e => {
+                          const newDegs = [...(formData.degrees || [])];
+                          newDegs[index].englishCertificate = e.target.value;
+                          setFormData({ ...formData, degrees: newDegs });
+                        }} />
+                        <Input label="Điểm NN" value={deg.englishScore || ''} onChange={e => {
+                          const newDegs = [...(formData.degrees || [])];
+                          newDegs[index].englishScore = e.target.value;
+                          setFormData({ ...formData, degrees: newDegs });
+                        }} />
+                        <Input label="Ngày cấp NN" type="date" value={deg.englishIssueDate ? String(deg.englishIssueDate).split('T')[0] : ''} onChange={e => {
+                          const newDegs = [...(formData.degrees || [])];
+                          newDegs[index].englishIssueDate = e.target.value;
+                          setFormData({ ...formData, degrees: newDegs });
+                        }} />
+                        <Input label="Hết hạn NN" type="date" value={deg.englishExpiryDate ? String(deg.englishExpiryDate).split('T')[0] : ''} onChange={e => {
+                          const newDegs = [...(formData.degrees || [])];
+                          newDegs[index].englishExpiryDate = e.target.value;
+                          setFormData({ ...formData, degrees: newDegs });
+                        }} />
+                      </div>
+                    );
+                  }) : (
+                  <p style={{ fontSize: '13px', color: '#757575' }}>Chưa có dữ liệu chứng chỉ ngoại ngữ.</p>
+                )}
+                <Button type="button" variant="secondary" onClick={handleAddCert} style={{ marginTop: '10px' }}>
+                  + Thêm chứng chỉ ngoại ngữ
+                </Button>
               </div>
 
               <div style={{ gridColumn: 'span 2' }}>

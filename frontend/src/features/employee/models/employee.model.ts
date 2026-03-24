@@ -18,6 +18,7 @@ export interface Employee {
   bankName: string;
   bankAccount: string;
   workProcess?: string;
+  experience?: string;
 
   departmentId: string;
   departmentName?: string;

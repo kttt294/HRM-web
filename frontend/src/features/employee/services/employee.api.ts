@@ -58,6 +58,18 @@ export const employeeApi = {
     return response.json();
   },
 
+  async updateDegree(degreeId: number, data: any): Promise<any> {
+    const response = await authFetch(`/api/employee-degrees/${degreeId}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || "Failed to update degree");
+    }
+    return response.json();
+  },
+
   async getById(id: string): Promise<Employee> {
     const response = await authFetch(`${API_BASE}/${id}`);
     if (!response.ok) throw new Error("Failed to fetch employee");

@@ -639,7 +639,7 @@ body {
 
 .search-form-grid {
   display: grid;
-  grid-template-columns: 2fr 1.2fr 1.8fr 1.5fr 1.3fr;
+  grid-template-columns: 1.5fr 1.2fr 1.8fr 1.5fr 1.3fr;
   /* Tên NV, Mã NV, Chức danh, Phòng ban, Trạng thái */
   gap: var(--space-3);
   /* Giảm gap đễ tiết kiệm không gian */
@@ -673,6 +673,13 @@ body {
   color: var(--gray-700);
   text-transform: uppercase;
   letter-spacing: 0.02em;
+}
+
+/* Labels in search filter grid never wrap */
+.search-form-grid .form-group label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .form-input,
@@ -983,9 +990,17 @@ body {
   animation: modalSlideIn 0.2s ease-out;
 }
 
-.modal-md { max-width: 500px; }
-.modal-lg { max-width: 800px; }
-.modal-xl { max-width: 1140px; }
+.modal-md {
+  max-width: 500px;
+}
+
+.modal-lg {
+  max-width: 800px;
+}
+
+.modal-xl {
+  max-width: 1140px;
+}
 
 @keyframes modalSlideIn {
   from {

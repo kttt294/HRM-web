@@ -71,3 +71,43 @@ export const MARITAL_STATUS_LABELS: Record<MaritalStatus, string> = {
 export const MARITAL_STATUS_OPTIONS = Object.entries(MARITAL_STATUS_LABELS).map(
   ([value, label]) => ({ value, label }),
 );
+
+export enum EducationLevel {
+  UNDER_HIGH_SCHOOL = "under_high_school",
+  HIGH_SCHOOL = "high_school",
+  COLLEGE = "college",
+  UNIVERSITY = "university",
+  MASTER = "master",
+  PHD = "phd",
+}
+
+export const EDUCATION_LEVEL_LABELS: Record<string, string> = {
+  [EducationLevel.UNDER_HIGH_SCHOOL]: "Dưới cấp 3",
+  [EducationLevel.HIGH_SCHOOL]: "Cấp 3",
+  [EducationLevel.COLLEGE]: "Cao đẳng",
+  [EducationLevel.UNIVERSITY]: "Đại học",
+  [EducationLevel.MASTER]: "Thạc sĩ",
+  [EducationLevel.PHD]: "Tiến sĩ",
+};
+
+export enum DegreeClassification {
+  AVERAGE = "average",
+  GOOD = "good",
+  EXCELLENT = "excellent",
+}
+
+export const DEGREE_CLASSIFICATION_LABELS: Record<string, string> = {
+  [DegreeClassification.AVERAGE]: "Trung bình",
+  [DegreeClassification.GOOD]: "Khá/Giỏi",
+  [DegreeClassification.EXCELLENT]: "Xuất sắc",
+};
+
+export const ENGLISH_CERTIFICATE_LABELS: Record<string, string> = {
+  "none": "Không có",
+  "toeic": "TOEIC",
+  "ielts": "IELTS",
+  "toefl": "TOEFL",
+  "aptis": "Aptis",
+  "vstep": "VSTEP",
+  "other": "Khác",
+};
