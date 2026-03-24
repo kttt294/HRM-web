@@ -17,7 +17,6 @@ export interface Employee {
   emergencyContactPhone: string;
   bankName: string;
   bankAccount: string;
-  education: string;
   workProcess?: string;
 
   departmentId: string;
@@ -40,6 +39,8 @@ export interface Employee {
   role?: string;
   createdAt?: string;
   updatedAt?: string;
+  
+  degrees?: any[];
 }
 
 export interface EmployeeSearchParams {
@@ -48,4 +49,14 @@ export interface EmployeeSearchParams {
   status?: string;
   departmentId?: string;
   profileStatus?: string;
+  educationLevel?: string;
+  englishCertificate?: string;
+  schoolName?: string;
+  tenure?: string;
+  totalLeaveDays?: number | string;
+  totalLeaveDaysOp?: 'gte' | 'lte';
+  remainingLeaveDays?: number | string;
+  remainingLeaveDaysOp?: 'gte' | 'lte';
+  baseSalary?: number | string;
+  baseSalaryOp?: 'gte' | 'lte';
 }

@@ -17,6 +17,16 @@ export function EmployeeSearchForm({ onSearch }: EmployeeSearchFormProps) {
         employeeId: '',
         status: '',
         departmentId: '',
+        educationLevel: '',
+        englishCertificate: '',
+        schoolName: '',
+        tenure: '',
+        totalLeaveDays: '',
+        totalLeaveDaysOp: 'gte',
+        remainingLeaveDays: '',
+        remainingLeaveDaysOp: 'gte',
+        baseSalary: '',
+        baseSalaryOp: 'gte',
     });
 
     const [departments, setDepartments] = useState<Department[]>([]);
@@ -39,11 +49,21 @@ export function EmployeeSearchForm({ onSearch }: EmployeeSearchFormProps) {
     };
 
     const handleReset = () => {
-        const emptyParams = {
+        const emptyParams: EmployeeSearchParams = {
             employeeName: '',
             employeeId: '',
             status: '',
             departmentId: '',
+            educationLevel: '',
+            englishCertificate: '',
+            schoolName: '',
+            tenure: '',
+            totalLeaveDays: '',
+            totalLeaveDaysOp: 'gte',
+            remainingLeaveDays: '',
+            remainingLeaveDaysOp: 'gte',
+            baseSalary: '',
+            baseSalaryOp: 'gte',
         };
         setSearchParams(emptyParams);
         onSearch(emptyParams);
@@ -107,9 +127,155 @@ export function EmployeeSearchForm({ onSearch }: EmployeeSearchFormProps) {
                         }
                     />
                 </div>
+
+                <div className="form-group">
+                    <Select
+                        label="Trình độ học vấn"
+                        name="educationLevel"
+                        options={[
+                            { value: 'under_high_school', label: 'Dưới cấp 3' },
+                            { value: 'high_school', label: 'Cấp 3' },
+                            { value: 'college', label: 'Cao đẳng' },
+                            { value: 'university', label: 'Đại học' },
+                            { value: 'master', label: 'Thạc sĩ' },
+                            { value: 'phd', label: 'Tiến sĩ' }
+                        ]}
+                        placeholder="Tất cả trình độ"
+                        value={searchParams.educationLevel}
+                        onChange={(e) =>
+                            setSearchParams({ ...searchParams, educationLevel: e.target.value })
+                        }
+                    />
+                </div>
+
+                <div className="form-group">
+                    <Select
+                        label="Ngoại ngữ"
+                        name="englishCertificate"
+                        options={[
+                            { value: 'vstep', label: 'VSTEP' },
+                            { value: 'ielts', label: 'IELTS' },
+                            { value: 'toeic', label: 'TOEIC' },
+                            { value: 'toefl', label: 'TOEFL' },
+                            { value: 'none', label: 'Không có' },
+                            { value: 'other', label: 'Khác' }
+                        ]}
+                        placeholder="Tất cả chứng chỉ"
+                        value={searchParams.englishCertificate}
+                        onChange={(e) =>
+                            setSearchParams({ ...searchParams, englishCertificate: e.target.value })
+                        }
+                    />
+                </div>
+
+                <div className="form-group">
+                    <Select
+                        label="Thâm niên"
+                        name="tenure"
+                        options={[
+                            { value: '<1', label: 'Dưới 1 năm' },
+                            { value: '1-3', label: 'Từ 1 đến 3 năm' },
+                            { value: '3-5', label: 'Từ 3 đến 5 năm' },
+                            { value: '>5', label: 'Trên 5 năm' },
+                        ]}
+                        placeholder="Tất cả thời gian"
+                        value={searchParams.tenure}
+                        onChange={(e) =>
+                            setSearchParams({ ...searchParams, tenure: e.target.value })
+                        }
+                    />
+                </div>
+
+                <div className="form-group">
+                    <Input
+                        label="Tên trường học"
+                        name="schoolName"
+                        placeholder="Ví dụ: Đại học FPT..."
+                        value={searchParams.schoolName}
+                        onChange={(e) =>
+                            setSearchParams({ ...searchParams, schoolName: e.target.value })
+                        }
+                    />
+                </div>
+
+                <div className="form-group" style={{ display: 'flex', gap: '8px' }}>
+                    <div style={{ flex: 1 }}>
+                        <Select
+                            label="Tổng ngày phép"
+                            name="totalLeaveDaysOp"
+                            options={[
+                                { value: 'gte', label: 'Lớn hơn' },
+                                { value: 'lte', label: 'Nhỏ hơn' }
+                            ]}
+                            value={searchParams.totalLeaveDaysOp || 'gte'}
+                            onChange={(e) => setSearchParams({ ...searchParams, totalLeaveDaysOp: e.target.value as any })}
+                        />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                        <Input
+                            label="&nbsp;"
+                            name="totalLeaveDays"
+                            type="number"
+                            placeholder="Số ngày..."
+                            value={searchParams.totalLeaveDays as string}
+                            onChange={(e) => setSearchParams({ ...searchParams, totalLeaveDays: e.target.value })}
+                        />
+                    </div>
+                </div>
+
+                <div className="form-group" style={{ display: 'flex', gap: '8px' }}>
+                    <div style={{ flex: 1 }}>
+                        <Select
+                            label="Phép còn lại"
+                            name="remainingLeaveDaysOp"
+                            options={[
+                                { value: 'gte', label: 'Lớn hơn' },
+                                { value: 'lte', label: 'Nhỏ hơn' }
+                            ]}
+                            value={searchParams.remainingLeaveDaysOp || 'gte'}
+                            onChange={(e) => setSearchParams({ ...searchParams, remainingLeaveDaysOp: e.target.value as any })}
+                        />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                        <Input
+                            label="&nbsp;"
+                            name="remainingLeaveDays"
+                            type="number"
+                            placeholder="Số ngày..."
+                            value={searchParams.remainingLeaveDays as string}
+                            onChange={(e) => setSearchParams({ ...searchParams, remainingLeaveDays: e.target.value })}
+                        />
+                    </div>
+                </div>
+
+                <div className="form-group" style={{ display: 'flex', gap: '8px' }}>
+                    <div style={{ flex: 1 }}>
+                        <Select
+                            label="Lương cơ bản"
+                            name="baseSalaryOp"
+                            options={[
+                                { value: 'gte', label: 'Lớn hơn' },
+                                { value: 'lte', label: 'Nhỏ hơn' }
+                            ]}
+                            value={searchParams.baseSalaryOp || 'gte'}
+                            onChange={(e) => setSearchParams({ ...searchParams, baseSalaryOp: e.target.value as any })}
+                        />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                        <Input
+                            label="&nbsp;"
+                            name="baseSalary"
+                            type="number"
+                            placeholder="VND..."
+                            value={searchParams.baseSalary as string}
+                            onChange={(e) => setSearchParams({ ...searchParams, baseSalary: e.target.value })}
+                        />
+                    </div>
+                </div>
+
                 <div className="form-group" style={{ display: 'flex', gap: '8px', alignItems: 'flex-end', transform: 'translateY(6px)' }}>
-                    <Button type="submit">Tìm kiếm</Button>
-                    <Button type="button" variant="secondary" onClick={handleReset}>
+                    <Button type="submit" style={{ width: '100%' }}>Tìm kiếm</Button>
+                    <Button type="button" variant="secondary" onClick={handleReset} style={{ width: '100%' }}>
                         Đặt lại
                     </Button>
                 </div>

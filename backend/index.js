@@ -56,6 +56,7 @@ const departmentRoutes = require("./routes/department.routes.js");
 const userRoutes = require("./routes/user.routes.js");
 const jobTitleRoutes = require("./routes/jobTitle.routes.js");
 const chatbotRoutes = require("./routes/chatbot.routes.js");
+const employeeDegreeRoutes = require("./routes/employeeDegree.routes");
 
 // API routes
 app.use("/api/auth", authRoutes);
@@ -69,6 +70,7 @@ app.use("/api/departments", departmentRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/job-titles", jobTitleRoutes);
 app.use("/api/chatbot", chatbotRoutes);
+app.use("/api/employee-degrees", employeeDegreeRoutes);
 
 app.use(errorHandler);
 

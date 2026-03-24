@@ -5,11 +5,31 @@ const employeeController = {
   // GET /api/employees
   async getAll(req, res, next) {
     try {
-      const { name, id, jobTitle, status, departmentId } = req.query;
+        const { 
+          name, id, jobTitle, status, departmentId, educationLevel, englishCertificate, schoolName, tenure,
+          totalLeaveDays, totalLeaveDaysOp,
+          remainingLeaveDays, remainingLeaveDaysOp,
+          baseSalary, baseSalaryOp
+        } = req.query;
 
       let query = `SELECT e.*, jt.name as job_title, d.name as department_name, 
                            u.id as user_id, u.username, u.avatar,
-                           m.full_name as supervisor_name
+                           m.full_name as supervisor_name,
+                           (
+                             SELECT JSON_ARRAYAGG(
+                               JSON_OBJECT(
+                                 'id', ed.id,
+                                 'educationLevel', ed.education_level,
+                                 'major', ed.major,
+                                 'schoolName', ed.school_name,
+                                 'degreeClassification', ed.degree_classification,
+                                 'englishCertificate', ed.english_certificate,
+                                 'englishScore', ed.english_score
+                               )
+                             )
+                             FROM employee_degrees ed 
+                             WHERE ed.employee_id = e.id
+                           ) as degrees
                     FROM employees e 
                     LEFT JOIN job_titles jt ON e.job_title_id = jt.id
                     LEFT JOIN departments d ON e.department_id = d.id
@@ -51,6 +71,46 @@ const employeeController = {
       if (req.query.profileStatus) {
         query += " AND e.profile_status = ?";
         params.push(req.query.profileStatus);
+      }
+      if (educationLevel) {
+        query += " AND EXISTS (SELECT 1 FROM employee_degrees ed WHERE ed.employee_id = e.id AND ed.education_level = ?)";
+        params.push(educationLevel);
+      }
+      if (englishCertificate) {
+        query += " AND EXISTS (SELECT 1 FROM employee_degrees ed WHERE ed.employee_id = e.id AND ed.english_certificate = ?)";
+        params.push(englishCertificate);
+      }
+      if (schoolName) {
+        query += " AND EXISTS (SELECT 1 FROM employee_degrees ed WHERE ed.employee_id = e.id AND ed.school_name LIKE ?)";
+        params.push(`%${schoolName}%`);
+      }
+      if (tenure) {
+        // tenure check (in years)
+        query += " AND e.hire_date IS NOT NULL";
+        if (tenure === '<1') {
+          query += " AND TIMESTAMPDIFF(YEAR, e.hire_date, NOW()) < 1";
+        } else if (tenure === '1-3') {
+          query += " AND TIMESTAMPDIFF(YEAR, e.hire_date, NOW()) >= 1 AND TIMESTAMPDIFF(YEAR, e.hire_date, NOW()) <= 3";
+        } else if (tenure === '3-5') {
+          query += " AND TIMESTAMPDIFF(YEAR, e.hire_date, NOW()) > 3 AND TIMESTAMPDIFF(YEAR, e.hire_date, NOW()) <= 5";
+        } else if (tenure === '>5') {
+          query += " AND TIMESTAMPDIFF(YEAR, e.hire_date, NOW()) > 5";
+        }
+      }
+      if (totalLeaveDays) {
+        const op = totalLeaveDaysOp === 'lte' ? '<=' : '>=';
+        query += ` AND e.total_leave_days ${op} ?`;
+        params.push(totalLeaveDays);
+      }
+      if (remainingLeaveDays) {
+        const op = remainingLeaveDaysOp === 'lte' ? '<=' : '>=';
+        query += ` AND e.remaining_leave_days ${op} ?`;
+        params.push(remainingLeaveDays);
+      }
+      if (baseSalary) {
+        const op = baseSalaryOp === 'lte' ? '<=' : '>=';
+        query += ` AND e.base_salary ${op} ?`;
+        params.push(baseSalary);
       }
 
       const [employees] = await db.query(query, params);
@@ -105,7 +165,6 @@ const employeeController = {
         emergencyContactName: "emergency_contact_name",
         emergencyContactRelationship: "emergency_contact_relationship",
         emergencyContactPhone: "emergency_contact_phone",
-        education: "education",
         experience: "experience",
         workProcess: "work_process",
         bankName: "bank_name",
@@ -218,7 +277,6 @@ const employeeController = {
         hireDate,
         status,
         employeeType,
-        education,
         experience,
         workProcess,
         baseSalary,
@@ -241,15 +299,15 @@ const employeeController = {
           national_id, tax_id, insurance_id, permanent_address, current_address,
           emergency_contact_name, emergency_contact_relationship, emergency_contact_phone,
           department_id, job_title_id, hire_date, status, employee_type,
-          education, experience, work_process, base_salary, allowance, dependents_count,
+          experience, work_process, base_salary, allowance, dependents_count,
           bank_name, bank_account, total_leave_days, remaining_leave_days${id ? ', id' : ''}
-        ) VALUES (${id ? '?,'.repeat(31).slice(0,-1) : '?,'.repeat(30).slice(0,-1)})`,
+        ) VALUES (${id ? '?,'.repeat(30).slice(0,-1) : '?,'.repeat(29).slice(0,-1)})`,
         [
           fullName, personalEmail || null, avatarUrl || null, phone || null, dateOfBirth || null, gender || null, maritalStatus || 'single',
           nationalId || null, taxId || null, insuranceId || null, permanentAddress || null, currentAddress || null,
           emergencyContactName || null, emergencyContactRelationship || null, emergencyContactPhone || null,
           departmentId || null, jobTitleId || null, hireDate || null, status || "active", employeeType || "full_time",
-          education || null, experience || null, workProcess || null, baseSalary || 0, allowance || 0, dependentsCount || 0,
+          experience || null, workProcess || null, baseSalary || 0, allowance || 0, dependentsCount || 0,
           bankName || null, bankAccount || null, totalLeaveDays || 12, totalLeaveDays || 12,
           ...(id ? [id] : [])
         ],
@@ -286,7 +344,6 @@ const employeeController = {
         emergencyContactName: "emergency_contact_name",
         emergencyContactRelationship: "emergency_contact_relationship",
         emergencyContactPhone: "emergency_contact_phone",
-        education: "education",
         experience: "experience",
         workProcess: "work_process",
         departmentId: "department_id",

@@ -13,6 +13,26 @@ export const employeeApi = {
       queryParams.append("departmentId", params.departmentId);
     if (params?.profileStatus)
       queryParams.append("profileStatus", params.profileStatus);
+    if (params?.educationLevel)
+      queryParams.append("educationLevel", params.educationLevel);
+    if (params?.englishCertificate)
+      queryParams.append("englishCertificate", params.englishCertificate);
+    if (params?.schoolName)
+      queryParams.append("schoolName", params.schoolName);
+    if (params?.tenure)
+      queryParams.append("tenure", params.tenure);
+    if (params?.totalLeaveDays) {
+      queryParams.append("totalLeaveDays", String(params.totalLeaveDays));
+      queryParams.append("totalLeaveDaysOp", params.totalLeaveDaysOp || 'gte');
+    }
+    if (params?.remainingLeaveDays) {
+      queryParams.append("remainingLeaveDays", String(params.remainingLeaveDays));
+      queryParams.append("remainingLeaveDaysOp", params.remainingLeaveDaysOp || 'gte');
+    }
+    if (params?.baseSalary) {
+      queryParams.append("baseSalary", String(params.baseSalary));
+      queryParams.append("baseSalaryOp", params.baseSalaryOp || 'gte');
+    }
 
     const response = await authFetch(`${API_BASE}?${queryParams}`);
     if (!response.ok) throw new Error("Failed to fetch employees");
