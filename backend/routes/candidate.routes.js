@@ -3,6 +3,7 @@ const router = express.Router();
 const candidateController = require("../controllers/candidateController");
 const authMiddleware = require("../middleware/auth");
 const { requirePermission } = require("../middleware/checkPermission");
+const PERMISSIONS = require("../constants/permissions");
 
 // POST /api/recruitment/candidates - Tạo ứng viên mới (Public)
 router.post(
@@ -16,36 +17,41 @@ router.use(authMiddleware);
 // GET /api/recruitment/candidates - Lấy danh sách ứng viên
 router.get(
   "/",
-  requirePermission("view_candidates"),
-  candidateController.getAll,
+  requirePermission(PERMISSIONS.VIEW_CANDIDATES),
+  candidateController.getAll
 );
+
 
 // GET /api/recruitment/candidates/:id - Chi tiết ứng viên
 router.get(
   "/:id",
-  requirePermission("view_candidates"),
-  candidateController.getById,
+  requirePermission(PERMISSIONS.VIEW_CANDIDATES),
+  candidateController.getById
 );
+
 
 // PATCH /api/recruitment/candidates/:id - Cập nhật ứng viên (chỉ HR)
 router.patch(
   "/:id",
-  requirePermission("manage_recruitment"),
-  candidateController.update,
+  requirePermission(PERMISSIONS.MANAGE_RECRUITMENT),
+  candidateController.update
 );
+
 
 // PATCH /api/recruitment/candidates/:id/status - Cập nhật trạng thái ứng viên (chỉ HR)
 router.patch(
   "/:id/status",
-  requirePermission("manage_recruitment"),
-  candidateController.updateStatus,
+  requirePermission(PERMISSIONS.MANAGE_RECRUITMENT),
+  candidateController.updateStatus
 );
+
 
 // DELETE /api/recruitment/candidates/:id - Xóa ứng viên (chỉ HR)
 router.delete(
   "/:id",
-  requirePermission("manage_recruitment"),
-  candidateController.delete,
+  requirePermission(PERMISSIONS.MANAGE_RECRUITMENT),
+  candidateController.delete
 );
+
 
 module.exports = router;

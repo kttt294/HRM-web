@@ -6,6 +6,8 @@ const {
   requirePermission,
   requireAnyPermission,
 } = require("../middleware/checkPermission");
+const PERMISSIONS = require("../constants/permissions");
+
 
 // Tất cả routes cần authentication
 router.use(authMiddleware);
@@ -26,21 +28,21 @@ router.get("/employee/:employeeId", salaryController.getByEmployeeId);
 // POST /api/salary - Tạo bảng lương mới (chỉ HR)
 router.post(
   "/",
-  requirePermission("manage_employees"),
+  requirePermission(PERMISSIONS.MANAGE_EMPLOYEES),
   salaryController.create,
 );
 
 // PATCH /api/salary/:id - Cập nhật bảng lương (chỉ HR)
 router.patch(
   "/:id",
-  requirePermission("manage_employees"),
+  requirePermission(PERMISSIONS.MANAGE_EMPLOYEES),
   salaryController.update,
 );
 
 // DELETE /api/salary/:id - Xóa bảng lương (chỉ HR)
 router.delete(
   "/:id",
-  requirePermission("manage_employees"),
+  requirePermission(PERMISSIONS.MANAGE_EMPLOYEES),
   salaryController.delete,
 );
 

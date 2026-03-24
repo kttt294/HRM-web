@@ -3,6 +3,7 @@ const router = express.Router();
 const departmentController = require("../controllers/departmentController");
 const authMiddleware = require("../middleware/auth");
 const { requirePermission } = require("../middleware/checkPermission");
+const PERMISSIONS = require("../constants/permissions");
 
 // Tất cả routes cần authentication
 router.use(authMiddleware);
@@ -16,21 +17,21 @@ router.get("/:id", departmentController.getById);
 // POST /api/departments - Tạo phòng ban mới (chỉ Admin/HR)
 router.post(
   "/",
-  requirePermission("manage_employees"),
+  requirePermission(PERMISSIONS.MANAGE_EMPLOYEES),
   departmentController.create,
 );
 
 // PATCH /api/departments/:id - Cập nhật phòng ban (chỉ Admin/HR)
 router.patch(
   "/:id",
-  requirePermission("manage_employees"),
+  requirePermission(PERMISSIONS.MANAGE_EMPLOYEES),
   departmentController.update,
 );
 
 // DELETE /api/departments/:id - Xóa phòng ban (chỉ Admin/HR)
 router.delete(
   "/:id",
-  requirePermission("manage_employees"),
+  requirePermission(PERMISSIONS.MANAGE_EMPLOYEES),
   departmentController.delete,
 );
 

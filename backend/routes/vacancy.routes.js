@@ -4,6 +4,8 @@ const vacancyController = require('../controllers/vacancyController');
 const authMiddleware = require('../middleware/auth');
 const { requirePermission } = require('../middleware/checkPermission');
 const { dataScope } = require('../middleware/dataScope');
+const PERMISSIONS = require('../constants/permissions');
+
 
 // GET /api/recruitment/vacancies - Lấy danh sách vị trí tuyển dụng
 router.get('/', (req, res, next) => {
@@ -20,12 +22,12 @@ router.get('/:id', vacancyController.getById);
 router.use(authMiddleware);
 
 // POST /api/recruitment/vacancies - Tạo vị trí mới (chỉ HR)
-router.post('/', requirePermission('manage_recruitment'), vacancyController.create);
+router.post('/', requirePermission(PERMISSIONS.MANAGE_RECRUITMENT), vacancyController.create);
 
 // PATCH /api/recruitment/vacancies/:id - Cập nhật vị trí (chỉ HR)
-router.patch('/:id', requirePermission('manage_recruitment'), vacancyController.update);
+router.patch('/:id', requirePermission(PERMISSIONS.MANAGE_RECRUITMENT), vacancyController.update);
 
 // DELETE /api/recruitment/vacancies/:id - Xóa vị trí (chỉ HR)
-router.delete('/:id', requirePermission('manage_recruitment'), vacancyController.delete);
+router.delete('/:id', requirePermission(PERMISSIONS.MANAGE_RECRUITMENT), vacancyController.delete);
 
 module.exports = router;

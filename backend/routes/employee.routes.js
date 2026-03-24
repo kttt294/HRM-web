@@ -4,6 +4,7 @@ const employeeController = require("../controllers/employeeController");
 const authMiddleware = require("../middleware/auth");
 const { requirePermission, requireAnyPermission } = require("../middleware/checkPermission");
 const { dataScope } = require("../middleware/dataScope");
+const PERMISSIONS = require("../constants/permissions");
 
 // Tất cả routes đều cần authentication
 router.use(authMiddleware);
@@ -17,50 +18,56 @@ router.patch("/me", employeeController.updateMe);
 // Xử lý yêu cầu cập nhật hồ sơ (Manager/HR) - Đặt TRÊN các route :id để tránh bị bắt nhầm
 router.get(
   "/pending-updates",
-  requireAnyPermission(["manage_employees", "view_dept_employees"]),
+  requireAnyPermission([PERMISSIONS.MANAGE_EMPLOYEES, PERMISSIONS.VIEW_DEPT_EMPLOYEES]),
   employeeController.getPendingUpdates
 );
 
+
 router.post(
   "/updates/:updateId/approve",
-  requireAnyPermission(["manage_employees", "view_dept_employees"]),
+  requireAnyPermission([PERMISSIONS.MANAGE_EMPLOYEES, PERMISSIONS.VIEW_DEPT_EMPLOYEES]),
   employeeController.approveUpdate
 );
 
+
 router.post(
   "/updates/:updateId/reject",
-  requireAnyPermission(["manage_employees", "view_dept_employees"]),
+  requireAnyPermission([PERMISSIONS.MANAGE_EMPLOYEES, PERMISSIONS.VIEW_DEPT_EMPLOYEES]),
   employeeController.rejectUpdate
 );
+
 
 // GET routes - cần quyền view (Tích hợp Data Scoping cho Manager)
 router.get(
   "/",
-  requireAnyPermission(["view_employees", "view_dept_employees"]),
+  requireAnyPermission([PERMISSIONS.VIEW_EMPLOYEES, PERMISSIONS.VIEW_DEPT_EMPLOYEES]),
   dataScope("employee"),
   employeeController.getAll
 );
 
-router.get("/:id", requireAnyPermission(["view_employees", "view_dept_employees"]), employeeController.getById);
+
+router.get("/:id", requireAnyPermission([PERMISSIONS.VIEW_EMPLOYEES, PERMISSIONS.VIEW_DEPT_EMPLOYEES]), employeeController.getById);
 
 // POST - cần quyền create
-router.post("/", requirePermission("create_employees"), employeeController.create);
+router.post("/", requirePermission(PERMISSIONS.CREATE_EMPLOYEES), employeeController.create);
 
 // PATCH - cần quyền update
-router.patch("/:id", requirePermission("update_employees"), employeeController.update);
+router.patch("/:id", requirePermission(PERMISSIONS.UPDATE_EMPLOYEES), employeeController.update);
 
 // POST - Xác thực hồ sơ (Manager/HR)
 router.post(
   "/:id/verify",
-  requirePermission("manage_employees"),
+  requirePermission(PERMISSIONS.MANAGE_EMPLOYEES),
   employeeController.verifyProfile
 );
+
 
 // PATCH - Cập nhật vai trò hệ thống (HR/Admin)
 router.patch(
   "/:id/role",
-  requirePermission("manage_employees"),
+  requirePermission(PERMISSIONS.MANAGE_EMPLOYEES),
   employeeController.updateRole
 );
+
 
 module.exports = router;
