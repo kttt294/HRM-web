@@ -20,6 +20,8 @@ export const ROUTES = {
   LEAVE_MANAGEMENT: "/hr/leaves",
   PAYROLL_LIST: "/hr/payroll",
   DEPARTMENTS: "/hr/departments",
+  EMPLOYEE_DEGREES: "/hr/degrees",
+  JOB_TITLES: "/hr/job-titles",
 
   // HR - Recruitment
   RECRUITMENT: "/recruitment",

@@ -14,6 +14,13 @@ router.get("/my", employeeDegreeController.getMy);
 // GET - Lấy danh sách bằng cấp của 1 nhân viên (Phân quyền chi tiết trong Controller)
 router.get("/employee/:employeeId", employeeDegreeController.getByEmployee);
 
+// GET - Lấy danh sách giá trị ENUM của một cột (HR/Admin)
+router.get(
+  "/enums/values",
+  requirePermission(PERMISSIONS.MANAGE_EMPLOYEES),
+  employeeDegreeController.getEnumValues
+);
+
 // POST - Bổ sung danh mục ENUM mới (Dành cho HR/Admin)
 router.post(
   "/enums/add",

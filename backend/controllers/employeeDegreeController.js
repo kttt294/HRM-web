@@ -193,6 +193,28 @@ const employeeDegreeController = {
     }
   },
 
+  // GET /api/employee-degrees/enums/values?column=...
+  async getEnumValues(req, res, next) {
+    try {
+      const { column } = req.query;
+      if (!['english_certificate', 'degree_classification', 'education_level'].includes(column)) {
+        return res.status(400).json({ message: "Cột không hợp lệ" });
+      }
+      const [columns] = await db.query("SHOW COLUMNS FROM employee_degrees LIKE ?", [column]);
+      if (columns.length === 0) {
+        return res.status(404).json({ message: "Không tìm thấy cột" });
+      }
+      const match = columns[0].Type.match(/^enum\((.*)\)$/);
+      if (!match) {
+        return res.status(500).json({ message: "Không phải cột ENUM" });
+      }
+      const values = match[1].split(',').map(v => v.replace(/'/g, ''));
+      res.json({ column, values });
+    } catch (error) {
+      next(error);
+    }
+  },
+
   // POST /api/employee-degrees/enums/add
   async addEnumValue(req, res, next) {
     try {

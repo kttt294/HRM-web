@@ -59,6 +59,8 @@ import { EmployeeListPage as AdminEmployeeListPage } from "../features/admin/pag
 import { LeaveManagementPage } from "../features/hr/pages/LeaveManagementPage";
 import { PayrollListPage } from "../features/hr/pages/PayrollListPage";
 import { DepartmentListPage } from "../features/hr/pages/DepartmentListPage";
+import { DegreesManagePage } from "../features/hr/pages/DegreesManagePage";
+import { JobTitlesManagePage } from "../features/hr/pages/JobTitlesManagePage";
 
 // Employee Self-Service pages
 import { MyLeaveRequestsPage } from "../features/employee/pages/MyLeaveRequestsPage";
@@ -302,6 +304,22 @@ export function AppRouter() {
             element={
               <HRRoute>
                 <DepartmentListPage />
+              </HRRoute>
+            }
+          />
+          <Route
+            path={ROUTES.EMPLOYEE_DEGREES}
+            element={
+              <HRRoute>
+                <DegreesManagePage />
+              </HRRoute>
+            }
+          />
+          <Route
+            path={ROUTES.JOB_TITLES}
+            element={
+              <HRRoute>
+                <JobTitlesManagePage />
               </HRRoute>
             }
           />

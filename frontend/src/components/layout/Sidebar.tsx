@@ -199,6 +199,26 @@ export function Sidebar() {
                       <span className="menu-text">Phòng ban</span>
                     </NavLink>
                   </li>
+                  <li>
+                    <NavLink to={ROUTES.LEAVE_MANAGEMENT}>
+                      <span className="menu-text">Quản lý nghỉ phép</span>
+                    </NavLink>
+                  </li>
+                  <li>
+                    <NavLink to={ROUTES.PAYROLL_LIST}>
+                      <span className="menu-text">Bảng lương công ty</span>
+                    </NavLink>
+                  </li>
+                  <li>
+                    <NavLink to={ROUTES.EMPLOYEE_DEGREES}>
+                      <span className="menu-text">Quản lý bằng cấp</span>
+                    </NavLink>
+                  </li>
+                  <li>
+                    <NavLink to={ROUTES.JOB_TITLES}>
+                      <span className="menu-text">Quản lý chức vụ</span>
+                    </NavLink>
+                  </li>
                 </ul>
               </li>
 
@@ -224,28 +244,6 @@ export function Sidebar() {
                   <li>
                     <NavLink to={ROUTES.CANDIDATES} end>
                       <span className="menu-text">Ứng viên</span>
-                    </NavLink>
-                  </li>
-                </ul>
-              </li>
-
-              <li className="menu-section" style={{ opacity: 0 }}>
-                <span className="menu-section-title">
-                  <span
-                    className="menu-indicator"
-                    style={{ background: "#00bcd4" }}
-                  />
-                  <span className="menu-text">Nghỉ phép & Lương</span>
-                </span>
-                <ul className="submenu">
-                  <li>
-                    <NavLink to={ROUTES.LEAVE_MANAGEMENT}>
-                      <span className="menu-text">Quản lý nghỉ phép</span>
-                    </NavLink>
-                  </li>
-                  <li>
-                    <NavLink to={ROUTES.PAYROLL_LIST}>
-                      <span className="menu-text">Bảng lương</span>
                     </NavLink>
                   </li>
                 </ul>
