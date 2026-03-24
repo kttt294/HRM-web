@@ -101,8 +101,8 @@ export function EmployeeVerificationPage() {
     emergencyContactName: "Người liên hệ khẩn cấp",
     emergencyContactRelationship: "Mối quan hệ",
     emergencyContactPhone: "SĐT khẩn cấp",
-    education: "Học vấn",
     experience: "Kinh nghiệm",
+
     workProcess: "Quá trình làm việc",
     bankName: "Ngân hàng",
     bankAccount: "Số tài khoản"

@@ -61,8 +61,8 @@ export function EmployeeFormPage() {
     emergencyContactPhone: "",
     bankName: "",
     bankAccount: "",
-    education: "",
     workProcess: "",
+
     
     id: "", // Employee ID Mã NV
     departmentId: "",
@@ -315,7 +315,13 @@ export function EmployeeFormPage() {
                 />
               )}
 
-              <Input label="Học vấn" value={formData.education} onChange={e => setFormData({...formData, education: e.target.value})} style={{ gridColumn: 'span 2' }} />
+              <div style={{ gridColumn: 'span 2' }}>
+                <p style={{ fontSize: '12px', color: '#9e9e9e', marginBottom: '8px', textTransform: 'uppercase' }}>Học vấn & Bằng cấp</p>
+                <p style={{ fontSize: '13px', color: '#757575', background: '#fff9c4', padding: '10px', borderRadius: '8px' }}>
+                  Thông tin bằng cấp và chứng chỉ được quản lý tại Tab <strong>Bằng cấp</strong> trong trang chi tiết nhân viên.
+                </p>
+              </div>
+
               <div style={{ gridColumn: 'span 2' }}>
                 <label style={{ display: 'block', fontSize: '14px', marginBottom: '8px', color: '#616161' }}>Kinh nghiệm / Quá trình làm việc</label>
                 <textarea 

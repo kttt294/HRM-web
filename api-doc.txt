@@ -1,0 +1,142 @@
+TÀI LIỆU API - MODULE BẰNG CẤP (EMPLOYEE DEGREES) & TÌM KIẾM NHÂN SỰ
+
+========================================================================
+PHẦN 1: CÁC API CHO MODULE BẰNG CẤP (EMPLOYEE DEGREES)
+*Lưu ý chung: Tất cả các API này đều yêu cầu Header Authentication chứa Token Bearer.*
+
+1. Xem danh sách bằng cấp của chính mình (My Profile)
+- Endpoint: GET /api/employee-degrees/my
+- Mô tả: Dành cho nhân viên tự đăng nhập để load ra danh sách bằng cấp/chứng chỉ của riêng họ.
+
+2. Xem danh sách bằng cấp của 1 Nhân viên cụ thể
+- Endpoint: GET /api/employee-degrees/employee/:employeeId
+- Phân quyền nâng cao (Data Scoping):
+   - Nhân viên (Employee): Chỉ gọi được với id của chính mình.
+   - Quản lý (Manager): Chỉ gọi được id của nhân sự thuộc phòng ban (department) do mình quản lý.
+   - Hành chính nhân sự (HR/Admin): Được quyền gọi xem id của bất kỳ ai.
+
+3. Thêm mới Bằng Cấp/Chứng chỉ
+- Endpoint: POST /api/employee-degrees
+- Quyền yêu cầu: Quản lý nhân sự (update_employees)
+
+4. Cập nhật / Sửa Bằng cấp
+- Endpoint: PATCH /api/employee-degrees/:id (id là ID của Bằng Cấp đó, không phải employeeId).
+
+5. Xóa Bằng cấp
+- Endpoint: DELETE /api/employee-degrees/:id
+
+
+========================================================================
+PHẦN 2: API ĐỘNG - CẤU HÌNH ENUM DATABASE (Dành cho HR/Admin)
+*Đây là nhóm API mở rộng, giúp cấu hình trực tiếp các tùy chọn ngoại ngữ và xếp loại mà không cần dev can thiệp vào SQL.*
+
+1. THÊM MỚI tên thuộc tính (VD: Thêm "hsk")
+- Endpoint: POST /api/employee-degrees/enums/add
+- Quyền yêu cầu: manage_employees
+- Body Request:
+{
+  "column": "english_certificate", // Cột cần thêm: 'english_certificate', 'degree_classification', 'education_level'
+  "newValue": "hsk"              // Loại chứng chỉ mới muốn tạo
+}
+
+2. CẬP NHẬT / SỬA TÊN thuộc tính (VD: Đổi "toeic" thành "toeic_new")
+- Endpoint: PUT /api/employee-degrees/enums/update
+- Mô tả: Sẽ tự động tìm tất cả các văn bản cũ đang là 'toeic' và đổi nó thành 'toeic_new' dưới DB.
+- Body Request:
+{
+  "column": "english_certificate",
+  "oldValue": "toeic",
+  "newValue": "toeic_new"
+}
+
+3. XÓA BỎ thuộc tính 
+- Endpoint: DELETE /api/employee-degrees/enums/delete
+- Mô tả: Xóa khỏi danh mục. Hệ thống sẽ chặn và báo lỗi 400 nếu như đang có nhân sự nào đó dùng chứng chỉ này.
+- Body:
+{
+  "column": "english_certificate",
+  "valueToDelete": "toefl"
+}
+
+
+========================================================================
+PHẦN 3: THAY ĐỔI API DANH SÁCH NHÂN SỰ (GET /api/employees)
+
+API GET /api/employees hiện tại đã được nâng cấp mạnh về Bộ lọc dữ liệu (Query Params).
+
+Cấu trúc Response trả về (ĐÃ ĐƯỢC THÊM FIELD MỚI):
+Mỗi Node thông tin Nhân viên sẽ tự động nhúng thêm thuộc tính 'degrees' kiểu Array. 
+[
+  {
+    "id": "00001",
+    "fullName": "Nguyen Van A",
+    "baseSalary": "15000000.00",
+    "degrees": [
+      {
+         "id": 1,
+         "educationLevel": "university",
+         "englishCertificate": "toefl",
+         "englishScore": "90"
+      }
+    ]
+  }
+]
+
+Danh sách tham số Query Parameters Truyền lên URL để Filter tìm kiếm:
+(Frontend nối các tham số vào URL: GET /api/employees?educationLevel=university&tenure=>5)
+
+- educationLevel: Trình độ học vấn | VD: university, master...
+- englishCertificate: Loại Bằng tiếng Anh | VD: ielts, vstep...
+- schoolName: Tên trường học | VD: "FPT", "Bách Khoa"
+- tenure: Thâm niên làm việc | VD: <1, 1-3, 3-5, >5
+- totalLeaveDays: Số ngày phép gốc
+- totalLeaveDaysOp: Toán tử So sánh phép gốc (gte, lte)
+- remainingLeaveDays: Số ngày phép còn lại
+- remainingLeaveDaysOp: Toán tử so sánh phép còn lại
+- baseSalary: Mức lương cơ bản VND
+- baseSalaryOp: Toán tử so sánh độ phân lương (gte, lte)
+
+Ví dụ thực tế Filter Call: 
+-> GET /api/employees?baseSalary=15000000&baseSalaryOp=gte&englishCertificate=ielts&tenure=1-3
+
+
+========================================================================
+PHẦN 4: QUẢN LÝ PHÒNG BAN (DEPARTMENTS)
+*Dành cho HR/Admin để quản trị cơ cấu tổ chức.*
+
+1. Lấy danh sách phòng ban
+- Endpoint: GET /api/departments
+- Trả về: Array các { id, name, description, managerName, ... }
+
+2. Tạo phòng ban mới
+- Endpoint: POST /api/departments
+- Quyền: manage_employees
+- Body: { "name": "...", "description": "...", "location": "...", "managerId": "..." }
+
+3. Cập nhật phòng ban
+- Endpoint: PATCH /api/departments/:id
+- Quyền: manage_employees
+- Body: { "name": "...", "description": "..." } (Truyền các trường cần đổi)
+
+4. Xóa phòng ban
+- Endpoint: DELETE /api/departments/:id
+- Mô tả: Hệ thống sẽ chặn xóa nếu phòng ban đang có nhân viên trực thuộc.
+
+
+========================================================================
+PHẦN 5: QUẢN LÝ CHỨC VỤ (JOB TITLES)
+*Dành cho HR/Admin để quản trị sơ đồ chức danh.*
+
+1. Lấy danh sách chức vụ
+- Endpoint: GET /api/job-titles
+
+2. Tạo chức vụ mới
+- Endpoint: POST /api/job-titles
+- Body: { "name": "...", "description": "..." }
+
+3. Cập nhật chức vụ
+- Endpoint: PATCH /api/job-titles/:id
+
+4. Xóa chức vụ
+- Endpoint: DELETE /api/job-titles/:id
+- Mô tả: Chặn xóa nếu đang có nhân sự giữ chức vụ này hoặc đang có tin tuyển dụng liên quan.

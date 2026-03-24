@@ -125,7 +125,23 @@ const employeeController = {
     try {
       const [employees] = await db.query(
         `SELECT e.*, e.current_address as address, jt.name as job_title, d.name as department_name, 
-                m.full_name as supervisor_name
+                m.full_name as supervisor_name,
+                (
+                  SELECT JSON_ARRAYAGG(
+                    JSON_OBJECT(
+                      'id', ed.id,
+                      'educationLevel', ed.education_level,
+                      'major', ed.major,
+                      'schoolName', ed.school_name,
+                      'degreeClassification', ed.degree_classification,
+                      'englishCertificate', ed.english_certificate,
+                      'englishScore', ed.english_score,
+                      'graduationYear', ed.graduation_year
+                    )
+                  )
+                  FROM employee_degrees ed 
+                  WHERE ed.employee_id = e.id
+                ) as degrees
          FROM employees e
          LEFT JOIN job_titles jt ON e.job_title_id = jt.id
          LEFT JOIN departments d ON e.department_id = d.id
@@ -133,6 +149,7 @@ const employeeController = {
          WHERE e.user_id = ?`,
         [req.user.id],
       );
+
 
       if (employees.length === 0) {
         return res.status(404).json({
@@ -168,8 +185,10 @@ const employeeController = {
         experience: "experience",
         workProcess: "work_process",
         bankName: "bank_name",
-        bankAccount: "bank_account"
+        bankAccount: "bank_account",
+        degrees: "degrees"
       };
+
 
       const updates = req.body;
       const dataToUpdate = {};
@@ -219,7 +238,23 @@ const employeeController = {
       const { id } = req.params;
       const [employees] = await db.query(
         `SELECT e.*, jt.name as job_title, d.name as department_name,
-                m.full_name as supervisor_name, u.role_id
+                m.full_name as supervisor_name, u.role_id,
+                (
+                  SELECT JSON_ARRAYAGG(
+                    JSON_OBJECT(
+                      'id', ed.id,
+                      'educationLevel', ed.education_level,
+                      'major', ed.major,
+                      'schoolName', ed.school_name,
+                      'degreeClassification', ed.degree_classification,
+                      'englishCertificate', ed.english_certificate,
+                      'englishScore', ed.english_score,
+                      'graduationYear', ed.graduation_year
+                    )
+                  )
+                  FROM employee_degrees ed 
+                  WHERE ed.employee_id = e.id
+                ) as degrees
          FROM employees e
          LEFT JOIN job_titles jt ON e.job_title_id = jt.id
          LEFT JOIN departments d ON e.department_id = d.id
@@ -228,6 +263,7 @@ const employeeController = {
          WHERE e.id = ?`,
         [id],
       );
+
 
       if (employees.length === 0) {
         return res.status(404).json({
@@ -256,44 +292,24 @@ const employeeController = {
 
   // POST /api/employees
   async create(req, res, next) {
+    const connection = await db.getConnection();
     try {
+      await connection.beginTransaction();
       const {
-        fullName,
-        personalEmail,
-        phone,
-        dateOfBirth,
-        gender,
-        maritalStatus,
-        nationalId,
-        taxId,
-        insuranceId,
-        permanentAddress,
-        currentAddress,
-        emergencyContactName,
-        emergencyContactRelationship,
-        emergencyContactPhone,
-        departmentId,
-        jobTitleId,
-        hireDate,
-        status,
-        employeeType,
-        experience,
-        workProcess,
-        baseSalary,
-        allowance,
-        dependentsCount,
-        bankName,
-        bankAccount,
-        totalLeaveDays,
-        avatarUrl,
-        id // Nếu Client gửi ID cụ thể (Mã NV)
+        fullName, personalEmail, phone, dateOfBirth, gender, maritalStatus,
+        nationalId, taxId, insuranceId, permanentAddress, currentAddress,
+        emergencyContactName, emergencyContactRelationship, emergencyContactPhone,
+        departmentId, jobTitleId, hireDate, status, employeeType,
+        experience, workProcess, baseSalary, allowance, dependents_count,
+        bankName, bankAccount, totalLeaveDays, avatarUrl, id,
+        degrees // Mảng bằng cấp
       } = req.body;
 
       if (!fullName) {
         return res.status(400).json({ message: "Không được để trống Họ tên" });
       }
 
-    const [result] = await db.query(
+      const [result] = await connection.query(
         `INSERT INTO employees (
           full_name, personal_email, avatar_url, phone, date_of_birth, gender, marital_status,
           national_id, tax_id, insurance_id, permanent_address, current_address,
@@ -307,27 +323,52 @@ const employeeController = {
           nationalId || null, taxId || null, insuranceId || null, permanentAddress || null, currentAddress || null,
           emergencyContactName || null, emergencyContactRelationship || null, emergencyContactPhone || null,
           departmentId || null, jobTitleId || null, hireDate || null, status || "active", employeeType || "full_time",
-          experience || null, workProcess || null, baseSalary || 0, allowance || 0, dependentsCount || 0,
+          experience || null, workProcess || null, baseSalary || 0, allowance || 0, dependents_count || 0,
           bankName || null, bankAccount || null, totalLeaveDays || 12, totalLeaveDays || 12,
           ...(id ? [id] : [])
         ],
       );
 
-      res.status(201).json({ id: result.insertId, message: "Tạo nhân viên thành công" });
+      const newEmployeeId = id || result.insertId;
+
+      // Chèn bằng cấp nếu có
+      if (degrees && Array.isArray(degrees) && degrees.length > 0) {
+        for (const deg of degrees) {
+          await connection.query(
+            `INSERT INTO employee_degrees (
+              employee_id, education_level, major, school_name, 
+              degree_classification, english_certificate, english_score, graduation_year
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+              newEmployeeId, deg.educationLevel, deg.major, deg.schoolName,
+              deg.degreeClassification, deg.englishCertificate || 'none', 
+              deg.englishScore || 0, deg.graduationYear || null
+            ]
+          );
+        }
+      }
+
+      await connection.commit();
+      res.status(201).json({ id: newEmployeeId, message: "Tạo nhân viên thành công" });
     } catch (error) {
+      await connection.rollback();
       if (error.code === "ER_DUP_ENTRY") {
-        return res.status(400).json({
-          message: "Mã nhân viên đã tồn tại",
-        });
+        return res.status(400).json({ message: "Mã nhân viên đã tồn tại" });
       }
       next(error);
+    } finally {
+      connection.release();
     }
   },
 
   // PATCH /api/employees/:id
   async update(req, res, next) {
+    const connection = await db.getConnection();
     try {
+      await connection.beginTransaction();
       const updates = req.body;
+      const { degrees } = updates;
+      
       const fieldMapping = {
         fullName: "full_name",
         personalEmail: "personal_email",
@@ -377,14 +418,36 @@ const employeeController = {
         }
       });
 
-      if (updateFields.length === 0) return res.status(400).json({ message: "No fields to update" });
+      if (updateFields.length > 0) {
+        params.push(req.params.id);
+        await connection.query(`UPDATE employees SET ${updateFields.join(", ")} WHERE id = ?`, params);
+      }
 
-      params.push(req.params.id);
-      await db.query(`UPDATE employees SET ${updateFields.join(", ")} WHERE id = ?`, params);
+      // Xử lý bằng cấp (Xóa hết cũ - Chèn mới)
+      if (degrees && Array.isArray(degrees)) {
+        await connection.query("DELETE FROM employee_degrees WHERE employee_id = ?", [req.params.id]);
+        for (const deg of degrees) {
+          await connection.query(
+            `INSERT INTO employee_degrees (
+              employee_id, education_level, major, school_name, 
+              degree_classification, english_certificate, english_score, graduation_year
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+              req.params.id, deg.educationLevel, deg.major, deg.schoolName,
+              deg.degreeClassification, deg.englishCertificate || 'none', 
+              deg.englishScore || 0, deg.graduationYear || null
+            ]
+          );
+        }
+      }
 
+      await connection.commit();
       res.json({ message: "Cập nhật nhân viên thành công" });
     } catch (error) {
+      await connection.rollback();
       next(error);
+    } finally {
+      connection.release();
     }
   },
 
@@ -505,6 +568,8 @@ const employeeController = {
       }
 
       const updateData = typeof updateRequest.data === 'string' ? JSON.parse(updateRequest.data) : updateRequest.data;
+      const { degrees } = updateData; // Lấy danh sách bằng cấp từ yêu cầu
+
       const fieldMapping = {
         fullName: "full_name",
         personalEmail: "personal_email",
@@ -521,7 +586,6 @@ const employeeController = {
         emergencyContactName: "emergency_contact_name",
         emergencyContactRelationship: "emergency_contact_relationship",
         emergencyContactPhone: "emergency_contact_phone",
-        education: "education",
         experience: "experience",
         workProcess: "work_process",
         bankName: "bank_name",
@@ -546,7 +610,25 @@ const employeeController = {
       employeeParams.push(updateRequest.employee_id);
       await connection.query(`UPDATE employees SET ${setClausesArr.join(", ")} WHERE id = ?`, employeeParams);
 
-      // Cập nhật trạng thái yêu cầu thay vì xóa
+      // Xử lý đồng bộ bằng cấp nếu có trong yêu cầu
+      if (degrees && Array.isArray(degrees)) {
+        await connection.query("DELETE FROM employee_degrees WHERE employee_id = ?", [updateRequest.employee_id]);
+        for (const deg of degrees) {
+          await connection.query(
+            `INSERT INTO employee_degrees (
+              employee_id, education_level, major, school_name, 
+              degree_classification, english_certificate, english_score, graduation_year
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+              updateRequest.employee_id, deg.educationLevel, deg.major, deg.schoolName,
+              deg.degreeClassification, deg.englishCertificate || 'none', 
+              deg.englishScore || 0, deg.graduationYear || null
+            ]
+          );
+        }
+      }
+
+      // Cập nhật trạng thái yêu cầu
       await connection.query(
         "UPDATE profile_updates SET status = 'approved', processed_at = NOW(), processed_by = ? WHERE id = ?",
         [processedBy, updateId]

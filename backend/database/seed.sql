@@ -67,18 +67,18 @@ INSERT INTO departments (id, name, description, location) VALUES
 -- 6. Users (10 mẫu)
 -- Password mặc định: 'password123' mã hóa bcrypt $2a$10$EFWbI/.7X79oKSoigybUQuOGJKF7IZQIX/OLkGTH8MRoQZSOOsPBe
 INSERT INTO users (id, username, password, full_name, role_id, status) VALUES
-(1, 'admin_system', '$2a$10$EFWbI/.7X79oKSoigybUQuOGJKF7IZQIX/OLkGTH8MRoQZSOOsPBe', 'Nguyễn Quản Trị', 1, 'active'),
-(2, 'hr_manager', '$2a$10$EFWbI/.7X79oKSoigybUQuOGJKF7IZQIX/OLkGTH8MRoQZSOOsPBe', 'Lê Thị Tuyển', 2, 'active'),
-(3, 'tech_lead', '$2a$10$EFWbI/.7X79oKSoigybUQuOGJKF7IZQIX/OLkGTH8MRoQZSOOsPBe', 'Trần Văn Kỹ', 3, 'active'),
-(4, 'sale_lead', '$2a$10$EFWbI/.7X79oKSoigybUQuOGJKF7IZQIX/OLkGTH8MRoQZSOOsPBe', 'Phạm Công Doanh', 3, 'active'),
-(5, 'dev_01', '$2a$10$EFWbI/.7X79oKSoigybUQuOGJKF7IZQIX/OLkGTH8MRoQZSOOsPBe', 'Nguyễn Văn Dev', 4, 'active'),
-(6, 'dev_02', '$2a$10$EFWbI/.7X79oKSoigybUQuOGJKF7IZQIX/OLkGTH8MRoQZSOOsPBe', 'Lê Hoàng Code', 4, 'active'),
-(7, 'sale_01', '$2a$10$EFWbI/.7X79oKSoigybUQuOGJKF7IZQIX/OLkGTH8MRoQZSOOsPBe', 'Trần Thị Bán', 4, 'active'),
-(8, 'sale_02', '$2a$10$EFWbI/.7X79oKSoigybUQuOGJKF7IZQIX/OLkGTH8MRoQZSOOsPBe', 'Lý Văn Chốt', 4, 'active'),
+(1, 'admin', '$2a$10$EFWbI/.7X79oKSoigybUQuOGJKF7IZQIX/OLkGTH8MRoQZSOOsPBe', 'Nguyễn Quản Trị', 1, 'active'),
+(2, 'hr', '$2a$10$EFWbI/.7X79oKSoigybUQuOGJKF7IZQIX/OLkGTH8MRoQZSOOsPBe', 'Lê Thị Tuyển', 2, 'active'),
+(3, 'tech_manager', '$2a$10$EFWbI/.7X79oKSoigybUQuOGJKF7IZQIX/OLkGTH8MRoQZSOOsPBe', 'Trần Văn Kỹ', 3, 'active'),
+(4, 'sale_manager', '$2a$10$EFWbI/.7X79oKSoigybUQuOGJKF7IZQIX/OLkGTH8MRoQZSOOsPBe', 'Phạm Công Doanh', 3, 'active'),
+(5, 'employee', '$2a$10$EFWbI/.7X79oKSoigybUQuOGJKF7IZQIX/OLkGTH8MRoQZSOOsPBe', 'Nguyễn Văn Dev', 4, 'active'),
+(6, 'dev_1', '$2a$10$EFWbI/.7X79oKSoigybUQuOGJKF7IZQIX/OLkGTH8MRoQZSOOsPBe', 'Lê Hoàng Code', 4, 'active'),
+(7, 'sale_1', '$2a$10$EFWbI/.7X79oKSoigybUQuOGJKF7IZQIX/OLkGTH8MRoQZSOOsPBe', 'Trần Thị Bán', 4, 'active'),
+(8, 'sale_2', '$2a$10$EFWbI/.7X79oKSoigybUQuOGJKF7IZQIX/OLkGTH8MRoQZSOOsPBe', 'Lý Văn Chốt', 4, 'active'),
 (9, 'hr_staff', '$2a$10$EFWbI/.7X79oKSoigybUQuOGJKF7IZQIX/OLkGTH8MRoQZSOOsPBe', 'Ngô Thị Hồ', 4, 'active'),
 (10, 'dev_senior', '$2a$10$EFWbI/.7X79oKSoigybUQuOGJKF7IZQIX/OLkGTH8MRoQZSOOsPBe', 'Vũ Văn Cứng', 4, 'active');
 
--- 7. Employees (Nạp đủ các cột PIM)
+-- 7. Employees
 INSERT INTO employees (
     id, user_id, full_name, personal_email, phone, 
     date_of_birth, gender, marital_status, national_id, tax_id, insurance_id,
@@ -91,14 +91,14 @@ INSERT INTO employees (
 ) VALUES
 (1, 1, 'Nguyễn Quản Trị', 'admin@gmail.com', '0123000001', '1985-01-01', 'male', 'married', '100000000001', 'TAX001', 'INS001', 'Hà Nội', 'Hoàn Kiếm, Hà Nội', 'Trần Thị Thảo', 'Vợ', '0999000111', NULL, 1, '2015-01-01', 'active', 'full_time', '10 năm quản lý dự án', 'Gia nhập từ ngày đầu thành lập công ty', 'verified', 20, 20.0, 60000000, 5000000, 2, 'Vietcombank', '000111222333', NULL),
 (2, 2, 'Lê Thị Tuyển', 'tuyenlt@gmail.com', '0123000002', '1990-05-15', 'female', 'single', '100000000002', 'TAX002', 'INS002', 'Hải Phòng', 'Thanh Xuân, Hà Nội', 'Lê Văn Bốn', 'Bố', '0999000222', 2, 3, '2016-03-20', 'active', 'full_time', '5 năm làm HR tại tập đoàn F', 'Quản lý tuyển dụng và phúc lợi', 'verified', 15, 15.0, 30000000, 2000000, 0, 'Techcombank', '000222333444', 1),
-(3, 3, 'Trần Văn Kỹ', 'kytv@gmail.com', '0123000003', '1988-10-10', 'male', 'married', '100000000003', 'TAX003', 'INS003', 'Đà Nẵng', 'Cầu Giấy, Hà Nội', 'Nguyễn Thị Hoa', 'Vợ', '0999000333', 1, 1, '2017-06-12', 'active', 'full_time', '8 năm làm tech lead tại startup', 'Trưởng phòng kỹ thuật từ 2020', 'verified', 15, 12.0, 45000000, 3000000, 1, 'BIDV', '000333444555', 1),
-(4, 4, 'Phạm Công Doanh', 'doanhpc@gmail.com', '0123000004', '1989-02-28', 'male', 'married', '100000000004', 'TAX004', 'INS004', 'Cần Thơ', 'Đống Đa, Hà Nội', 'Lê Thị Thu', 'Vợ', '0999000444', 3, 1, '2018-09-01', 'active', 'full_time', '7 năm quản lý bán hàng', 'Xây dựng team kinh doanh miền Bắc', 'verified', 15, 15.0, 35000000, 4000000, 1, 'Agribank', '000444555666', 1),
-(5, 5, 'Nguyễn Văn Dev', 'devvn@gmail.com', '0123000005', '1995-12-12', 'male', 'single', '100000000005', 'TAX005', 'INS005', 'Thái Bình', 'Mỹ Đình, Hà Nội', 'Nguyễn Văn Năm', 'Bố', '0999000555', 1, 2, '2020-01-01', 'active', 'intern', '3 năm làm Java dev', 'Lập trình viên chính dự án ERP', 'verified', 12, 10.0, 20000000, 1000000, 0, 'VPBank', '000555666777', 3),
-(6, 6, 'Lê Hoàng Code', 'codehl@gmail.com', '0123000006', '1996-06-06', 'male', 'single', '100000000006', 'TAX006', 'INS006', 'Quảng Ninh', 'Nam Từ Liêm, Hà Nội', 'Hoàng Minh', 'Mẹ', '0999000666', 1, 2, '2021-02-01', 'active', 'contract', '2 năm làm Node.js', 'Phát triển module Payroll', 'verified', 12, 12.0, 18000000, 1000000, 0, 'Vietinbank', '000666777888', 3),
-(7, 7, 'Trần Thị Bán', 'bantt@gmail.com', '0123000007', '1993-03-03', 'female', 'married', '100000000007', 'TAX007', 'INS007', 'Hưng Yên', 'Ba Đình, Hà Nội', 'Trần Văn Bảy', 'Chồng', '0999000777', 3, 2, '2022-04-10', 'active', 'full_time', '4 năm sales bất động sản', 'Thực hiện các hợp đồng lớn mảng Gov', 'verified', 12, 11.0, 15000000, 1500000, 1, 'Sacombank', '000777888999', 4),
-(8, 8, 'Lý Văn Chốt', 'chotlv@gmail.com', '0123000008', '1994-11-20', 'male', 'single', '100000000008', 'TAX008', 'INS008', 'Lâm Đồng', 'Tây Hồ, Hà Nội', 'Lý Văn Tám', 'Anh trai', '0999000888', 3, 2, '2022-05-15', 'active', 'part_time', '3 năm làm telesale', 'Xử lý các khách hàng khó tính', 'verified', 12, 12.0, 16000000, 1500000, 0, 'MBBank', '000888999000', 4),
-(9, 9, 'Ngô Thị Hồ', 'hont@gmail.com', '0123000009', '1997-08-08', 'female', 'single', '100000000009', 'TAX009', 'INS009', 'Bắc Ninh', 'Long Biên, Hà Nội', 'Đỗ Thị Chín', 'Mẹ', '0999000999', 2, 3, '2023-01-15', 'active', 'contract', '1 năm admin văn phòng', 'Hỗ trợ nghiệp vụ BHXH và hồ sơ', 'verified', 12, 12.0, 14000000, 1000000, 0, 'VIB', '000999000111', 2),
-(10, 10, 'Vũ Văn Cứng', 'cungvv@gmail.com', '0123000010', '1990-10-10', 'male', 'married', '100000000010', 'TAX010', 'INS010', 'Thanh Hóa', 'Hà Đông, Hà Nội', 'Vũ Thị Mười', 'Vợ', '0999000000', 1, 2, '2020-05-01', 'active', 'remote', '10 năm lập trình C++', 'Chuyên gia tối ưu hiệu năng', 'verified', 15, 14.0, 28000000, 2000000, 1, 'SCB', '000000111222', 3);
+(3, 3, 'Trần Văn Kỹ', 'kytv@gmail.com', '0123000003', '1988-10-10', 'male', 'divorced', '100000000003', 'TAX003', 'INS003', 'Đà Nẵng', 'Cầu Giấy, Hà Nội', 'Nguyễn Thị Hoa', 'Em gái', '0999000333', 1, 1, '2024-02-01', 'probation', 'full_time', '8 năm làm tech lead', 'Đang thiết lập lại quy trình team Eng', 'verified', 15, 12.0, 45000000, 3000000, 1, 'BIDV', '000333444555', 1),
+(4, 4, 'Phạm Công Doanh', 'doanhpc@gmail.com', '0123000004', '1989-02-28', 'male', 'widowed', '100000000004', 'TAX004', 'INS004', 'Cần Thơ', 'Đống Đa, Hà Nội', 'Lê Thị Thu', 'Chị gái', '0999000444', 3, 1, '2018-09-01', 'on_leave', 'full_time', '7 năm quản lý bán hàng', 'Xây dựng team kinh doanh miền Bắc', 'verified', 15, 15.0, 35000000, 4000000, 1, 'Agribank', '000444555666', 1),
+(5, 5, 'Nguyễn Văn Dev', 'devvn@gmail.com', '0123000005', '1995-12-12', 'male', 'single', '100000000005', 'TAX005', 'INS005', 'Thái Bình', 'Mỹ Đình, Hà Nội', 'Nguyễn Văn Năm', 'Bố', '0999000555', 1, 2, '2024-03-01', 'probation', 'intern', 'Sinh viên năm cuối', 'Thực tập sinh tiềm năng', 'verified', 0, 0.0, 5000000, 500000, 0, 'VPBank', '000555666777', 3),
+(6, 6, 'Lê Hoàng Code', 'codehl@gmail.com', '0123000006', '1996-06-06', 'male', 'single', '100000000006', 'TAX006', 'INS006', 'Quảng Ninh', 'Nam Từ Liêm, Hà Nội', 'Hoàng Minh', 'Mẹ', '0999000666', 1, 2, '2021-02-01', 'resigned', 'contract', '2 năm freelance', 'Làm dự án theo phase', 'verified', 12, 12.0, 18000000, 1000000, 0, 'Vietinbank', '000666777888', 3),
+(7, 7, 'Trần Thị Bán', 'bantt@gmail.com', '0123000007', '1993-03-03', 'female', 'married', '100000000007', 'TAX007', 'INS007', 'Hưng Yên', 'Ba Đình, Hà Nội', 'Trần Văn Bảy', 'Chồng', '0999000777', 3, 2, '2022-04-10', 'terminated', 'part_time', 'Cộng tác viên bán hàng', 'Vi phạm kỷ luật công ty', 'verified', 6, 6.0, 8000000, 0, 1, 'Sacombank', '000777888999', 4),
+(8, 8, 'Lý Văn Chốt', 'chotlv@gmail.com', '0123000008', '1994-11-20', 'male', 'divorced', '100000000008', 'TAX008', 'INS008', 'Lâm Đồng', 'Tây Hồ, Hà Nội', 'Lý Văn Tám', 'Anh trai', '0999000888', 3, 2, '2022-05-15', 'active', 'part_time', '3 năm làm telesale', 'Chuyên viên tư vấn bán thời gian', 'verified', 6, 6.0, 9000000, 500000, 0, 'MBBank', '000888999000', 4),
+(9, 9, 'Ngô Thị Hồ', 'hont@gmail.com', '0123000009', '1997-08-08', 'female', 'married', '100000000009', 'TAX009', 'INS009', 'Bắc Ninh', 'Long Biên, Hà Nội', 'Đỗ Thị Chín', 'Mẹ', '0999000999', 2, 3, '2023-01-15', 'active', 'contract', '2 năm admin văn phòng', 'Hỗ trợ nghiệp vụ BHXH từ xa', 'verified', 12, 12.0, 14000000, 1000000, 0, 'VIB', '000999000111', 2),
+(10, 10, 'Vũ Văn Cứng', 'cungvv@gmail.com', '0123000010', '1990-10-10', 'male', 'married', '100000000010', 'TAX010', 'INS010', 'Thanh Hóa', 'Hà Đông, Hà Nội', 'Vũ Thị Mười', 'Vợ', '0999000000', 1, 2, '2020-05-01', 'active', 'remote', '10 năm lập trình', 'Chuyên gia tư vấn giải pháp', 'verified', 15, 14.0, 55000000, 3000000, 1, 'SCB', '000000111222', 3);
 
 -- Cập nhật manager_id cho các phòng ban (ID của employee)
 UPDATE departments SET manager_id = 3 WHERE id = 1;

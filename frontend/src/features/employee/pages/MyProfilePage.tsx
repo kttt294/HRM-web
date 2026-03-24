@@ -148,8 +148,9 @@ export function MyProfilePage() {
         'fullName', 'avatarUrl', 'dateOfBirth', 'gender', 'maritalStatus', 'personalEmail', 'phone', 
         'address', 'permanentAddress', 'nationalId', 'taxId', 'insuranceId',
         'emergencyContactName', 'emergencyContactRelationship', 'emergencyContactPhone',
-        'bankName', 'bankAccount', 'education', 'workProcess'
+        'bankName', 'bankAccount', 'workProcess'
       ];
+
       
       const updateData: any = {};
       allowedFields.forEach(field => {
@@ -372,7 +373,11 @@ export function MyProfilePage() {
               )}
               {activeTab === 'career' && (
                 <>
-                  <Input label="Trình độ học vấn" value={editForm.education} onChange={e => setEditForm({...editForm, education: e.target.value})} style={{ gridColumn: 'span 2' }} />
+                  <div style={{ gridColumn: 'span 2' }}>
+                    <p style={{ fontSize: '12px', color: '#9e9e9e', marginBottom: '8px', textTransform: 'uppercase' }}>Bằng cấp & Chứng chỉ</p>
+                    <p style={{ fontSize: '13px', color: '#757575' }}>Để cập nhật bằng cấp/chứng chỉ, vui lòng liên hệ phòng Nhân sự.</p>
+                  </div>
+
                   <div style={{ gridColumn: 'span 2' }}>
                     <label style={{ display: 'block', fontSize: '14px', marginBottom: '8px', color: '#616161' }}>Quá trình làm việc / Kinh nghiệm</label>
                     <textarea 
@@ -426,7 +431,27 @@ export function MyProfilePage() {
                   <InfoItem label="Loại hình" value={getEmployeeTypeLabel(profile?.employeeType || '')} color="#4caf50" />
                   <InfoItem label="Ngày vào làm" value={profile?.hireDate ? formatDate(profile.hireDate) : '—'} color="#607d8b" />
                   <InfoItem label="Lương cơ bản" value={profile?.baseSalary ? formatCurrency(profile.baseSalary) : '—'} color="#d32f2f" />
-                  <InfoItem label="Trình độ học vấn" value={profile?.education} color="#009688" span={2} />
+                  <div style={{ gridColumn: 'span 2' }}>
+                    <p style={{ fontSize: '12px', color: '#9e9e9e', marginBottom: '8px', textTransform: 'uppercase' }}>Bằng cấp & Chứng chỉ</p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {profile?.degrees && profile.degrees.length > 0 ? (
+                        profile.degrees.map((deg, idx) => (
+                          <div key={deg.id || idx} style={{ padding: '12px', background: '#e3f2fd', borderRadius: '8px', borderLeft: '4px solid #1976d2' }}>
+                             <div style={{ fontWeight: 600, color: '#1565c0' }}>{deg.educationLevel?.toUpperCase()} - {deg.major}</div>
+                             <div style={{ fontSize: '13px', color: '#455a64' }}>{deg.schoolName} ({deg.graduationYear}) - Xếp loại: {deg.degreeClassification}</div>
+                             {deg.englishCertificate !== 'none' && (
+                               <div style={{ fontSize: '12px', color: '#2e7d32', marginTop: '4px', fontWeight: 500 }}>
+                                 Ngoại ngữ: {deg.englishCertificate.toUpperCase()} (Score: {deg.englishScore})
+                               </div>
+                             )}
+                          </div>
+                        ))
+                      ) : (
+                        <p style={{ fontSize: '14px', color: '#757575' }}>Chưa cập nhật dữ liệu học vấn</p>
+                      )}
+                    </div>
+                  </div>
+
                   <div style={{ gridColumn: 'span 2' }}>
                     <p style={{ fontSize: '12px', color: '#9e9e9e', marginBottom: '8px', textTransform: 'uppercase' }}>Quá trình làm việc</p>
                     <div style={{ padding: '16px', background: '#f8f9fa', borderRadius: '12px', whiteSpace: 'pre-line', fontSize: '14px' }}>
