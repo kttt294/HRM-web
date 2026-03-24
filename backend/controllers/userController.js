@@ -9,10 +9,11 @@ const userController = {
       const { role, status, search } = req.query;
 
       let query = `
-                SELECT u.id, u.username, u.full_name as name, u.role_id, u.avatar, u.status, u.last_login_at, u.created_at,
+                SELECT u.id, u.username, u.full_name as name, u.role_id, COALESCE(e.avatar_url, u.avatar) as avatar, u.status, u.last_login_at, u.created_at,
                        r.name as role
                 FROM users u
                 LEFT JOIN roles r ON u.role_id = r.id
+                LEFT JOIN employees e ON u.id = e.user_id
                 WHERE 1=1
             `;
       const params = [];
@@ -43,10 +44,11 @@ const userController = {
   async getById(req, res, next) {
     try {
       const [users] = await db.query(
-        `SELECT u.id, u.username, u.full_name as name, u.role_id, u.avatar, u.status, u.last_login_at, u.created_at,
+        `SELECT u.id, u.username, u.full_name as name, u.role_id, COALESCE(e.avatar_url, u.avatar) as avatar, u.status, u.last_login_at, u.created_at,
                         r.name as role
                  FROM users u
                  LEFT JOIN roles r ON u.role_id = r.id
+                 LEFT JOIN employees e ON u.id = e.user_id
                  WHERE u.id = ?`,
         [req.params.id],
       );
@@ -96,10 +98,11 @@ const userController = {
       );
 
       const [newUser] = await db.query(
-        `SELECT u.id, u.username, u.full_name as name, u.role_id, u.avatar, u.status, u.last_login_at, u.created_at,
+        `SELECT u.id, u.username, u.full_name as name, u.role_id, COALESCE(e.avatar_url, u.avatar) as avatar, u.status, u.last_login_at, u.created_at,
                         r.name as role
                  FROM users u
                  LEFT JOIN roles r ON u.role_id = r.id
+                 LEFT JOIN employees e ON u.id = e.user_id
                  WHERE u.id = ?`,
         [result.insertId],
       );
@@ -145,10 +148,11 @@ const userController = {
       );
 
       const [updatedUser] = await db.query(
-        `SELECT u.id, u.username, u.full_name as name, u.role_id, u.avatar, u.status, u.last_login_at, u.created_at,
+        `SELECT u.id, u.username, u.full_name as name, u.role_id, COALESCE(e.avatar_url, u.avatar) as avatar, u.status, u.last_login_at, u.created_at,
                         r.name as role
                  FROM users u
                  LEFT JOIN roles r ON u.role_id = r.id
+                 LEFT JOIN employees e ON u.id = e.user_id
                  WHERE u.id = ?`,
         [req.params.id],
       );
@@ -255,10 +259,11 @@ const userController = {
       ]);
 
       const [updatedUser] = await db.query(
-        `SELECT u.id, u.username, u.full_name as name, u.avatar, u.status, u.last_login_at, u.created_at, u.updated_at,
+        `SELECT u.id, u.username, u.full_name as name, COALESCE(e.avatar_url, u.avatar) as avatar, u.status, u.last_login_at, u.created_at, u.updated_at,
                 r.name as role
          FROM users u
          LEFT JOIN roles r ON u.role_id = r.id
+         LEFT JOIN employees e ON u.id = e.user_id
          WHERE u.id = ?`,
         [req.params.id],
       );

@@ -9,6 +9,8 @@ import { Modal } from '../../../components/ui/Modal';
 import anime from 'animejs';
 import { useSnackbarStore } from '../../../store/snackbar.store';
 
+import { getAvatarUrl } from '../../../shared/utils/avatar.util';
+
 /**
  * ============================================
  * USER LIST PAGE - Quản lý tài khoản
@@ -327,19 +329,17 @@ export function UserListPage() {
                                 >
                                     <td style={{ padding: '14px 16px' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                            <div style={{
-                                                width: '40px',
-                                                height: '40px',
-                                                borderRadius: '50%',
-                                                background: `linear-gradient(135deg, ${getRoleColor(user.role)}22 0%, ${getRoleColor(user.role)}44 100%)`,
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                fontWeight: '600',
-                                                color: getRoleColor(user.role),
-                                            }}>
-                                                {user.name.charAt(0).toUpperCase()}
-                                            </div>
+                                            <img
+                                                src={getAvatarUrl(user.avatar, user.name)}
+                                                alt={user.name}
+                                                style={{
+                                                    width: '40px',
+                                                    height: '40px',
+                                                    borderRadius: '50%',
+                                                    objectFit: 'cover',
+                                                    border: `2px solid ${getRoleColor(user.role)}22`,
+                                                }}
+                                            />
                                             <div>
                                                 <div style={{ fontWeight: '500' }}>{user.name}</div>
                                                 <div style={{ fontSize: '12px', color: '#757575' }}>@{user.username}</div>

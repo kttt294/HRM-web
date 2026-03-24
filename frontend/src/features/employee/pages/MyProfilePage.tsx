@@ -151,7 +151,7 @@ export function MyProfilePage() {
         'fullName', 'avatarUrl', 'dateOfBirth', 'gender', 'maritalStatus', 'personalEmail', 'phone',
         'address', 'permanentAddress', 'nationalId', 'taxId', 'insuranceId',
         'emergencyContactName', 'emergencyContactRelationship', 'emergencyContactPhone',
-        'bankName', 'bankAccount', 'workProcess'
+        'bankName', 'bankAccount', 'experience'
       ];
 
 
@@ -465,11 +465,12 @@ export function MyProfilePage() {
                   </div>
 
                   <div style={{ gridColumn: 'span 2' }}>
-                    <label style={{ display: 'block', fontSize: '14px', marginBottom: '8px', color: '#616161' }}>Quá trình làm việc / Kinh nghiệm</label>
+                    <label style={{ display: 'block', fontSize: '14px', marginBottom: '8px', color: '#616161' }}>Kinh nghiệm làm việc</label>
                     <textarea
                       style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #ddd', minHeight: '120px' }}
-                      value={editForm.workProcess}
-                      onChange={e => setEditForm({ ...editForm, workProcess: e.target.value })}
+                      value={editForm.experience}
+                      onChange={e => setEditForm({ ...editForm, experience: e.target.value })}
+                      placeholder="Mô tả kinh nghiệm làm việc của bạn..."
                     />
                   </div>
                 </>
@@ -553,26 +554,13 @@ export function MyProfilePage() {
                     </div>
                   </div>
 
-                  {/* Kinh nghiệm trước đây */}
-                  {profile?.experience && (
-                    <div style={{ gridColumn: '1 / -1' }}>
-                      <p style={{ fontSize: '12px', color: '#9e9e9e', textTransform: 'uppercase', marginBottom: '8px' }}>Kinh nghiệm trước đây</p>
-                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-                        <div style={{ width: '3px', height: '16px', backgroundColor: '#7c4dff', borderRadius: '2px', marginTop: '4px', flexShrink: 0 }}></div>
-                        <div style={{ fontSize: '15px', fontWeight: 500, color: '#212121', whiteSpace: 'pre-line' }}>
-                          {profile.experience}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Quá trình làm việc */}
+                  {/* Quá trình làm việc / Kinh nghiệm */}
                   <div style={{ gridColumn: '1 / -1' }}>
-                    <p style={{ fontSize: '12px', color: '#9e9e9e', textTransform: 'uppercase', marginBottom: '8px' }}>Quá trình làm việc tại công ty</p>
+                    <p style={{ fontSize: '12px', color: '#9e9e9e', textTransform: 'uppercase', marginBottom: '8px' }}>Kinh nghiệm làm việc</p>
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
                       <div style={{ width: '3px', height: '16px', backgroundColor: '#4caf50', borderRadius: '2px', marginTop: '4px', flexShrink: 0 }}></div>
                       <div style={{ fontSize: '15px', fontWeight: 500, color: '#212121', whiteSpace: 'pre-line' }}>
-                        {profile?.workProcess || 'Chưa cập nhật dữ liệu'}
+                        {profile?.experience || 'Chưa cập nhật dữ liệu'}
                       </div>
                     </div>
                   </div>

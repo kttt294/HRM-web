@@ -64,7 +64,7 @@ export function EmployeeFormPage() {
     emergencyContactPhone: "",
     bankName: "",
     bankAccount: "",
-    workProcess: "",
+    experience: "",
 
     
     id: "", // Employee ID Mã NV
@@ -99,6 +99,7 @@ export function EmployeeFormPage() {
         dependentsCount: String(employee.dependentsCount || "0"),
         dateOfBirth: employee.dateOfBirth ? new Date(employee.dateOfBirth).toISOString().split('T')[0] : "",
         hireDate: employee.hireDate ? new Date(employee.hireDate).toISOString().split('T')[0] : "",
+        experience: employee.experience || "",
         roleId: String((employee as any).roleId || "4"),
         degrees: employee.degrees || []
       });
@@ -151,6 +152,15 @@ export function EmployeeFormPage() {
         baseSalary: Number(formData.baseSalary),
         allowance: Number(formData.allowance),
         dependentsCount: Number(formData.dependentsCount),
+        // Clean up degrees for backend
+        degrees: (formData.degrees || []).map((d: any) => {
+          const { _uiType, ...rest } = d;
+          return {
+            ...rest,
+            graduationYear: d.graduationYear ? Number(d.graduationYear) : null,
+            englishScore: d.englishScore || "0"
+          };
+        })
       };
 
       if (isEditMode && id) {
@@ -187,7 +197,7 @@ export function EmployeeFormPage() {
         ...(formData.degrees || []),
         {
            _uiType: 'education',
-           educationLevel: 'UNIVERSITY',
+           educationLevel: 'university',
            major: '',
            schoolName: '',
            graduationYear: new Date().getFullYear(),
@@ -210,7 +220,7 @@ export function EmployeeFormPage() {
            schoolName: '',
            graduationYear: 0,
            degreeClassification: 'none',
-           englishCertificate: 'TOEIC',
+           englishCertificate: 'toeic',
            englishScore: '',
            englishIssueDate: '',
            englishExpiryDate: ''
@@ -453,11 +463,12 @@ export function EmployeeFormPage() {
               </div>
 
               <div style={{ gridColumn: 'span 2' }}>
-                <label style={{ display: 'block', fontSize: '14px', marginBottom: '8px', color: '#616161' }}>Kinh nghiệm / Quá trình làm việc</label>
+                <label style={{ display: 'block', fontSize: '14px', marginBottom: '8px', color: '#616161' }}>Kinh nghiệm làm việc</label>
                 <textarea 
                   style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #ddd', minHeight: '80px' }}
-                  value={formData.workProcess} 
-                  onChange={e => setFormData({...formData, workProcess: e.target.value})} 
+                  value={formData.experience} 
+                  onChange={e => setFormData({...formData, experience: e.target.value})} 
+                  placeholder="Mô tả kinh nghiệm làm việc trước đây..."
                 />
               </div>
             </div>
