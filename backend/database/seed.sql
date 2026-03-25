@@ -115,7 +115,7 @@ SELECT
     e.allowance, 
     500000, 
     (e.base_salary + e.allowance - 500000), 
-    'paid'
+    CASE WHEN m.month = 3 THEN 'draft' ELSE 'paid' END
 FROM employees e
 CROSS JOIN (SELECT 1 AS month UNION SELECT 2 UNION SELECT 3) m;
 
@@ -159,3 +159,11 @@ INSERT INTO interviews (id, candidate_id, interviewer_id, interview_date, locati
 (3, 6, 4, '2025-03-26 10:30:00', 'Online Zoom', 'scheduled', 'pending', 'Vòng phỏng văn kỹ năng mềm'),
 (4, 9, 3, '2025-03-24 15:00:00', 'Phòng họp 3.2', 'completed', 'passed', 'Technical test đạt điểm cao'),
 (5, 5, 2, '2025-03-15 11:00:00', 'Phòng họp 2.1', 'completed', 'failed', 'Kinh nghiệm chưa thực sự phù hợp');
+
+-- 13. Leave Requests (Đơn xin nghỉ phép - 5 mẫu)
+INSERT INTO leave_requests (employee_id, leave_type, start_date, end_date, reason, manager_status, hr_status, status, approved_by, approved_at) VALUES
+(2, 'annual', '2024-03-10', '2024-03-12', 'Nghỉ phép đi du lịch cùng gia đình', 'approved', 'approved', 'approved', 1, '2024-03-05 10:00:00'),
+(4, 'sick', '2024-03-15', '2024-03-16', 'Bị ốm đột xuất xin nghỉ khám bệnh', 'approved', 'pending', 'pending', NULL, NULL),
+(6, 'unpaid', '2024-03-20', '2024-03-25', 'Xin nghỉ không lương giải quyết việc cá nhân', 'pending', 'pending', 'pending', NULL, NULL),
+(7, 'maternity', '2024-04-01', '2024-10-01', 'Nghỉ thai sản theo quy định', 'approved', 'approved', 'approved', 1, '2024-03-20 14:30:00'),
+(9, 'annual', '2024-03-28', '2024-03-29', 'Về quê có việc gia đình', 'rejected', 'pending', 'rejected', NULL, NULL);
