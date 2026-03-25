@@ -283,6 +283,16 @@ export function Sidebar() {
                       <span className="menu-text">Bảng lương phòng ban</span>
                     </NavLink>
                   </li>
+                  <li>
+                    <NavLink to={ROUTES.EMPLOYEE_DEGREES}>
+                      <span className="menu-text">Quản lý bằng cấp</span>
+                    </NavLink>
+                  </li>
+                  <li>
+                    <NavLink to={ROUTES.JOB_TITLES}>
+                      <span className="menu-text">Quản lý chức vụ</span>
+                    </NavLink>
+                  </li>
                 </ul>
               </li>
             </ShowForRoles>

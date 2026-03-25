@@ -310,17 +310,17 @@ export function AppRouter() {
           <Route
             path={ROUTES.EMPLOYEE_DEGREES}
             element={
-              <HRRoute>
+              <RoleGuard allowedRoles={[Role.HR, Role.MANAGER, Role.ADMIN]}>
                 <DegreesManagePage />
-              </HRRoute>
+              </RoleGuard>
             }
           />
           <Route
             path={ROUTES.JOB_TITLES}
             element={
-              <HRRoute>
+              <RoleGuard allowedRoles={[Role.HR, Role.MANAGER, Role.ADMIN]}>
                 <JobTitlesManagePage />
-              </HRRoute>
+              </RoleGuard>
             }
           />
 

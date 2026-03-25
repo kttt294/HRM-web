@@ -8,12 +8,12 @@ import anime from "animejs";
  * ============================================
  * DEGREES MANAGE PAGE - HR
  * ============================================
- * Quản lý enum values: degree_classification & english_certificate
+ * Quản lý enum values: degree_classification & certificate_type
  */
 
 const ENUM_COLUMNS = {
   degree_classification: { label: "Xếp loại bằng cấp", color: "#7c4dff" },
-  english_certificate: { label: "Chứng chỉ ngoại ngữ", color: "#0097a7" },
+  certificate_type: { label: "Chứng chỉ ngoại ngữ", color: "#0097a7" },
 };
 
 async function getEnumValues(column: string): Promise<string[]> {
@@ -66,7 +66,7 @@ export function DegreesManagePage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [enumData, setEnumData] = useState<Record<string, string[]>>({
     degree_classification: [],
-    english_certificate: [],
+    certificate_type: [],
   });
   const [loading, setLoading] = useState(true);
   const { showSnackbar } = useSnackbarStore();
@@ -78,11 +78,11 @@ export function DegreesManagePage() {
   const fetchAllEnums = async () => {
     setLoading(true);
     try {
-      const [dc, ec] = await Promise.all([
+      const [dc, ct] = await Promise.all([
         getEnumValues("degree_classification"),
-        getEnumValues("english_certificate"),
+        getEnumValues("certificate_type"),
       ]);
-      setEnumData({ degree_classification: dc, english_certificate: ec });
+      setEnumData({ degree_classification: dc, certificate_type: ct });
     } catch (e) {
       showSnackbar("Không thể tải dữ liệu enum", "error");
     } finally {
@@ -96,8 +96,11 @@ export function DegreesManagePage() {
 
   useEffect(() => {
     if (containerRef.current && !loading) {
+      // Tìm các dòng, kể cả dòng mới thêm
+      const rows = containerRef.current.querySelectorAll(".enum-row");
+      
       anime({
-        targets: containerRef.current.querySelectorAll(".enum-row"),
+        targets: rows,
         opacity: [0, 1],
         translateY: [12, 0],
         duration: 350,
@@ -105,7 +108,7 @@ export function DegreesManagePage() {
         easing: "easeOutQuart",
       });
     }
-  }, [loading]);
+  }, [loading, enumData]); // Chạy lại khi data thay đổi
 
   const handleSave = async (column: string, oldValue: string | null, newValue: string) => {
     try {

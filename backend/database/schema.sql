@@ -245,26 +245,35 @@ CREATE TABLE IF NOT EXISTS profile_updates (
     FOREIGN KEY (processed_by) REFERENCES employees(id) ON DELETE SET NULL
 );
 
--- 16. Bảng Employee Degrees (Thông tin bằng cấp và chứng chỉ nhân viên)
+-- 16. Bảng Employee Degrees (Thông tin bằng cấp chính - Đại học, Cao đẳng...)
 CREATE TABLE IF NOT EXISTS employee_degrees (
     id INT PRIMARY KEY AUTO_INCREMENT,
     employee_id INT(5) ZEROFILL NOT NULL,
     
-    -- Thông tin học vấn chính
-    education_level ENUM('under_high_school', 'high_school', 'college', 'university', 'master', 'phd') NOT NULL, -- Trình độ học vấn (chưa tốt nghiệp cấp 3, cấp 3, cao đẳng, đại học...)
-    school_name VARCHAR(255), -- Tên trường
-    degree_classification ENUM('average', 'good', 'excellent') NULL, -- Loại bằng (Trung bình, Khá/Giỏi, Xuất sắc)
+    education_level ENUM('under_high_school', 'high_school', 'college', 'university', 'master', 'phd') NOT NULL, 
+    school_name VARCHAR(255),
+    degree_classification ENUM('average', 'good', 'excellent') NULL, 
+    major VARCHAR(255), 
+    graduation_year YEAR NULL, 
+    certificate_file_url TEXT, 
     
-    -- Trình độ ngoại ngữ
-    english_certificate ENUM('vstep', 'ielts', 'toeic', 'toefl', 'none', 'other') DEFAULT 'none', -- Loại chứng chỉ tiếng Anh
-    english_score VARCHAR(50), -- Điểm thi tiếng Anh (dạng text như yêu cầu)
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     
-    -- CÁC TRƯỜNG ĐỀ XUẤT THÊM
-    major VARCHAR(255), -- Chuyên ngành đào tạo
-    graduation_year YEAR NULL, -- Năm tốt nghiệp
-    certificate_file_url TEXT, -- Link lưu trữ file scan/ảnh chụp bằng cấp, chứng chỉ
-    english_issue_date DATE NULL, -- Ngày cấp chứng chỉ tiếng Anh
-    english_expiry_date DATE NULL, -- Ngày hết hạn chứng chỉ tiếng Anh
+    FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE
+);
+
+-- 17. Bảng Employee Certificates (Các loại chứng chỉ - Ngoại ngữ, Chuyên môn...)
+CREATE TABLE IF NOT EXISTS employee_certificates (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    employee_id INT(5) ZEROFILL NOT NULL,
+    
+    certificate_type ENUM('vstep', 'ielts', 'toeic', 'toefl') NOT NULL,
+    score VARCHAR(50), 
+    issue_date DATE NULL, 
+    expiry_date DATE NULL, 
+    provider VARCHAR(255), -- Nơi cấp
+    certificate_file_url TEXT, 
     
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

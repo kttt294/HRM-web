@@ -44,6 +44,7 @@ WHERE name IN (
 INSERT INTO role_permissions (role_id, permission_id) 
 SELECT 3, id FROM permissions 
 WHERE name IN (
+    'manage_employees', 'update_employees',
     'view_dept_employees', 'view_dept_payroll', 'approve_dept_leave', 
     'view_self', 'update_self', 'request_leave', 'view_my_leave'
 );
@@ -52,20 +53,25 @@ INSERT INTO role_permissions (role_id, permission_id)
 SELECT 4, id FROM permissions 
 WHERE name IN ('view_self', 'update_self', 'request_leave', 'view_my_leave');
 
--- 4. Job Titles (3 mẫu)
+-- 4. Job Titles
 INSERT INTO job_titles (id, name, description) VALUES
 (1, 'Quản lý cấp cao', 'Quản lý chung các bộ phận'),
 (2, 'Kỹ sư phần mềm', 'Phát triển và bảo trì phần mềm'),
-(3, 'Chuyên viên Nhân sự', 'Tuyển dụng và đào tạo');
+(3, 'Chuyên viên Nhân sự', 'Tuyển dụng và đào tạo'),
+(4, 'Kế toán trưởng', 'Quản lý tài chính và sổ sách kế toán'),
+(5, 'Nhân viên Bán hàng', 'Tư vấn và bán sản phẩm cho khách hàng'),
+(6, 'Chuyên viên Marketing', 'Lập kế hoạch và thực hiện chiến dịch quảng bá'),
+(7, 'Trưởng phòng Kinh doanh', 'Lãnh đạo đội ngũ kinh doanh và đạt chỉ tiêu doanh số'),
+(8, 'Kỹ thuật viên IT', 'Hỗ trợ kỹ thuật phần cứng và mạng nội bộ');
 
--- 5. Departments (3 mẫu)
+-- 5. Departments
 INSERT INTO departments (id, name, description, location) VALUES
 (1, 'Phòng Kỹ thuật', 'Bộ phận phát triển phần mềm và hạ tầng', 'Tầng 3'),
 (2, 'Phòng Nhân sự', 'Bộ phận tuyển dụng và quản lý nhân tài', 'Tầng 2'),
 (3, 'Phòng Kinh doanh', 'Bộ phận bán hàng và chăm sóc khách hàng', 'Tầng 1');
 
--- 6. Users (10 mẫu)
--- Password mặc định: 'password123' mã hóa bcrypt $2a$10$EFWbI/.7X79oKSoigybUQuOGJKF7IZQIX/OLkGTH8MRoQZSOOsPBe
+-- 6. Users
+-- Password mặc định: 'admin123' mã hóa bcrypt $2a$10$EFWbI/.7X79oKSoigybUQuOGJKF7IZQIX/OLkGTH8MRoQZSOOsPBe
 INSERT INTO users (id, username, password, full_name, role_id, status) VALUES
 (1, 'admin', '$2a$10$EFWbI/.7X79oKSoigybUQuOGJKF7IZQIX/OLkGTH8MRoQZSOOsPBe', 'Nguyễn Quản Trị', 1, 'active'),
 (2, 'hr', '$2a$10$EFWbI/.7X79oKSoigybUQuOGJKF7IZQIX/OLkGTH8MRoQZSOOsPBe', 'Lê Thị Tuyển', 2, 'active'),
@@ -100,12 +106,12 @@ INSERT INTO employees (
 (9, 9, 'Ngô Thị Hồ', 'hont@gmail.com', '0123000009', '1997-08-08', 'female', 'married', '100000000009', 'TAX009', 'INS009', 'Bắc Ninh', 'Long Biên, Hà Nội', 'Đỗ Thị Chín', 'Mẹ', '0999000999', 2, 3, '2023-01-15', 'active', 'contract', '2 năm admin văn phòng', 'Hỗ trợ nghiệp vụ BHXH từ xa', 'verified', 12, 12.0, 14000000, 1000000, 0, 'VIB', '000999000111', 2),
 (10, 10, 'Vũ Văn Cứng', 'cungvv@gmail.com', '0123000010', '1990-10-10', 'male', 'married', '100000000010', 'TAX010', 'INS010', 'Thanh Hóa', 'Hà Đông, Hà Nội', 'Vũ Thị Mười', 'Vợ', '0999000000', 1, 2, '2020-05-01', 'active', 'remote', '10 năm lập trình', 'Chuyên gia tư vấn giải pháp', 'verified', 15, 14.0, 55000000, 3000000, 1, 'SCB', '000000111222', 3);
 
--- Cập nhật manager_id cho các phòng ban (ID của employee)
+-- Cập nhật manager_id cho các phòng ban
 UPDATE departments SET manager_id = 3 WHERE id = 1;
 UPDATE departments SET manager_id = 2 WHERE id = 2;
 UPDATE departments SET manager_id = 4 WHERE id = 3;
 
--- 8. Salary Records (Tháng 1, 2, 3 năm 2024 cho đủ 10 nhân viên)
+-- 8. Salary Records
 INSERT INTO salary_records (employee_id, month, year, base_salary, allowance, deduction, net_salary, status)
 SELECT 
     e.id, 
@@ -120,26 +126,38 @@ FROM employees e
 CROSS JOIN (SELECT 1 AS month UNION SELECT 2 UNION SELECT 3) m;
 
 
--- 9. Employee Degrees (Updated)
-INSERT INTO employee_degrees (employee_id, education_level, school_name, degree_classification, major, graduation_year, english_certificate, english_score) VALUES
-(1, 'university', 'Đại học Bách Khoa', 'excellent', 'Quản trị mạng', 2007, 'ielts', '7.0'),
-(2, 'master', 'Đại học Kinh tế Quốc dân', 'good', 'Quản trị nhân lực', 2012, 'toeic', '850'),
-(3, 'university', 'Đại học Công nghệ - ĐHQGHN', 'excellent', 'Công nghệ thông tin', 2010, 'ielts', '6.5'),
-(4, 'university', 'Đại học Ngoại thương', 'good', 'Kinh tế quốc tế', 2011, 'toefl', '95'),
-(5, 'university', 'Đại học FPT', 'average', 'Kỹ thuật phần mềm', 2018, 'toeic', '780'),
-(6, 'university', 'Đại học Giao thông Vận tải', 'good', 'Công nghệ thông tin', 2019, 'vstep', 'B2'),
-(7, 'university', 'Đại học Thương mại', 'good', 'Marketing', 2015, 'toeic', '600'),
-(8, 'university', 'Đại học Mở', 'average', 'Quản trị kinh doanh', 2016, 'none', NULL),
-(9, 'university', 'Đại học Công nghiệp', 'good', 'Quản trị văn phòng', 2020, 'vstep', 'B1'),
-(10, 'master', 'Học viện Bưu chính Viễn thông', 'excellent', 'Khoa học máy tính', 2013, 'ielts', '7.5');
+-- 9. Employee Degrees
+INSERT INTO employee_degrees (employee_id, education_level, school_name, degree_classification, major, graduation_year) VALUES
+(1, 'university', 'Đại học Bách Khoa', 'excellent', 'Quản trị mạng', 2007),
+(2, 'master', 'Đại học Kinh tế Quốc dân', 'good', 'Quản trị nhân lực', 2012),
+(3, 'university', 'Đại học Công nghệ - ĐHQGHN', 'excellent', 'Công nghệ thông tin', 2010),
+(4, 'university', 'Đại học Ngoại thương', 'good', 'Kinh tế quốc tế', 2011),
+(5, 'university', 'Đại học FPT', 'average', 'Kỹ thuật phần mềm', 2018),
+(6, 'university', 'Đại học Giao thông Vận tải', 'good', 'Công nghệ thông tin', 2019),
+(7, 'university', 'Đại học Thương mại', 'good', 'Marketing', 2015),
+(8, 'university', 'Đại học Mở', 'average', 'Quản trị kinh doanh', 2016),
+(9, 'university', 'Đại học Công nghiệp', 'good', 'Quản trị văn phòng', 2020),
+(10, 'master', 'Học viện Bưu chính Viễn thông', 'excellent', 'Khoa học máy tính', 2013);
 
--- 10. Vacancies (3 mẫu)
+-- 9.5 Employee Certificates
+INSERT INTO employee_certificates (employee_id, certificate_type, score, issue_date, expiry_date, provider, certificate_file_url) VALUES
+(1, 'ielts', '7.0', '2022-01-15', '2024-01-15', 'IDP Vietnam', 'https://chungchitienganhtinhoc.net/wp-content/uploads/2022/10/chung-chi-tieng-anh-b1-bo-gddt-1.jpg'),
+(2, 'toeic', '850', '2023-05-20', '2025-05-20', 'IIG Vietnam', 'https://chungchitienganhtinhoc.net/wp-content/uploads/2022/10/chung-chi-tieng-anh-b1-bo-gddt-1.jpg'),
+(3, 'ielts', '6.5', '2021-11-10', '2023-11-10', 'British Council', 'https://chungchitienganhtinhoc.net/wp-content/uploads/2022/10/chung-chi-tieng-anh-b1-bo-gddt-1.jpg'),
+(4, 'toefl', '95', '2022-08-05', '2024-08-05', 'ETS', 'https://chungchitienganhtinhoc.net/wp-content/uploads/2022/10/chung-chi-tieng-anh-b1-bo-gddt-1.jpg'),
+(5, 'toeic', '780', '2023-02-12', '2025-02-12', 'IIG Vietnam', 'https://chungchitienganhtinhoc.net/wp-content/uploads/2022/10/chung-chi-tieng-anh-b1-bo-gddt-1.jpg'),
+(6, 'vstep', 'B2', '2022-09-18', '2024-09-18', 'Đại học Ngoại ngữ - ĐHQGHN', 'https://chungchitienganhtinhoc.net/wp-content/uploads/2022/10/chung-chi-tieng-anh-b1-bo-gddt-1.jpg'),
+(7, 'toeic', '600', '2021-06-25', '2023-06-25', 'IIG Vietnam', 'https://chungchitienganhtinhoc.net/wp-content/uploads/2022/10/chung-chi-tieng-anh-b1-bo-gddt-1.jpg'),
+(9, 'vstep', 'B1', '2023-10-05', '2025-10-05', 'Học viện An ninh Nhân dân', 'https://chungchitienganhtinhoc.net/wp-content/uploads/2022/10/chung-chi-tieng-anh-b1-bo-gddt-1.jpg'),
+(10, 'ielts', '7.5', '2022-12-20', '2024-12-20', 'IDP Vietnam', 'https://chungchitienganhtinhoc.net/wp-content/uploads/2022/10/chung-chi-tieng-anh-b1-bo-gddt-1.jpg');
+
+-- 10. Vacancies
 INSERT INTO vacancies (id, title, job_title_id, department_id, recruiter_id, description, requirements, number_of_positions, min_salary, max_salary, deadline, status) VALUES
 (1, 'Tuyển dụng Kỹ sư Java Backend', 2, 1, 2, 'Phát triển các dịch vụ backend cho hệ thống HRM', '2+ năm kinh nghiệm Java. Am hiểu MySQL.', 2, 15000000, 25000000, '2025-06-30', 'open'),
 (2, 'Tuyển dụng Chuyên viên Tuyển dụng', 3, 2, 2, 'Tìm kiếm và phỏng vấn ứng viên tiềm năng', 'Có kinh nghiệm tuyển dụng mảng IT là lợi thế.', 1, 10000000, 18000000, '2025-05-15', 'open'),
 (3, 'Tuyển dụng Nhân viên Kinh doanh', 1, 3, 4, 'Tìm kiếm khách hàng mới cho sản phẩm phần mềm', 'Giao tiếp tốt, chịu được áp lực doanh số.', 5, 8000000, 12000000, '2025-04-30', 'open');
 
--- 11. Candidates (10 mẫu)
+-- 11. Candidates
 INSERT INTO candidates (id, vacancy_id, full_name, email, phone, resume_url, status) VALUES
 (1, 1, 'Nguyễn Văn Ứng', 'ungnv@gmail.com', '0901000001', 'https://cv.com/ungnv.pdf', 'interviewing'),
 (2, 1, 'Trần Thị Tuyển', 'tuyentt@gmail.com', '0901000002', 'https://cv.com/tuyentt.pdf', 'screening'),
@@ -152,7 +170,7 @@ INSERT INTO candidates (id, vacancy_id, full_name, email, phone, resume_url, sta
 (9, 1, 'Bùi Văn Pro', 'provb@gmail.com', '0901000009', 'https://cv.com/provb.pdf', 'interviewing'),
 (10, 3, 'Đặng Thị Khách', 'khachdt@gmail.com', '0901000010', 'https://cv.com/khachdt.pdf', 'new');
 
--- 12. Interviews (5 mẫu)
+-- 12. Interviews
 INSERT INTO interviews (id, candidate_id, interviewer_id, interview_date, location, status, result, notes) VALUES
 (1, 1, 3, '2025-03-25 09:00:00', 'Phòng họp 3.1', 'scheduled', 'pending', 'Phỏng vấn kỹ thuật vòng 1'),
 (2, 4, 3, '2025-03-20 14:00:00', 'Phòng họp 2.1', 'completed', 'passed', 'Ứng viên rất phù hợp'),
@@ -160,7 +178,7 @@ INSERT INTO interviews (id, candidate_id, interviewer_id, interview_date, locati
 (4, 9, 3, '2025-03-24 15:00:00', 'Phòng họp 3.2', 'completed', 'passed', 'Technical test đạt điểm cao'),
 (5, 5, 2, '2025-03-15 11:00:00', 'Phòng họp 2.1', 'completed', 'failed', 'Kinh nghiệm chưa thực sự phù hợp');
 
--- 13. Leave Requests (Đơn xin nghỉ phép - 5 mẫu)
+-- 13. Leave Requests
 INSERT INTO leave_requests (employee_id, leave_type, start_date, end_date, reason, manager_status, hr_status, status, approved_by, approved_at) VALUES
 (2, 'annual', '2024-03-10', '2024-03-12', 'Nghỉ phép đi du lịch cùng gia đình', 'approved', 'approved', 'approved', 1, '2024-03-05 10:00:00'),
 (4, 'sick', '2024-03-15', '2024-03-16', 'Bị ốm đột xuất xin nghỉ khám bệnh', 'approved', 'pending', 'pending', NULL, NULL),

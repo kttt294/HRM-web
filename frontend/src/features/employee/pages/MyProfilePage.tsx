@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useAuthStore } from "../../../store/auth.store";
 import { Button } from "../../../components/ui/Button";
 import { Input } from "../../../components/ui/Input";
+import { authFetch } from "../../../utils/auth-fetch";
 import { employeeApi } from "../services/employee.api";
 import { authApi } from "../../auth/services/auth.api";
 import { Employee } from "../models/employee.model";
@@ -39,7 +40,35 @@ export function MyProfilePage() {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
-  const [editForm, setEditForm] = useState<Partial<Employee>>({});
+  const [editForm, setEditForm] = useState<any>({});
+  
+  // Dynamic Enum States
+  const [certificateTypes, setCertificateTypes] = useState<string[]>([]);
+  const [degreeClassifications, setDegreeClassifications] = useState<string[]>([]);
+
+  // Fetch dynamic enum values
+  useEffect(() => {
+    const fetchEnums = async () => {
+      try {
+        const [certRes, degRes] = await Promise.all([
+          authFetch('/api/employee-degrees/enums/values?column=certificate_type'),
+          authFetch('/api/employee-degrees/enums/values?column=degree_classification')
+        ]);
+        
+        if (certRes.ok) {
+          const data = await certRes.json();
+          setCertificateTypes(data.values || []);
+        }
+        if (degRes.ok) {
+          const data = await degRes.json();
+          setDegreeClassifications(data.values || []);
+        }
+      } catch (err) {
+        console.error("Failed to fetch enums:", err);
+      }
+    };
+    fetchEnums();
+  }, []);
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
     newPassword: "",
@@ -86,8 +115,6 @@ export function MyProfilePage() {
     }
   }, [isLoading]);
 
-  // Removed local getAvatarUrl
-
   const getStatusLabel = (status: string) => {
     return EMPLOYEE_STATUS_LABELS[status as EmployeeStatus] || status;
   };
@@ -129,7 +156,7 @@ export function MyProfilePage() {
     const file = e.target.files?.[0];
     if (file) {
       try {
-        const compressedBase64 = await compressImage(file, 400); // Nén tối ưu
+        const compressedBase64 = await compressImage(file, 400);
         setEditForm({ ...editForm, avatarUrl: compressedBase64 });
       } catch (err) {
         console.error("Compression failed:", err);
@@ -146,14 +173,12 @@ export function MyProfilePage() {
     if (!profile) return;
     setIsSaving(true);
     try {
-      // Allowed fields to update
       const allowedFields: (keyof Employee)[] = [
         'fullName', 'avatarUrl', 'dateOfBirth', 'gender', 'maritalStatus', 'personalEmail', 'phone',
         'address', 'permanentAddress', 'nationalId', 'taxId', 'insuranceId',
         'emergencyContactName', 'emergencyContactRelationship', 'emergencyContactPhone',
-        'bankName', 'bankAccount', 'experience'
+        'bankName', 'bankAccount', 'experience', 'degrees', 'certificates'
       ];
-
 
       const updateData: any = {};
       allowedFields.forEach(field => {
@@ -164,30 +189,6 @@ export function MyProfilePage() {
 
       await employeeApi.updateMe(updateData);
 
-      if (editForm.degrees && editForm.degrees.length > 0) {
-        for (const deg of editForm.degrees) {
-          if (deg.id) {
-            try {
-              await employeeApi.updateDegree(deg.id, {
-                educationLevel: deg.educationLevel,
-                major: deg.major,
-                schoolName: deg.schoolName,
-                graduationYear: deg.graduationYear,
-                degreeClassification: deg.degreeClassification,
-                englishCertificate: deg.englishCertificate,
-                englishScore: deg.englishScore,
-                englishIssueDate: deg.englishIssueDate,
-                englishExpiryDate: deg.englishExpiryDate,
-                certificateFileUrl: deg.certificateFileUrl
-              });
-            } catch (err) {
-              console.error("Lỗi cập nhật bằng cấp", deg.id, err);
-            }
-          }
-        }
-      }
-      
-      // Refetch full profile to get all approved/pending updates accurately
       const finalProfile = await employeeApi.getMe();
       setProfile(finalProfile);
       setIsEditing(false);
@@ -225,7 +226,6 @@ export function MyProfilePage() {
       setShowPasswordModal(false);
       setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
     } catch (err) {
-      console.error("Change password failed:", err);
       const msg = err instanceof Error ? err.message : "Đổi mật khẩu thất bại";
       showSnackbar(msg, "error");
       setPasswordError(msg);
@@ -256,15 +256,8 @@ export function MyProfilePage() {
         </div>
         {profile?.profileStatus === 'pending' && (
           <div style={{
-            background: '#fff9c4',
-            color: '#f57f17',
-            padding: '8px 16px',
-            borderRadius: '8px',
-            fontSize: '14px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            fontWeight: 500
+            background: '#fff9c4', color: '#f57f17', padding: '8px 16px', borderRadius: '8px',
+            fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 500
           }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
             Hồ sơ đang chờ xác thực bởi HR/Manager
@@ -284,34 +277,9 @@ export function MyProfilePage() {
               />
               {isEditing && (
                 <>
-                  <input
-                    type="file"
-                    id="my-avatar-upload"
-                    hidden
-                    accept="image/*"
-                    onChange={handleFileChange}
-                  />
-                  <label
-                    htmlFor="my-avatar-upload"
-                    style={{
-                      position: 'absolute',
-                      bottom: '-5px',
-                      right: '-5px',
-                      background: '#2196f3',
-                      color: 'white',
-                      width: '28px',
-                      height: '28px',
-                      borderRadius: '50%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      border: '2px solid white'
-                    }}
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" /><circle cx="12" cy="13" r="4" />
-                    </svg>
+                  <input type="file" id="my-avatar-upload" hidden accept="image/*" onChange={handleFileChange} />
+                  <label htmlFor="my-avatar-upload" style={{ position: 'absolute', bottom: '-5px', right: '-5px', background: '#2196f3', color: 'white', width: '28px', height: '28px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: '2px solid white' }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" /><circle cx="12" cy="13" r="4" /></svg>
                   </label>
                 </>
               )}
@@ -323,9 +291,7 @@ export function MyProfilePage() {
               </p>
               <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
                 <span className="status-badge status-active">{displayStatus}</span>
-                <span style={{ fontSize: "13px", color: "#9e9e9e", background: "#f5f5f5", padding: "4px 12px", borderRadius: "20px" }}>
-                  Mã NV: {displayId}
-                </span>
+                <span style={{ fontSize: "13px", color: "#9e9e9e", background: "#f5f5f5", padding: "4px 12px", borderRadius: "20px" }}>Mã NV: {displayId}</span>
               </div>
             </div>
             <div style={{ display: "flex", gap: "12px" }}>
@@ -349,15 +315,9 @@ export function MyProfilePage() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
               style={{
-                padding: '12px 24px',
-                border: 'none',
-                background: 'none',
-                cursor: 'pointer',
-                fontSize: '15px',
-                fontWeight: activeTab === tab.id ? 600 : 400,
-                color: activeTab === tab.id ? tab.color : '#757575',
-                borderBottom: activeTab === tab.id ? `3px solid ${tab.color}` : '3px solid transparent',
-                transition: 'all 0.2s ease'
+                padding: '12px 24px', border: 'none', background: 'none', cursor: 'pointer', fontSize: '15px',
+                fontWeight: activeTab === tab.id ? 600 : 400, color: activeTab === tab.id ? tab.color : '#757575',
+                borderBottom: activeTab === tab.id ? `3px solid ${tab.color}` : '3px solid transparent', transition: 'all 0.2s ease'
               }}
             >
               {tab.label}
@@ -401,82 +361,131 @@ export function MyProfilePage() {
                 </>
               )}
               {activeTab === 'career' && (
-                <>
-                  <div style={{ gridColumn: 'span 2' }}>
-                    <p style={{ fontSize: '12px', color: '#9e9e9e', marginBottom: '8px', textTransform: 'uppercase' }}>Bằng cấp & Chứng chỉ</p>
-                    {editForm.degrees && editForm.degrees.length > 0 ? editForm.degrees.map((deg, index) => (
-                      <div key={deg.id || index} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', borderBottom: index < (editForm.degrees?.length || 0) - 1 ? '1px solid #eee' : 'none', paddingBottom: index < (editForm.degrees?.length || 0) - 1 ? '16px' : '0', marginBottom: '16px' }}>
-                        <Select label="Loại bằng" options={Object.entries(EDUCATION_LEVEL_LABELS).map(([v, l]) => ({ value: v, label: l }))} value={deg.educationLevel || ''} onChange={e => {
-                          const newDegs = [...(editForm.degrees || [])];
-                          newDegs[index].educationLevel = e.target.value;
-                          setEditForm({ ...editForm, degrees: newDegs });
-                        }} />
-                        <Input label="Chuyên ngành" value={deg.major} onChange={e => {
-                          const newDegs = [...(editForm.degrees || [])];
-                          newDegs[index].major = e.target.value;
-                          setEditForm({ ...editForm, degrees: newDegs });
-                        }} />
-                        <Input label="Trường" value={deg.schoolName} onChange={e => {
-                          const newDegs = [...(editForm.degrees || [])];
-                          newDegs[index].schoolName = e.target.value;
-                          setEditForm({ ...editForm, degrees: newDegs });
-                        }} />
-                        <Input label="Năm tốt nghiệp" type="number" value={deg.graduationYear || ''} onChange={e => {
-                          const newDegs = [...(editForm.degrees || [])];
-                          newDegs[index].graduationYear = Number(e.target.value);
-                          setEditForm({ ...editForm, degrees: newDegs });
-                        }} />
-                        <Select label="Xếp loại" options={Object.entries(DEGREE_CLASSIFICATION_LABELS).map(([v, l]) => ({ value: v, label: l }))} value={deg.degreeClassification || ''} onChange={e => {
-                          const newDegs = [...(editForm.degrees || [])];
-                          newDegs[index].degreeClassification = e.target.value;
-                          setEditForm({ ...editForm, degrees: newDegs });
-                        }} />
-                        <Select label="Loại ngoại ngữ" options={Object.entries(ENGLISH_CERTIFICATE_LABELS).map(([v, l]) => ({ value: v, label: l }))} value={deg.englishCertificate || 'none'} onChange={e => {
-                          const newDegs = [...(editForm.degrees || [])];
-                          newDegs[index].englishCertificate = e.target.value;
-                          setEditForm({ ...editForm, degrees: newDegs });
-                        }} />
-                        {deg.englishCertificate && deg.englishCertificate !== 'none' && (
-                          <>
-                            <Input label="Điểm NN" value={deg.englishScore || ''} onChange={e => {
-                              const newDegs = [...(editForm.degrees || [])];
-                              newDegs[index].englishScore = e.target.value;
-                              setEditForm({ ...editForm, degrees: newDegs });
-                            }} />
-                            <Input label="Ngày cấp NN" type="date" value={deg.englishIssueDate ? String(deg.englishIssueDate).split('T')[0] : ''} onChange={e => {
-                              const newDegs = [...(editForm.degrees || [])];
-                              newDegs[index].englishIssueDate = e.target.value;
-                              setEditForm({ ...editForm, degrees: newDegs });
-                            }} />
-                            <Input label="Hết hạn NN" type="date" value={deg.englishExpiryDate ? String(deg.englishExpiryDate).split('T')[0] : ''} onChange={e => {
-                              const newDegs = [...(editForm.degrees || [])];
-                              newDegs[index].englishExpiryDate = e.target.value;
-                              setEditForm({ ...editForm, degrees: newDegs });
-                            }} />
-                          </>
-                        )}
-                      </div>
-                    )) : (
-                      <p style={{ fontSize: '13px', color: '#757575' }}>Chưa có dữ liệu bằng cấp.</p>
-                    )}
-                    <p style={{ fontSize: '13px', color: '#1976d2', marginTop: '8px', cursor: 'pointer' }} onClick={() => showSnackbar("Vui lòng liên hệ HR để thêm bằng cấp mới. Bạn hiện tại chỉ có thể sửa thông tin bằng cấp đã có.", "info")}>
-                      + Thêm bằng cấp/chứng chỉ mới
-                    </p>
-                  </div>
-
-                  <div style={{ gridColumn: 'span 2' }}>
-                    <label style={{ display: 'block', fontSize: '14px', marginBottom: '8px', color: '#616161' }}>Kinh nghiệm làm việc</label>
+                <div style={{ gridColumn: 'span 2', display: 'flex', flexDirection: 'column', gap: '32px' }}>
+                  {/* Experience Section */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '14px', marginBottom: '8px', color: '#616161', fontWeight: 600 }}>Kinh nghiệm làm việc</label>
                     <textarea
-                      style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #ddd', minHeight: '120px' }}
-                      value={editForm.experience}
+                      style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #ddd', minHeight: '100px' }}
+                      value={editForm.experience || ''}
                       onChange={e => setEditForm({ ...editForm, experience: e.target.value })}
-                      placeholder="Mô tả kinh nghiệm làm việc của bạn..."
+                      placeholder="Mô tả kinh nghiệm làm việc trước đây..."
                     />
                   </div>
-                </>
+
+                  {/* Degrees Section */}
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                      <label style={{ fontSize: '14px', color: '#616161', fontWeight: 600 }}>Trình độ & Bằng cấp</label>
+                      <Button size="sm" variant="secondary" onClick={() => {
+                        const newDegrees = [...(editForm.degrees || []), { educationLevel: 'university', schoolName: '', major: '', graduationYear: new Date().getFullYear(), degreeClassification: 'good' }];
+                        setEditForm({ ...editForm, degrees: newDegrees });
+                      }}>+ Thêm bằng cấp</Button>
+                    </div>
+                    
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                      {(editForm.degrees || []).map((deg: any, idx: number) => (
+                        <div key={idx} style={{ padding: '20px', border: '1px solid #eee', borderRadius: '12px', background: '#fafafa', position: 'relative' }}>
+                          <button 
+                            onClick={() => {
+                              const newDegrees = (editForm.degrees || []).filter((_: any, i: number) => i !== idx);
+                              setEditForm({ ...editForm, degrees: newDegrees });
+                            }}
+                            style={{ position: 'absolute', top: '10px', right: '10px', background: 'none', border: 'none', color: '#f44336', cursor: 'pointer', fontSize: '18px' }}
+                          >
+                            ×
+                          </button>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                            <Select label="Trình độ" value={deg.educationLevel} options={Object.entries(EDUCATION_LEVEL_LABELS).map(([v, l]) => ({ value: v, label: l }))} onChange={e => {
+                              const newDegrees = [...(editForm.degrees || [])];
+                              newDegrees[idx] = { ...newDegrees[idx], educationLevel: e.target.value };
+                              setEditForm({ ...editForm, degrees: newDegrees });
+                            }} />
+                            <Input label="Trường" value={deg.schoolName} onChange={e => {
+                              const newDegrees = [...(editForm.degrees || [])];
+                              newDegrees[idx] = { ...newDegrees[idx], schoolName: e.target.value };
+                              setEditForm({ ...editForm, degrees: newDegrees });
+                            }} />
+                            <Input label="Chuyên ngành" value={deg.major} onChange={e => {
+                              const newDegrees = [...(editForm.degrees || [])];
+                              newDegrees[idx] = { ...newDegrees[idx], major: e.target.value };
+                              setEditForm({ ...editForm, degrees: newDegrees });
+                            }} />
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                              <Input label="Năm tốt nghiệp" type="number" value={deg.graduationYear} onChange={e => {
+                                const newDegrees = [...(editForm.degrees || [])];
+                                newDegrees[idx] = { ...newDegrees[idx], graduationYear: parseInt(e.target.value) };
+                                setEditForm({ ...editForm, degrees: newDegrees });
+                              }} />
+                              <Select label="Xếp loại" value={deg.degreeClassification} options={degreeClassifications.map(v => ({ value: v, label: DEGREE_CLASSIFICATION_LABELS[v] || v.toUpperCase() }))} onChange={e => {
+                                const newDegrees = [...(editForm.degrees || [])];
+                                newDegrees[idx] = { ...newDegrees[idx], degreeClassification: e.target.value };
+                                setEditForm({ ...editForm, degrees: newDegrees });
+                              }} />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Certificates Section */}
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                      <label style={{ fontSize: '14px', color: '#616161', fontWeight: 600 }}>Chứng chỉ</label>
+                      <Button size="sm" variant="secondary" onClick={() => {
+                        const newCerts = [...(editForm.certificates || []), { certificateType: 'ielts', score: '', provider: '', expiryDate: '' }];
+                        setEditForm({ ...editForm, certificates: newCerts });
+                      }}>+ Thêm chứng chỉ</Button>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                      {(editForm.certificates || []).map((cert: any, idx: number) => (
+                        <div key={idx} style={{ padding: '20px', border: '1px solid #eee', borderRadius: '12px', background: '#fafafa', position: 'relative' }}>
+                          <button 
+                            onClick={() => {
+                              const newCerts = (editForm.certificates || []).filter((_: any, i: number) => i !== idx);
+                              setEditForm({ ...editForm, certificates: newCerts });
+                            }}
+                            style={{ position: 'absolute', top: '10px', right: '10px', background: 'none', border: 'none', color: '#f44336', cursor: 'pointer', fontSize: '18px' }}
+                          >
+                            ×
+                          </button>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                             <Select 
+                              label="Loại chứng chỉ" 
+                              value={cert.certificateType} 
+                              options={certificateTypes.map(v => ({ value: v, label: ENGLISH_CERTIFICATE_LABELS[v] || v.toUpperCase() }))} 
+                              onChange={e => {
+                                const newCerts = [...(editForm.certificates || [])];
+                                newCerts[idx] = { ...newCerts[idx], certificateType: e.target.value };
+                                setEditForm({ ...editForm, certificates: newCerts });
+                              }} 
+                            />
+                            <Input label="Điểm số / Cấp độ" value={cert.score} onChange={e => {
+                              const newCerts = [...(editForm.certificates || [])];
+                              newCerts[idx] = { ...newCerts[idx], score: e.target.value };
+                              setEditForm({ ...editForm, certificates: newCerts });
+                            }} />
+                            <Input label="Nơi cấp" value={cert.provider} onChange={e => {
+                              const newCerts = [...(editForm.certificates || [])];
+                              newCerts[idx] = { ...newCerts[idx], provider: e.target.value };
+                              setEditForm({ ...editForm, certificates: newCerts });
+                            }} />
+                            <Input label="Ngày hết hạn" type="date" value={cert.expiryDate ? new Date(cert.expiryDate).toISOString().split('T')[0] : ''} onChange={e => {
+                              const newCerts = [...(editForm.certificates || [])];
+                              newCerts[idx] = { ...newCerts[idx], expiryDate: e.target.value };
+                              setEditForm({ ...editForm, certificates: newCerts });
+                            }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               )}
               <div style={{ gridColumn: 'span 2', display: "flex", gap: "12px", marginTop: "20px" }}>
-                <Button onClick={handleSave} disabled={isSaving}>{isSaving ? 'Đang gửi...' : 'Gửi yêu cầu xác thực'}</Button>
+                <Button onClick={handleSave} disabled={isSaving}>{isSaving ? 'Đang gửi...' : 'Gửi yêu cầu xác nhận'}</Button>
                 <Button variant="secondary" onClick={handleCancelEdit} disabled={isSaving}>Hủy</Button>
               </div>
             </div>
@@ -499,7 +508,7 @@ export function MyProfilePage() {
                   <InfoItem label="Số CCCD" value={profile?.nationalId} color="#607d8b" />
                   <InfoItem label="Mã số thuế" value={profile?.taxId} color="#3f51b5" />
                   <InfoItem label="Số sổ BHXH" value={profile?.insuranceId} color="#009688" />
-                  <InfoItem label="Liên hệ khẩn cấp" value={profile?.emergencyContactName} color="#e53935" />
+                  <InfoItem label="Người liên hệ khẩn cấp" value={profile?.emergencyContactName} color="#e53935" />
                   <InfoItem label="Mối quan hệ" value={profile?.emergencyContactRelationship} color="#7b1fa2" />
                   <InfoItem label="SĐT khẩn cấp" value={profile?.emergencyContactPhone} color="#2e7d32" />
                 </>
@@ -512,59 +521,109 @@ export function MyProfilePage() {
                 </>
               )}
               {activeTab === 'career' && (
-                <>
-                  <InfoItem label="Phòng ban" value={profile?.departmentName} color="#1976d2" />
-                  <InfoItem label="Chức danh" value={profile?.jobTitle} color="#7c4dff" />
-                  <InfoItem label="Loại hình" value={getEmployeeTypeLabel(profile?.employeeType || '')} color="#4caf50" />
-                  <InfoItem label="Ngày vào làm" value={profile?.hireDate ? formatDate(profile.hireDate) : '—'} color="#607d8b" />
-                  <InfoItem label="Ngày tạo hồ sơ" value={profile?.createdAt ? formatDate(profile.createdAt) : '—'} color="#795548" />
-                  <InfoItem label="Ngày cập nhật" value={profile?.updatedAt ? formatDate(profile.updatedAt) : '—'} color="#8d6e63" />
-                  <InfoItem label="Lương cơ bản" value={profile?.baseSalary ? formatCurrency(profile.baseSalary) : '—'} color="#d32f2f" />
-                  <InfoItem label="Tổng ngày phép" value={profile?.totalLeaveDays?.toString()} color="#0097a7" />
-                  <InfoItem label="Phép còn lại" value={profile?.remainingLeaveDays?.toString()} color="#00897b" />
-                  {/* Bằng cấp & Chứng chỉ */}
-                  <div style={{ gridColumn: '1 / -1' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div style={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column', gap: '40px' }}>
+                  {/* Job Section */}
+                  <div>
+                    <p style={{ fontSize: '14px', fontWeight: 500, color: '#757575', textTransform: 'uppercase', marginBottom: '16px', borderBottom: '1px solid #eee', paddingBottom: '8px', display: 'inline-block' }}>Thông tin công việc</p>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px' }}>
+                      <InfoItem label="Phòng ban" value={profile?.departmentName} color="#1976d2" />
+                      <InfoItem label="Chức danh" value={profile?.jobTitle} color="#7c4dff" />
+                      <InfoItem label="Loại hình" value={getEmployeeTypeLabel(profile?.employeeType || '')} color="#4caf50" />
+                      <InfoItem label="Ngày vào làm" value={profile?.hireDate ? formatDate(profile.hireDate) : '—'} color="#00bcd4" />
+                      <InfoItem label="Lương cơ bản" value={profile?.baseSalary ? formatCurrency(profile.baseSalary) : '—'} color="#f44336" />
+                      <InfoItem label="Tổng ngày phép" value={profile?.totalLeaveDays?.toString()} color="#ff9800" />
+                      <InfoItem label="Phép còn lại" value={profile?.remainingLeaveDays?.toString()} color="#e91e63" />
+                    </div>
+                  </div>
+
+                  {/* Qualifications Section */}
+                  <div>
+                    <p style={{ fontSize: '14px', fontWeight: 500, color: '#757575', textTransform: 'uppercase', marginBottom: '16px', borderBottom: '1px solid #eee', paddingBottom: '8px', display: 'inline-block' }}>Trình độ & Bằng cấp</p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
                       {profile?.degrees && profile.degrees.length > 0 ? (
                         profile.degrees.map((deg, idx) => (
-                          <div key={deg.id || idx} style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderBottom: idx !== (profile.degrees?.length || 0) - 1 ? '1px solid #eee' : 'none', paddingBottom: idx !== (profile.degrees?.length || 0) - 1 ? '16px' : '0' }}>
+                          <div key={deg.id || idx} style={{ display: 'flex', flexDirection: 'column', gap: '16px', borderBottom: '1px solid #eee', paddingBottom: '24px' }}>
+                            <p style={{ fontSize: '13px', fontWeight: 500, color: '#757575', textTransform: 'uppercase', margin: 0 }}>Bằng tốt nghiệp {idx + 1 > 1 ? `(${idx + 1})` : ''}</p>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px' }}>
-                              <InfoItem label="Loại bằng" value={deg.educationLevel ? (EDUCATION_LEVEL_LABELS[deg.educationLevel] || deg.educationLevel.toUpperCase()) : '—'} color="#1565c0" />
-                              <InfoItem label="Chuyên ngành" value={deg.major || '—'} color="#0288d1" />
-                              {deg.schoolName && <InfoItem label="Trường" value={deg.schoolName} color="#0097a7" />}
-                              {deg.graduationYear && <InfoItem label="Năm tốt nghiệp" value={deg.graduationYear?.toString()} color="#00796b" />}
-                              {deg.degreeClassification && <InfoItem label="Xếp loại" value={DEGREE_CLASSIFICATION_LABELS[deg.degreeClassification] || deg.degreeClassification} color="#388e3c" />}
-                              {deg.englishCertificate && deg.englishCertificate !== 'none' && (
-                                <InfoItem label="Ngoại ngữ" value={`${deg.englishCertificate.toUpperCase()}${deg.englishScore ? ` (${deg.englishScore})` : ''}`} color="#fbc02d" />
-                              )}
-                              {deg.englishIssueDate && <InfoItem label="Ngày cấp NN" value={formatDate(deg.englishIssueDate)} color="#f57c00" />}
-                              {deg.englishExpiryDate && <InfoItem label="Hết hạn NN" value={formatDate(deg.englishExpiryDate)} color="#e64a19" />}
+                              <InfoItem label="Loại bằng" value={deg.educationLevel ? (EDUCATION_LEVEL_LABELS[deg.educationLevel] || deg.educationLevel.toUpperCase()) : '—'} color="#3f51b5" />
+                              <InfoItem label="Chuyên ngành" value={deg.major || '—'} color="#009688" />
+                              <InfoItem label="Trường" value={deg.schoolName || '—'} color="#795548" />
+                              <InfoItem label="Năm tốt nghiệp" value={deg.graduationYear?.toString() || '—'} color="#607d8b" />
+                              <InfoItem label="Xếp loại" value={deg.degreeClassification ? (DEGREE_CLASSIFICATION_LABELS[deg.degreeClassification] || deg.degreeClassification) : '—'} color="#e53935" />
                             </div>
                             {deg.certificateFileUrl && (
-                              <a href={deg.certificateFileUrl} target="_blank" rel="noopener noreferrer"
-                                style={{ display: 'inline-block', marginTop: '8px', fontSize: '13px', color: '#1976d2', textDecoration: 'underline' }}>
-                                📎 Xem file bằng cấp/chứng chỉ
-                              </a>
+                              <div style={{ marginTop: '8px' }}>
+                                <a href={deg.certificateFileUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 14px', fontSize: '13px', fontWeight: '500', color: '#000', backgroundColor: '#fff', border: '1px solid #e0e0e0', borderRadius: '4px', textDecoration: 'none' }}>📎 Xem file bằng cấp</a>
+                              </div>
                             )}
                           </div>
                         ))
                       ) : (
-                        <p style={{ fontSize: '14px', color: '#757575' }}>Chưa cập nhật dữ liệu học vấn</p>
+                        <p style={{ fontSize: '14px', color: '#757575' }}>Chưa có dữ liệu bằng cấp</p>
+                      )}
+
+                      {profile?.certificates && profile.certificates.length > 0 ? (
+                        profile.certificates.map((cert, idx) => (
+                          <div key={cert.id || idx} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                            <p style={{ fontSize: '13px', fontWeight: 500, color: '#757575', textTransform: 'uppercase', margin: 0 }}>Chứng chỉ {idx + 1 > 1 ? `(${idx + 1})` : ''}</p>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px' }}>
+                              <InfoItem label="Loại chứng chỉ" value={cert.certificateType?.toUpperCase() || '—'} color="#673ab7" />
+                              <InfoItem label="Nơi cấp" value={cert.provider || '—'} color="#0097a7" />
+                              <InfoItem label="Ngày hết hạn" value={cert.expiryDate ? formatDate(cert.expiryDate) : '—'} color="#5d4037" />
+                            </div>
+                            {cert.certificateFileUrl && (
+                              <div style={{ marginTop: '16px' }}>
+                                <a 
+                                  href={cert.certificateFileUrl} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  style={{ 
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    padding: '8px 14px',
+                                    fontSize: '13px',
+                                    fontWeight: '500',
+                                    color: '#000',
+                                    backgroundColor: '#fff',
+                                    border: '1px solid #e0e0e0',
+                                    borderRadius: '4px',
+                                    textDecoration: 'none',
+                                    transition: 'all 0.2s ease',
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    e.currentTarget.style.borderColor = '#000';
+                                    e.currentTarget.style.backgroundColor = '#f9f9f9';
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.style.borderColor = '#e0e0e0';
+                                    e.currentTarget.style.backgroundColor = '#fff';
+                                  }}
+                                >
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+                                  </svg>
+                                  Xem tài liệu đính kèm
+                                </a>
+                              </div>
+                            )}
+                          </div>
+                        ))
+                      ) : (
+                        <p style={{ fontSize: '14px', color: '#757575' }}>Chưa có dữ liệu chứng chỉ</p>
                       )}
                     </div>
                   </div>
 
-                  {/* Quá trình làm việc / Kinh nghiệm */}
-                  <div style={{ gridColumn: '1 / -1' }}>
-                    <p style={{ fontSize: '12px', color: '#9e9e9e', textTransform: 'uppercase', marginBottom: '8px' }}>Kinh nghiệm làm việc</p>
+                  {/* Experience Section */}
+                  <div>
+                    <p style={{ fontSize: '14px', fontWeight: 500, color: '#757575', textTransform: 'uppercase', marginBottom: '8px' }}>Kinh nghiệm làm việc</p>
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
                       <div style={{ width: '3px', height: '16px', backgroundColor: '#4caf50', borderRadius: '2px', marginTop: '4px', flexShrink: 0 }}></div>
-                      <div style={{ fontSize: '15px', fontWeight: 500, color: '#212121', whiteSpace: 'pre-line' }}>
-                        {profile?.experience || 'Chưa cập nhật dữ liệu'}
-                      </div>
+                      <div style={{ fontSize: '15px', fontWeight: 500, color: '#212121', whiteSpace: 'pre-line' }}>{profile?.experience || 'Chưa cập nhật dữ liệu'}</div>
                     </div>
                   </div>
-                </>
+                </div>
               )}
             </div>
           )}
@@ -587,13 +646,13 @@ export function MyProfilePage() {
   );
 }
 
-function InfoItem({ label, value, color, span = 1 }: { label: string, value?: string, color: string, span?: number }) {
+function InfoItem({ label, value, color = "#000", span = 1 }: { label: string, value?: string, color?: string, span?: number }) {
   return (
     <div style={{ gridColumn: `span ${span}` }}>
       <label style={{ display: "block", fontSize: "12px", color: "#9e9e9e", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "4px" }}>{label}</label>
       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
         <div style={{ width: "3px", height: "16px", background: color, borderRadius: "2px" }} />
-        <span style={{ fontSize: "15px", fontWeight: "500", color: "#212121" }}>{value || "—"}</span>
+        <span style={{ fontSize: "15px", fontWeight: "400", color: "#212121" }}>{value || "—"}</span>
       </div>
     </div>
   );

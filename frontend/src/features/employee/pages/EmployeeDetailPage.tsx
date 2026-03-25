@@ -136,7 +136,7 @@ export function EmployeeDetailPage() {
                     <label style={{ display: 'block', fontSize: '12px', color: '#9e9e9e', textTransform: 'uppercase', marginBottom: '6px' }}>
                       Kinh nghiệm trước đây
                     </label>
-                    <div style={{ fontSize: '15px', fontWeight: 500, color: '#212121', whiteSpace: 'pre-line' }}>
+                    <div style={{ fontSize: '15px', fontWeight: 400, color: '#212121', whiteSpace: 'pre-line' }}>
                       {employee.experience}
                     </div>
                   </div>
@@ -146,7 +146,7 @@ export function EmployeeDetailPage() {
                     <label style={{ display: 'block', fontSize: '12px', color: '#9e9e9e', textTransform: 'uppercase', marginBottom: '6px' }}>
                       Quá trình làm việc tại công ty
                     </label>
-                    <div style={{ fontSize: '15px', fontWeight: 500, color: '#212121', whiteSpace: 'pre-line' }}>
+                    <div style={{ fontSize: '15px', fontWeight: 400, color: '#212121', whiteSpace: 'pre-line' }}>
                       {employee.workProcess}
                     </div>
                   </div>
@@ -178,38 +178,90 @@ export function EmployeeDetailPage() {
             <h2>Bằng cấp & Chứng chỉ</h2>
           </div>
           <div className="card-body">
-            {employee.degrees && employee.degrees.length > 0 ? (
+            {(employee.degrees && employee.degrees.length > 0) || (employee.certificates && employee.certificates.length > 0) ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                {employee.degrees.map((deg: any, idx: number) => (
-                  <div key={deg.id || idx} style={{
+                {employee.degrees?.map((deg: any, idx: number) => (
+                  <div key={`deg-${deg.id || idx}`} style={{
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: '12px',
-                    borderBottom: idx !== (employee.degrees?.length || 0) - 1 ? '1px solid #eee' : 'none',
-                    paddingBottom: idx !== (employee.degrees?.length || 0) - 1 ? '16px' : '0'
+                    gap: '16px',
+                    borderBottom: '1px solid #eee',
+                    paddingBottom: '16px'
                   }}>
+                    <h4 style={{ fontSize: '13px', color: '#757575', fontWeight: 500, textTransform: 'uppercase', margin: 0 }}>Bằng Tốt Nghiệp {idx + 1 > 1 ? `(${idx + 1})` : ''}</h4>
                     <InfoGrid items={[
                       { label: "Loại bằng", value: EDUCATION_LEVEL_LABELS[deg.educationLevel] || deg.educationLevel?.toUpperCase() || '—' },
                       { label: "Chuyên ngành", value: deg.major },
                       { label: "Trường", value: deg.schoolName },
                       { label: "Năm tốt nghiệp", value: deg.graduationYear?.toString() },
                       { label: "Xếp loại", value: DEGREE_CLASSIFICATION_LABELS[deg.degreeClassification] || deg.degreeClassification || '—' },
-                      { label: "Ngoại ngữ", value: deg.englishCertificate !== 'none' ? deg.englishCertificate?.toUpperCase() : '—' },
-                      { label: "Điểm ngoại ngữ", value: deg.englishScore },
-                      { label: "Ngày cấp chứng chỉ NN", value: deg.englishIssueDate ? formatDate(deg.englishIssueDate) : '—' },
-                      { label: "Ngày hết hạn chứng chỉ NN", value: deg.englishExpiryDate ? formatDate(deg.englishExpiryDate) : '—' },
                     ]} />
                     {deg.certificateFileUrl && (
                       <a href={deg.certificateFileUrl} target="_blank" rel="noopener noreferrer"
                         style={{ fontSize: '13px', color: '#1976d2', textDecoration: 'underline', marginTop: '4px' }}>
-                        📎 Xem file bằng cấp/chứng chỉ
+                        📎 Xem file bằng cấp
                       </a>
                     )}
                   </div>
                 ))}
+
+                {employee.certificates?.map((cert: any, idx: number) => (
+                  <div key={`cert-${cert.id || idx}`} style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '16px',
+                    borderBottom: idx !== (employee.certificates?.length || 0) - 1 ? '1px solid #eee' : 'none',
+                    paddingBottom: idx !== (employee.certificates?.length || 0) - 1 ? '16px' : '0'
+                  }}>
+                    <h4 style={{ fontSize: '13px', color: '#757575', fontWeight: 500, textTransform: 'uppercase', margin: 0 }}>Chứng Chỉ {idx + 1 > 1 ? `(${idx + 1})` : ''}</h4>
+                    <InfoGrid items={[
+                      { label: "Loại Chứng chỉ", value: cert.certificateType?.toUpperCase() || '—' },
+                      { label: "Điểm số / Cấp độ", value: cert.score || '—' },
+                      { label: "Nơi cấp", value: cert.provider || '—' },
+                      { label: "Ngày cấp", value: cert.issueDate ? formatDate(cert.issueDate) : '—' },
+                      { label: "Ngày hết hạn", value: cert.expiryDate ? formatDate(cert.expiryDate) : '—' },
+                    ]} />
+                      {cert.certificateFileUrl && (
+                        <div style={{ marginTop: '16px' }}>
+                          <a 
+                            href={cert.certificateFileUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            style={{ 
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              padding: '8px 14px',
+                              fontSize: '13px',
+                              fontWeight: '500',
+                              color: '#000',
+                              backgroundColor: '#fff',
+                              border: '1px solid #e0e0e0',
+                              borderRadius: '4px',
+                              textDecoration: 'none',
+                              transition: 'all 0.2s ease',
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.borderColor = '#000';
+                              e.currentTarget.style.backgroundColor = '#f9f9f9';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.borderColor = '#e0e0e0';
+                              e.currentTarget.style.backgroundColor = '#fff';
+                            }}
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+                            </svg>
+                            Xem tài liệu đính kèm
+                          </a>
+                        </div>
+                      )}
+                  </div>
+                ))}
               </div>
             ) : (
-              <p style={{ color: '#9e9e9e', fontSize: '14px' }}>Chưa có dữ liệu bằng cấp.</p>
+              <p style={{ color: '#9e9e9e', fontSize: '14px' }}>Chưa có dữ liệu bằng cấp, chứng chỉ.</p>
             )}
           </div>
         </div>
@@ -224,7 +276,7 @@ function InfoGrid({ items }: { items: { label: string, value?: string, span?: nu
       {items.map(item => (
         <div key={item.label} style={{ gridColumn: item.span ? `span ${item.span}` : 'auto' }}>
           <label style={{ display: 'block', fontSize: '12px', color: '#9e9e9e', textTransform: 'uppercase', marginBottom: '4px' }}>{item.label}</label>
-          <div style={{ fontSize: '15px', fontWeight: 500, color: '#212121' }}>{item.value || '—'}</div>
+          <div style={{ fontSize: '15px', fontWeight: 400, color: '#212121' }}>{item.value || '—'}</div>
         </div>
       ))}
     </div>

@@ -11,7 +11,7 @@ const employeeDegreeController = {
       );
 
       if (employees.length === 0) {
-        return res.json([]); // User không có employee record
+        return res.json([]); 
       }
 
       const [degrees] = await db.query(
@@ -29,7 +29,6 @@ const employeeDegreeController = {
     try {
       const { employeeId } = req.params;
 
-      // Nếu là employee, chỉ xem được bằng cấp của mình
       if (req.user.role === "employee") {
         const [employees] = await db.query(
           "SELECT id FROM employees WHERE user_id = ?",
@@ -42,7 +41,6 @@ const employeeDegreeController = {
           });
         }
       } else if (req.user.role === "manager") {
-        // Manager chỉ xem được bằng cấp của nhân viên cùng phòng ban
         const [managerData] = await db.query(
           "SELECT department_id FROM employees WHERE user_id = ?",
           [req.user.id]
@@ -82,20 +80,15 @@ const employeeDegreeController = {
         educationLevel,
         schoolName,
         degreeClassification,
-        englishCertificate,
-        englishScore,
         major,
         graduationYear,
-        certificateFileUrl,
-        englishIssueDate,
-        englishExpiryDate
+        certificateFileUrl
       } = req.body;
 
       if (!employeeId || !educationLevel) {
         return res.status(400).json({ message: "Mã nhân viên và trình độ học vấn là bắt buộc" });
       }
 
-      // Check if employee exists
       const [employees] = await db.query("SELECT id FROM employees WHERE id = ?", [employeeId]);
       if (employees.length === 0) {
         return res.status(404).json({ message: "Không tìm thấy nhân viên" });
@@ -104,13 +97,11 @@ const employeeDegreeController = {
       const [result] = await db.query(
         `INSERT INTO employee_degrees (
           employee_id, education_level, school_name, degree_classification, 
-          english_certificate, english_score, major, graduation_year, 
-          certificate_file_url, english_issue_date, english_expiry_date
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          major, graduation_year, certificate_file_url
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [
           employeeId, educationLevel, schoolName || null, degreeClassification || null,
-          englishCertificate || 'none', englishScore || null, major || null, graduationYear || null,
-          certificateFileUrl || null, englishIssueDate || null, englishExpiryDate || null
+          major || null, graduationYear || null, certificateFileUrl || null
         ]
       );
 
@@ -133,13 +124,9 @@ const employeeDegreeController = {
         educationLevel: "education_level",
         schoolName: "school_name",
         degreeClassification: "degree_classification",
-        englishCertificate: "english_certificate",
-        englishScore: "english_score",
         major: "major",
         graduationYear: "graduation_year",
-        certificateFileUrl: "certificate_file_url",
-        englishIssueDate: "english_issue_date",
-        englishExpiryDate: "english_expiry_date"
+        certificateFileUrl: "certificate_file_url"
       };
 
       const updateFields = [];
@@ -164,7 +151,7 @@ const employeeDegreeController = {
       );
 
       if (result.affectedRows === 0) {
-        return res.status(404).json({ message: "Không tìm thấy bằng cấp/chứng chỉ" });
+        return res.status(404).json({ message: "Không tìm thấy bằng cấp" });
       }
 
       const [updatedDegree] = await db.query(
@@ -184,7 +171,7 @@ const employeeDegreeController = {
       const [result] = await db.query("DELETE FROM employee_degrees WHERE id = ?", [req.params.id]);
 
       if (result.affectedRows === 0) {
-        return res.status(404).json({ message: "Không tìm thấy bằng cấp/chứng chỉ" });
+        return res.status(404).json({ message: "Không tìm thấy bằng cấp" });
       }
 
       res.json({ message: "Xóa bằng cấp thành công" });
@@ -193,14 +180,17 @@ const employeeDegreeController = {
     }
   },
 
-  // GET /api/employee-degrees/enums/values?column=...
+  // ENUM MANAGEMENT - CẬP NHẬT TRỎ SANG CẢ BẢNG CERTIFICATES MỚI
   async getEnumValues(req, res, next) {
     try {
       const { column } = req.query;
-      if (!['english_certificate', 'degree_classification', 'education_level'].includes(column)) {
+      let tableName = "employee_degrees";
+      if (column === "certificate_type") {
+        tableName = "employee_certificates";
+      } else if (!["degree_classification", "education_level"].includes(column)) {
         return res.status(400).json({ message: "Cột không hợp lệ" });
       }
-      const [columns] = await db.query("SHOW COLUMNS FROM employee_degrees LIKE ?", [column]);
+      const [columns] = await db.query(`SHOW COLUMNS FROM ${tableName} LIKE ?`, [column]);
       if (columns.length === 0) {
         return res.status(404).json({ message: "Không tìm thấy cột" });
       }
@@ -208,200 +198,118 @@ const employeeDegreeController = {
       if (!match) {
         return res.status(500).json({ message: "Không phải cột ENUM" });
       }
-      const values = match[1].split(',').map(v => v.replace(/'/g, ''));
+      const values = match[1].split(",").map((v) => v.replace(/'/g, ""));
       res.json({ column, values });
     } catch (error) {
       next(error);
     }
   },
 
-  // POST /api/employee-degrees/enums/add
   async addEnumValue(req, res, next) {
     try {
       const { column, newValue } = req.body;
-      
-      if (!['english_certificate', 'degree_classification', 'education_level'].includes(column)) {
+      let tableName = "employee_degrees";
+
+      if (column === "certificate_type") {
+        tableName = "employee_certificates";
+      } else if (!["degree_classification", "education_level"].includes(column)) {
         return res.status(400).json({ message: "Cột không hợp lệ" });
       }
-      
-      if (!newValue || typeof newValue !== 'string') {
+
+      if (!newValue || typeof newValue !== "string") {
         return res.status(400).json({ message: "Giá trị mới không hợp lệ" });
       }
 
-      // Lấy definition hiện tại của cột ENUM
-      const [columns] = await db.query(
-        "SHOW COLUMNS FROM employee_degrees LIKE ?", 
-        [column]
-      );
+      const [columns] = await db.query(`SHOW COLUMNS FROM ${tableName} LIKE ?`, [column]);
+      if (columns.length === 0) return res.status(404).json({ message: "Không tìm thấy cột" });
 
-      if (columns.length === 0) {
-        return res.status(404).json({ message: "Không tìm thấy cột" });
-      }
+      const match = columns[0].Type.match(/^enum\((.*)\)$/);
+      if (!match) return res.status(500).json({ message: "Không thể lấy danh sách ENUM" });
 
-      const columnType = columns[0].Type; 
-      
-      const match = columnType.match(/^enum\((.*)\)$/);
-      if (!match) {
-        return res.status(500).json({ message: "Không thể lấy danh sách ENUM hiện tại" });
-      }
-
-      const currentValuesStr = match[1];
-      const currentValues = currentValuesStr.split(',').map(v => v.replace(/'/g, ''));
-
-      // Check xem đã tồn tại chưa
+      const currentValues = match[1].split(",").map((v) => v.replace(/'/g, ""));
       if (currentValues.includes(newValue)) {
-        return res.status(400).json({ message: "Giá trị này đã tồn tại trong danh sách" });
+        return res.status(400).json({ message: "Giá trị này đã tồn tại" });
       }
 
-      // Thêm value mới vào list
       currentValues.push(newValue);
-
-      // Render lại chuỗi ENUM mới
-      const newEnumDefinition = currentValues.map(v => `'${v}'`).join(',');
-
-      // Cấu hình tính DEFAULT hoặc NULL dựa vào cột
-      let alterQuery = `ALTER TABLE employee_degrees MODIFY COLUMN ${column} ENUM(${newEnumDefinition})`;
-      if (column === 'english_certificate') {
-          alterQuery += " DEFAULT 'none'";
-      } else if (column === 'degree_classification') {
-          alterQuery += " NULL";
-      } else if (column === 'education_level') {
-          alterQuery += " NOT NULL";
-      }
+      const newEnumDefinition = currentValues.map((v) => `'${v}'`).join(",");
+      let alterQuery = `ALTER TABLE ${tableName} MODIFY COLUMN ${column} ENUM(${newEnumDefinition})`;
+      
+      if (column === "certificate_type") alterQuery += " NOT NULL";
+      else if (column === "degree_classification") alterQuery += " NULL";
+      else if (column === "education_level") alterQuery += " NOT NULL";
 
       await db.query(alterQuery);
-
-      res.json({ 
-        message: "Cập nhật danh sách " + column + " thành công", 
-        new_values: currentValues 
-      });
+      res.json({ message: "Cập nhật thành công", new_values: currentValues });
     } catch (error) {
       next(error);
     }
   },
 
-  // PUT /api/employee-degrees/enums/update
-  // Đổi tên một kiểu ENUM (sẽ tự thay đổi các record cũ đang dùng kiểu đó thành kiểu mới)
   async updateEnumValue(req, res, next) {
     try {
       const { column, oldValue, newValue } = req.body;
-      
-      if (!['english_certificate', 'degree_classification', 'education_level'].includes(column)) {
+      let tableName = "employee_degrees";
+
+      if (column === "certificate_type") {
+        tableName = "employee_certificates";
+      } else if (!["degree_classification", "education_level"].includes(column)) {
         return res.status(400).json({ message: "Cột không hợp lệ" });
       }
-      
-      if (!oldValue || !newValue || typeof oldValue !== 'string' || typeof newValue !== 'string') {
-        return res.status(400).json({ message: "Giá trị không hợp lệ" });
-      }
 
-      if (oldValue === newValue) {
-        return res.status(400).json({ message: "Giá trị mới phải khác giá trị cũ" });
-      }
-
-      const [columns] = await db.query("SHOW COLUMNS FROM employee_degrees LIKE ?", [column]);
-      if (columns.length === 0) return res.status(404).json({ message: "Không tìm thấy cột" });
-
+      const [columns] = await db.query(`SHOW COLUMNS FROM ${tableName} LIKE ?`, [column]);
       const match = columns[0].Type.match(/^enum\((.*)\)$/);
-      if (!match) return res.status(500).json({ message: "Không thể lấy danh sách ENUM" });
+      let currentValues = match[1].split(",").map((v) => v.replace(/'/g, ""));
 
-      let currentValues = match[1].split(',').map(v => v.replace(/'/g, ''));
-
-      if (!currentValues.includes(oldValue)) {
-        return res.status(400).json({ message: "Giá trị cũ không tồn tại trong danh sách" });
-      }
-
-      if (currentValues.includes(newValue)) {
-        return res.status(400).json({ message: "Giá trị mới đã tồn tại, không thể đổi tên trùng" });
-      }
-
-      // Step 1: Add new value to ENUM list temporarily
       currentValues.push(newValue);
-      let newEnumDefinition = currentValues.map(v => `'${v}'`).join(',');
-      
-      let alterQuery1 = `ALTER TABLE employee_degrees MODIFY COLUMN ${column} ENUM(${newEnumDefinition})`;
-      if (column === 'english_certificate') alterQuery1 += " DEFAULT 'none'";
-      else if (column === 'degree_classification') alterQuery1 += " NULL";
-      else if (column === 'education_level') alterQuery1 += " NOT NULL";
+      let alterQuery1 = `ALTER TABLE ${tableName} MODIFY COLUMN ${column} ENUM(${currentValues.map((v) => `'${v}'`).join(",")})`;
+      if (column === "certificate_type") alterQuery1 += " NOT NULL";
+      else if (column === "degree_classification") alterQuery1 += " NULL";
+      else if (column === "education_level") alterQuery1 += " NOT NULL";
       
       await db.query(alterQuery1);
+      await db.query(`UPDATE ${tableName} SET ${column} = ? WHERE ${column} = ?`, [newValue, oldValue]);
 
-      // Step 2: Update existing records
-      await db.query(`UPDATE employee_degrees SET ${column} = ? WHERE ${column} = ?`, [newValue, oldValue]);
-
-      // Step 3: Remove old value from ENUM list
-      currentValues = currentValues.filter(v => v !== oldValue);
-      newEnumDefinition = currentValues.map(v => `'${v}'`).join(',');
-      
-      let alterQuery2 = `ALTER TABLE employee_degrees MODIFY COLUMN ${column} ENUM(${newEnumDefinition})`;
-      if (column === 'english_certificate') alterQuery2 += " DEFAULT 'none'";
-      else if (column === 'degree_classification') alterQuery2 += " NULL";
-      else if (column === 'education_level') alterQuery2 += " NOT NULL";
+      currentValues = currentValues.filter((v) => v !== oldValue);
+      let alterQuery2 = `ALTER TABLE ${tableName} MODIFY COLUMN ${column} ENUM(${currentValues.map((v) => `'${v}'`).join(",")})`;
+      if (column === "certificate_type") alterQuery2 += " NOT NULL";
+      else if (column === "degree_classification") alterQuery2 += " NULL";
+      else if (column === "education_level") alterQuery2 += " NOT NULL";
 
       await db.query(alterQuery2);
-
-      res.json({ message: "Đổi tên thuộc tính thành công", new_values: currentValues });
+      res.json({ message: "Đổi tên thành công", new_values: currentValues });
     } catch (error) {
       next(error);
     }
   },
 
-  // DELETE /api/employee-degrees/enums/delete
   async deleteEnumValue(req, res, next) {
     try {
       const { column, valueToDelete } = req.body;
-      
-      if (!['english_certificate', 'degree_classification', 'education_level'].includes(column)) {
+      let tableName = "employee_degrees";
+
+      if (column === "certificate_type") {
+        tableName = "employee_certificates";
+      } else if (!["degree_classification", "education_level"].includes(column)) {
         return res.status(400).json({ message: "Cột không hợp lệ" });
       }
 
-      if (!valueToDelete || typeof valueToDelete !== 'string') {
-        return res.status(400).json({ message: "Giá trị cần xóa không hợp lệ" });
-      }
-
-      // Không cho phép xóa giá trị mặc định hệ thống
-      if (column === 'english_certificate' && valueToDelete === 'none') {
-        return res.status(400).json({ message: "Không thể xóa giá trị mặc định 'none'" });
-      }
-
-      // Check xem có ai đang dùng không
-      const [usageCheck] = await db.query(
-        `SELECT COUNT(*) as count FROM employee_degrees WHERE ${column} = ?`, 
-        [valueToDelete]
-      );
-
+      const [usageCheck] = await db.query(`SELECT COUNT(*) as count FROM ${tableName} WHERE ${column} = ?`, [valueToDelete]);
       if (usageCheck[0].count > 0) {
-        return res.status(400).json({ 
-          message: `Không thể xóa vì đang có ${usageCheck[0].count} bằng cấp sử dụng giá trị này. Vui lòng chuyển đổi dữ liệu trước khi xóa.`
-        });
+        return res.status(400).json({ message: "Không thể xóa vì đang có dữ liệu sử dụng giá trị này" });
       }
 
-      const [columns] = await db.query("SHOW COLUMNS FROM employee_degrees LIKE ?", [column]);
-      if (columns.length === 0) return res.status(404).json({ message: "Không tìm thấy cột" });
-
-      const match = columns[0].Type.match(/^enum\((.*)\)$/);
-      if (!match) return res.status(500).json({ message: "Không thể lấy danh sách ENUM" });
-
-      const currentValues = match[1].split(',').map(v => v.replace(/'/g, ''));
-
-      if (!currentValues.includes(valueToDelete)) {
-        return res.status(400).json({ message: "Giá trị này không tồn tại trong danh sách" });
-      }
-
-      if (currentValues.length <= 1) {
-         return res.status(400).json({ message: "Không thể xóa giá trị duy nhất còn lại của danh sách" });
-      }
-
-      const newValues = currentValues.filter(v => v !== valueToDelete);
-      const newEnumDefinition = newValues.map(v => `'${v}'`).join(',');
+      const [columns] = await db.query(`SHOW COLUMNS FROM ${tableName} LIKE ?`, [column]);
+      const currentValues = columns[0].Type.match(/^enum\((.*)\)$/)[1].split(",").map((v) => v.replace(/'/g, ""));
+      const newValues = currentValues.filter((v) => v !== valueToDelete);
       
-      let alterQuery = `ALTER TABLE employee_degrees MODIFY COLUMN ${column} ENUM(${newEnumDefinition})`;
-      if (column === 'english_certificate') alterQuery += " DEFAULT 'none'";
-      else if (column === 'degree_classification') alterQuery += " NULL";
-      else if (column === 'education_level') alterQuery += " NOT NULL";
+      let alterQuery = `ALTER TABLE ${tableName} MODIFY COLUMN ${column} ENUM(${newValues.map((v) => `'${v}'`).join(",")})`;
+      if (column === "certificate_type") alterQuery += " NOT NULL";
+      else if (column === "degree_classification") alterQuery += " NULL";
+      else if (column === "education_level") alterQuery += " NOT NULL";
 
       await db.query(alterQuery);
-
-      res.json({ message: "Xóa thuộc tính thành công", new_values: newValues });
+      res.json({ message: "Xóa thành công", new_values: newValues });
     } catch (error) {
       next(error);
     }

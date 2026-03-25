@@ -42,6 +42,7 @@ export interface Employee {
   updatedAt?: string;
   
   degrees?: any[];
+  certificates?: any[];
 }
 
 export interface EmployeeSearchParams {

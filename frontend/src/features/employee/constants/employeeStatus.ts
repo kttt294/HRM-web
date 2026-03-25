@@ -103,11 +103,8 @@ export const DEGREE_CLASSIFICATION_LABELS: Record<string, string> = {
 };
 
 export const ENGLISH_CERTIFICATE_LABELS: Record<string, string> = {
-  "none": "Không có",
   "toeic": "TOEIC",
   "ielts": "IELTS",
   "toefl": "TOEFL",
-  "aptis": "Aptis",
   "vstep": "VSTEP",
-  "other": "Khác",
 };

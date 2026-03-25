@@ -23,13 +23,27 @@ const employeeController = {
                                  'major', ed.major,
                                  'schoolName', ed.school_name,
                                  'degreeClassification', ed.degree_classification,
-                                 'englishCertificate', ed.english_certificate,
-                                 'englishScore', ed.english_score
+                                 'graduationYear', ed.graduation_year
                                )
                              )
                              FROM employee_degrees ed 
                              WHERE ed.employee_id = e.id
-                           ) as degrees
+                           ) as degrees,
+                           (
+                             SELECT JSON_ARRAYAGG(
+                               JSON_OBJECT(
+                                 'id', ec.id,
+                                 'certificateType', ec.certificate_type,
+                                 'score', ec.score,
+                                 'issueDate', ec.issue_date,
+                                 'expiryDate', ec.expiry_date,
+                                 'provider', ec.provider,
+                                 'certificateFileUrl', ec.certificate_file_url
+                               )
+                             )
+                             FROM employee_certificates ec
+                             WHERE ec.employee_id = e.id
+                           ) as certificates
                     FROM employees e 
                     LEFT JOIN job_titles jt ON e.job_title_id = jt.id
                     LEFT JOIN departments d ON e.department_id = d.id
@@ -77,7 +91,7 @@ const employeeController = {
         params.push(educationLevel);
       }
       if (englishCertificate) {
-        query += " AND EXISTS (SELECT 1 FROM employee_degrees ed WHERE ed.employee_id = e.id AND ed.english_certificate = ?)";
+        query += " AND EXISTS (SELECT 1 FROM employee_certificates ec WHERE ec.employee_id = e.id AND ec.certificate_type = ?)";
         params.push(englishCertificate);
       }
       if (schoolName) {
@@ -134,14 +148,27 @@ const employeeController = {
                       'major', ed.major,
                       'schoolName', ed.school_name,
                       'degreeClassification', ed.degree_classification,
-                      'englishCertificate', ed.english_certificate,
-                      'englishScore', ed.english_score,
                       'graduationYear', ed.graduation_year
                     )
                   )
                   FROM employee_degrees ed 
                   WHERE ed.employee_id = e.id
-                ) as degrees
+                ) as degrees,
+                (
+                  SELECT JSON_ARRAYAGG(
+                    JSON_OBJECT(
+                      'id', ec.id,
+                      'certificateType', ec.certificate_type,
+                      'score', ec.score,
+                      'issueDate', ec.issue_date,
+                      'expiryDate', ec.expiry_date,
+                      'provider', ec.provider,
+                      'certificateFileUrl', ec.certificate_file_url
+                    )
+                  )
+                  FROM employee_certificates ec
+                  WHERE ec.employee_id = e.id
+                ) as certificates
          FROM employees e
          LEFT JOIN job_titles jt ON e.job_title_id = jt.id
          LEFT JOIN departments d ON e.department_id = d.id
@@ -186,7 +213,8 @@ const employeeController = {
         workProcess: "work_process",
         bankName: "bank_name",
         bankAccount: "bank_account",
-        degrees: "degrees"
+        degrees: "degrees",
+        certificates: "certificates"
       };
 
 
@@ -247,14 +275,27 @@ const employeeController = {
                       'major', ed.major,
                       'schoolName', ed.school_name,
                       'degreeClassification', ed.degree_classification,
-                      'englishCertificate', ed.english_certificate,
-                      'englishScore', ed.english_score,
                       'graduationYear', ed.graduation_year
                     )
                   )
                   FROM employee_degrees ed 
                   WHERE ed.employee_id = e.id
-                ) as degrees
+                ) as degrees,
+                (
+                  SELECT JSON_ARRAYAGG(
+                    JSON_OBJECT(
+                      'id', ec.id,
+                      'certificateType', ec.certificate_type,
+                      'score', ec.score,
+                      'issueDate', ec.issue_date,
+                      'expiryDate', ec.expiry_date,
+                      'provider', ec.provider,
+                      'certificateFileUrl', ec.certificate_file_url
+                    )
+                  )
+                  FROM employee_certificates ec
+                  WHERE ec.employee_id = e.id
+                ) as certificates
          FROM employees e
          LEFT JOIN job_titles jt ON e.job_title_id = jt.id
          LEFT JOIN departments d ON e.department_id = d.id
@@ -302,7 +343,8 @@ const employeeController = {
         departmentId, jobTitleId, hireDate, status, employeeType,
         experience, workProcess, baseSalary, allowance, dependents_count,
         bankName, bankAccount, totalLeaveDays, avatarUrl, id,
-        degrees // Mảng bằng cấp
+        degrees, // Mảng bằng cấp
+        certificates // Mảng chứng chỉ
       } = req.body;
 
       if (!fullName) {
@@ -337,12 +379,27 @@ const employeeController = {
           await connection.query(
             `INSERT INTO employee_degrees (
               employee_id, education_level, major, school_name, 
-              degree_classification, english_certificate, english_score, graduation_year
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+              degree_classification, graduation_year
+            ) VALUES (?, ?, ?, ?, ?, ?)`,
             [
               newEmployeeId, deg.educationLevel, deg.major, deg.schoolName,
-              deg.degreeClassification, deg.englishCertificate || 'none', 
-              deg.englishScore || 0, deg.graduationYear || null
+              deg.degreeClassification, deg.graduationYear || null
+            ]
+          );
+        }
+      }
+
+      // Chèn chứng chỉ nếu có
+      if (certificates && Array.isArray(certificates) && certificates.length > 0) {
+        for (const cert of certificates) {
+          await connection.query(
+            `INSERT INTO employee_certificates (
+              employee_id, certificate_type, score, issue_date, expiry_date, provider, certificate_file_url
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [
+              newEmployeeId, cert.certificateType,
+              cert.score || null, cert.issueDate || null, cert.expiryDate || null, cert.provider || null,
+              cert.certificateFileUrl || null
             ]
           );
         }
@@ -367,7 +424,7 @@ const employeeController = {
     try {
       await connection.beginTransaction();
       const updates = req.body;
-      const { degrees } = updates;
+      const { degrees, certificates } = updates;
       
       const fieldMapping = {
         fullName: "full_name",
@@ -430,12 +487,28 @@ const employeeController = {
           await connection.query(
             `INSERT INTO employee_degrees (
               employee_id, education_level, major, school_name, 
-              degree_classification, english_certificate, english_score, graduation_year
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+              degree_classification, graduation_year
+            ) VALUES (?, ?, ?, ?, ?, ?)`,
             [
               req.params.id, deg.educationLevel, deg.major, deg.schoolName,
-              deg.degreeClassification, deg.englishCertificate || 'none', 
-              deg.englishScore || 0, deg.graduationYear || null
+              deg.degreeClassification, deg.graduationYear || null
+            ]
+          );
+        }
+      }
+      
+      // Xử lý chứng chỉ
+      if (certificates && Array.isArray(certificates)) {
+        await connection.query("DELETE FROM employee_certificates WHERE employee_id = ?", [req.params.id]);
+        for (const cert of certificates) {
+          await connection.query(
+            `INSERT INTO employee_certificates (
+              employee_id, certificate_type, score, issue_date, expiry_date, provider, certificate_file_url
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [
+              req.params.id, cert.certificateType,
+              cert.score || null, cert.issueDate || null, cert.expiryDate || null, cert.provider || null,
+              cert.certificateFileUrl || null
             ]
           );
         }
@@ -568,7 +641,7 @@ const employeeController = {
       }
 
       const updateData = typeof updateRequest.data === 'string' ? JSON.parse(updateRequest.data) : updateRequest.data;
-      const { degrees } = updateData; // Lấy danh sách bằng cấp từ yêu cầu
+      const { degrees, certificates } = updateData; // Lấy danh sách bằng cấp/chứng chỉ rừ yêu cầu
 
       const fieldMapping = {
         fullName: "full_name",
@@ -617,12 +690,29 @@ const employeeController = {
           await connection.query(
             `INSERT INTO employee_degrees (
               employee_id, education_level, major, school_name, 
-              degree_classification, english_certificate, english_score, graduation_year
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+              degree_classification, graduation_year
+            ) VALUES (?, ?, ?, ?, ?, ?)`,
             [
               updateRequest.employee_id, deg.educationLevel, deg.major, deg.schoolName,
-              deg.degreeClassification, deg.englishCertificate || 'none', 
-              deg.englishScore || 0, deg.graduationYear || null
+              deg.degreeClassification, deg.graduationYear || null
+            ]
+          );
+        }
+      }
+
+      // Xử lý đồng bộ chứng chỉ
+      if (certificates && Array.isArray(certificates)) {
+        await connection.query("DELETE FROM employee_certificates WHERE employee_id = ?", [updateRequest.employee_id]);
+        for (const cert of certificates) {
+          if (cert.certificateType === 'none') continue; // Bỏ qua nếu là "Không có"
+          await connection.query(
+            `INSERT INTO employee_certificates (
+              employee_id, certificate_type, score, issue_date, expiry_date, provider, certificate_file_url
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [
+              updateRequest.employee_id, cert.certificateType,
+              cert.score || null, cert.issueDate || null, cert.expiryDate || null, cert.provider || null,
+              cert.certificateFileUrl || null
             ]
           );
         }
