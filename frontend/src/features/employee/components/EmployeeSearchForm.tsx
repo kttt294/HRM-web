@@ -273,7 +273,7 @@ export function EmployeeSearchForm({ onSearch }: EmployeeSearchFormProps) {
                     </div>
                 </div>
 
-                <div className="form-group" style={{ display: 'flex', gap: '8px', alignItems: 'flex-end', transform: 'translateY(6px)' }}>
+                <div className="form-group" style={{ display: 'flex', gap: '8px', alignItems: 'flex-end', marginTop: '22px', gridColumn: '5' }}>
                     <Button type="submit" style={{ width: '100%' }}>Tìm kiếm</Button>
                     <Button type="button" variant="secondary" onClick={handleReset} style={{ width: '100%' }}>
                         Đặt lại
