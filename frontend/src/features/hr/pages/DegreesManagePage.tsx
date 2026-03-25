@@ -350,7 +350,7 @@ function EnumModal({
               type="text"
               value={value}
               onChange={(e) => setValue(e.target.value)}
-              placeholder="Nhập giá trị, ví dụ: excellent"
+              placeholder="Nhập giá trị, ví dụ: ielts"
               autoFocus
               style={{
                 width: "100%",

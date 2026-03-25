@@ -116,7 +116,7 @@ INSERT INTO salary_records (employee_id, month, year, base_salary, allowance, de
 SELECT 
     e.id, 
     m.month, 
-    2024, 
+    2026, 
     e.base_salary, 
     e.allowance, 
     500000, 
