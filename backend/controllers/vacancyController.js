@@ -162,9 +162,10 @@ const vacancyController = {
 
       const [newVacancy] = await db.query(
         `SELECT v.*, 
-                v.job_title AS job_title,
+                jt.name AS job_title,
                 d.name AS department
          FROM vacancies v
+         LEFT JOIN job_titles jt ON v.job_title_id = jt.id
          LEFT JOIN departments d ON v.department_id = d.id
          WHERE v.id = ?`,
         [result.insertId],
@@ -225,9 +226,10 @@ const vacancyController = {
 
       const [updatedVacancy] = await db.query(
         `SELECT v.*, 
-                v.job_title AS job_title,
+                jt.name AS job_title,
                 d.name AS department
          FROM vacancies v
+         LEFT JOIN job_titles jt ON v.job_title_id = jt.id
          LEFT JOIN departments d ON v.department_id = d.id
          WHERE v.id = ?`,
         [req.params.id],

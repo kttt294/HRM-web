@@ -4,6 +4,12 @@
  */
 const dataScope = (resourceType) => {
     return (req, res, next) => {
+        // Nếu không có req.user (Khách xem trang công khai), bỏ qua Scoping
+        if (!req.user) {
+            req.queryScope = {};
+            return next();
+        }
+
         const { role, employeeId } = req.user;
 
         // Nếu là Admin hoặc HR, không cần Scoping (thấy tất cả)
