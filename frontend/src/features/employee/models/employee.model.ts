@@ -7,7 +7,7 @@ export interface Employee {
   maritalStatus: string;
   personalEmail: string;
   phone: string;
-  address: string;
+  currentAddress: string;
   permanentAddress: string;
   nationalId: string;
   taxId: string;

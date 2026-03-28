@@ -23,7 +23,8 @@ const employeeController = {
                                  'major', ed.major,
                                  'schoolName', ed.school_name,
                                  'degreeClassification', ed.degree_classification,
-                                 'graduationYear', ed.graduation_year
+                                 'graduationYear', ed.graduation_year,
+                                 'certificateFileUrl', ed.certificate_file_url
                                )
                              )
                              FROM employee_degrees ed 
@@ -138,7 +139,7 @@ const employeeController = {
   async getMe(req, res, next) {
     try {
       const [employees] = await db.query(
-        `SELECT e.*, e.current_address as address, jt.name as job_title, d.name as department_name, 
+        `SELECT e.*, jt.name as job_title, d.name as department_name, 
                 m.full_name as supervisor_name,
                 (
                   SELECT JSON_ARRAYAGG(
@@ -148,7 +149,8 @@ const employeeController = {
                       'major', ed.major,
                       'schoolName', ed.school_name,
                       'degreeClassification', ed.degree_classification,
-                      'graduationYear', ed.graduation_year
+                      'graduationYear', ed.graduation_year,
+                      'certificateFileUrl', ed.certificate_file_url
                     )
                   )
                   FROM employee_degrees ed 
@@ -244,7 +246,7 @@ const employeeController = {
 
       // Lấy thông tin nhân viên mới nhất sau khi đã đổi profile_status
       const [newProfile] = await db.query(
-        `SELECT e.*, e.current_address as address, jt.name as job_title, d.name as department_name, 
+        `SELECT e.*, jt.name as job_title, d.name as department_name, 
                 m.full_name as supervisor_name
          FROM employees e
          LEFT JOIN job_titles jt ON e.job_title_id = jt.id
@@ -275,7 +277,8 @@ const employeeController = {
                       'major', ed.major,
                       'schoolName', ed.school_name,
                       'degreeClassification', ed.degree_classification,
-                      'graduationYear', ed.graduation_year
+                      'graduationYear', ed.graduation_year,
+                      'certificateFileUrl', ed.certificate_file_url
                     )
                   )
                   FROM employee_degrees ed 
@@ -379,11 +382,11 @@ const employeeController = {
           await connection.query(
             `INSERT INTO employee_degrees (
               employee_id, education_level, major, school_name, 
-              degree_classification, graduation_year
-            ) VALUES (?, ?, ?, ?, ?, ?)`,
+              degree_classification, graduation_year, certificate_file_url
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
             [
               newEmployeeId, deg.educationLevel, deg.major, deg.schoolName,
-              deg.degreeClassification, deg.graduationYear || null
+              deg.degreeClassification, deg.graduationYear || null, deg.certificateFileUrl || null
             ]
           );
         }

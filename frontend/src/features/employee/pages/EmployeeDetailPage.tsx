@@ -85,7 +85,7 @@ export function EmployeeDetailPage() {
               { label: "Tình trạng hôn nhân", value: MARITAL_STATUS_LABELS[employee.maritalStatus as MaritalStatus] || employee.maritalStatus },
               { label: "Email cá nhân", value: employee.personalEmail },
               { label: "Số điện thoại", value: employee.phone },
-              { label: "Địa chỉ hiện tại", value: employee.address, span: 2 },
+              { label: "Địa chỉ hiện tại", value: employee.currentAddress, span: 2 },
               { label: "Địa chỉ thường trú", value: employee.permanentAddress, span: 2 },
             ]} />
           </div>
@@ -197,10 +197,40 @@ export function EmployeeDetailPage() {
                       { label: "Xếp loại", value: DEGREE_CLASSIFICATION_LABELS[deg.degreeClassification] || deg.degreeClassification || '—' },
                     ]} />
                     {deg.certificateFileUrl && (
-                      <a href={deg.certificateFileUrl} target="_blank" rel="noopener noreferrer"
-                        style={{ fontSize: '13px', color: '#1976d2', textDecoration: 'underline', marginTop: '4px' }}>
-                        📎 Xem file bằng cấp
-                      </a>
+                      <div style={{ marginTop: '16px' }}>
+                        <a 
+                          href={deg.certificateFileUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          style={{ 
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '8px 14px',
+                            fontSize: '13px',
+                            fontWeight: '500',
+                            color: '#000',
+                            backgroundColor: '#fff',
+                            border: '1px solid #e0e0e0',
+                            borderRadius: '4px',
+                            textDecoration: 'none',
+                            transition: 'all 0.2s ease',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.borderColor = '#000';
+                            e.currentTarget.style.backgroundColor = '#f9f9f9';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.borderColor = '#e0e0e0';
+                            e.currentTarget.style.backgroundColor = '#fff';
+                          }}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                          </svg>
+                          Xem tài liệu đính kèm
+                        </a>
+                      </div>
                     )}
                   </div>
                 ))}
