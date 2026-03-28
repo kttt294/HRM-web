@@ -43,15 +43,15 @@
 
 ![Database Diagram](backend/database/diagram.png)
 
-5. HƯỚNG DẪN CHẠY DỰ ÁN (Cross-platform)
+5. HƯỚNG DẪN CHẠY DỰ ÁN
 
-- Cách 1: Sử dụng Docker (Khuyên dùng cho mọi hệ điều hành)
+- Cách 1: Sử dụng Docker
   Đảm bảo đã cài đặt Docker Desktop. Chạy lệnh tại thư mục gốc:
 
   ```bash
   docker-compose up --build
   ```
-- Cách 2: Chạy thủ công (Linux, macOS, Windows)
+- Cách 2: Chạy thủ công
   Yêu cầu: Node.js (v18+) và npm installed.
 
   Bước 1: Cấu hình Backend
