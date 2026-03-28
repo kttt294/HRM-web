@@ -175,7 +175,7 @@ export function MyProfilePage() {
     try {
       const allowedFields: (keyof Employee)[] = [
         'fullName', 'avatarUrl', 'dateOfBirth', 'gender', 'maritalStatus', 'personalEmail', 'phone',
-        'address', 'permanentAddress', 'nationalId', 'taxId', 'insuranceId',
+        'currentAddress', 'permanentAddress', 'nationalId', 'taxId', 'insuranceId',
         'emergencyContactName', 'emergencyContactRelationship', 'emergencyContactPhone',
         'bankName', 'bankAccount', 'experience', 'degrees', 'certificates'
       ];
@@ -339,7 +339,7 @@ export function MyProfilePage() {
                   <Input label="Ngày sinh" type="date" value={editForm.dateOfBirth} onChange={e => setEditForm({ ...editForm, dateOfBirth: e.target.value })} />
                   <Select label="Giới tính" options={GENDER_OPTIONS} value={editForm.gender} onChange={e => setEditForm({ ...editForm, gender: e.target.value })} />
                   <Select label="Tình trạng hôn nhân" options={MARITAL_STATUS_OPTIONS} value={editForm.maritalStatus} onChange={e => setEditForm({ ...editForm, maritalStatus: e.target.value })} />
-                  <Input label="Địa chỉ hiện tại" value={editForm.address} onChange={e => setEditForm({ ...editForm, address: e.target.value })} style={{ gridColumn: 'span 2' }} />
+                  <Input label="Địa chỉ hiện tại" value={editForm.currentAddress} onChange={e => setEditForm({ ...editForm, currentAddress: e.target.value })} style={{ gridColumn: 'span 2' }} />
                   <Input label="Địa chỉ thường trú" value={editForm.permanentAddress} onChange={e => setEditForm({ ...editForm, permanentAddress: e.target.value })} style={{ gridColumn: 'span 2' }} />
                 </>
               )}
@@ -499,7 +499,7 @@ export function MyProfilePage() {
                   <InfoItem label="Tình trạng hôn nhân" value={MARITAL_STATUS_LABELS[profile?.maritalStatus as MaritalStatus] || '—'} color="#e91e63" />
                   <InfoItem label="Email cá nhân" value={profile?.personalEmail} color="#f44336" />
                   <InfoItem label="Số điện thoại" value={profile?.phone} color="#4caf50" />
-                  <InfoItem label="Địa chỉ hiện tại" value={profile?.address} color="#ff9800" span={2} />
+                  <InfoItem label="Địa chỉ hiện tại" value={profile?.currentAddress} color="#ff9800" span={2} />
                   <InfoItem label="Địa chỉ thường trú" value={profile?.permanentAddress} color="#795548" span={2} />
                 </>
               )}

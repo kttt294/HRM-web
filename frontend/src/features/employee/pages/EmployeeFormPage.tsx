@@ -54,7 +54,7 @@ export function EmployeeFormPage() {
     maritalStatus: "single",
     personalEmail: "",
     phone: "",
-    address: "",
+    currentAddress: "",
     permanentAddress: "",
     nationalId: "",
     taxId: "",
@@ -302,7 +302,7 @@ export function EmployeeFormPage() {
                 </div>
                 <Input label="Số điện thoại" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} />
                 <Input label="Số CCCD" value={formData.nationalId} onChange={e => setFormData({...formData, nationalId: e.target.value})} />
-                <Input label="Địa chỉ hiện tại" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} style={{ gridColumn: 'span 2' }} />
+                <Input label="Địa chỉ hiện tại" value={formData.currentAddress} onChange={e => setFormData({...formData, currentAddress: e.target.value})} style={{ gridColumn: 'span 2' }} />
                 <Input label="Địa chỉ thường trú" value={formData.permanentAddress} onChange={e => setFormData({...formData, permanentAddress: e.target.value})} style={{ gridColumn: 'span 2' }} />
               </div>
             </div>
