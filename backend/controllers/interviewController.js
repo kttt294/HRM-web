@@ -11,7 +11,7 @@ const interviewController = {
                 SELECT i.*, c.full_name as candidate_name, v.title as vacancy_title
                 FROM interviews i
                 JOIN candidates c ON i.candidate_id = c.id
-                LEFT JOIN vacancies v ON i.vacancy_id = v.id
+                LEFT JOIN vacancies v ON c.vacancy_id = v.id
                 WHERE 1=1
             `;
       const params = [];
@@ -41,7 +41,7 @@ const interviewController = {
         `SELECT i.*, c.full_name as candidate_name, v.title as vacancy_title
                  FROM interviews i
                  JOIN candidates c ON i.candidate_id = c.id
-                 LEFT JOIN vacancies v ON i.vacancy_id = v.id
+                 LEFT JOIN vacancies v ON c.vacancy_id = v.id
                  WHERE i.id = ?`,
         [req.params.id],
       );
@@ -63,12 +63,9 @@ const interviewController = {
     try {
       const {
         candidateId,
-        vacancyId, // This is no longer directly inserted into interviews, but might be useful for other logic
-        title,
         interviewDate,
         location,
         interviewerId,
-        interviewerName,
         notes,
       } = req.body;
 
@@ -80,25 +77,22 @@ const interviewController = {
 
       const [result] = await db.query(
         `INSERT INTO interviews (
-                    candidate_id, vacancy_id, title, interview_date,
-                    location, interviewer_id, interviewer_name,
+                    candidate_id, interview_date,
+                    location, interviewer_id,
                     status, result, notes
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, 'scheduled', 'pending', ?)`,
+                ) VALUES (?, ?, ?, ?, 'scheduled', 'pending', ?)`,
         [
           candidateId,
-          vacancyId,
-          title,
           interviewDate,
           location,
           interviewerId,
-          interviewerName,
           notes,
         ],
       );
 
-      // Cập nhật trạng thái ứng viên thành 'interview'
+      // Cập nhật trạng thái ứng viên thành 'interviewing' (khớp với model enum)
       await db.query("UPDATE candidates SET status = ? WHERE id = ?", [
-        "interview",
+        "interviewing",
         candidateId,
       ]);
 
@@ -118,11 +112,9 @@ const interviewController = {
     try {
       const updates = req.body;
       const fieldMapping = {
-        title: "title",
         interviewDate: "interview_date",
         location: "location",
         interviewerId: "interviewer_id",
-        interviewerName: "interviewer_name",
         status: "status",
         result: "result",
         notes: "notes",

@@ -1,3 +1,4 @@
+const bcrypt = require("bcryptjs");
 const db = require("../config/database");
 const { toCamelCase } = require("../utils/formatters");
 
@@ -173,34 +174,84 @@ const candidateController = {
 
   // PATCH /api/recruitment/candidates/:id/status
   async updateStatus(req, res, next) {
+    const conn = await db.getConnection();
     try {
+      await conn.beginTransaction();
+
       const { status } = req.body;
+      const candidateId = req.params.id;
 
       if (!status) {
+        await conn.rollback();
         return res.status(400).json({
           message: "Trạng thái là bắt buộc",
         });
       }
 
-      await db.query("UPDATE candidates SET status = ? WHERE id = ?", [
-        status,
-        req.params.id,
-      ]);
-
-      const [updatedCandidate] = await db.query(
-        "SELECT * FROM candidates WHERE id = ?",
-        [req.params.id],
+      // 1. Lấy thông tin ứng viên và kỳ tuyển dụng liên quan để onboarding
+      const [candidates] = await conn.query(
+        `SELECT c.*, v.department_id, v.job_title_id
+         FROM candidates c
+         JOIN vacancies v ON c.vacancy_id = v.id
+         WHERE c.id = ?`,
+        [candidateId]
       );
 
-      if (updatedCandidate.length === 0) {
+      if (candidates.length === 0) {
+        await conn.rollback();
         return res.status(404).json({
-          message: "Không tìm thấy ứng viên",
+          message: "Không tìm thấy ứng viên hoặc thông tin kỳ tuyển dụng liên quan",
         });
       }
 
+      const candidate = candidates[0];
+
+      // 2. Nếu chuyển trạng thái sang 'hired', thực hiện tự động tạo tài khoản và hồ sơ nhân viên
+      if (status === 'hired' && candidate.status !== 'hired') {
+        const [existingUsers] = await conn.query("SELECT id FROM users WHERE username = ?", [candidate.email]);
+        
+        if (existingUsers.length === 0) {
+          const hashedPassword = await bcrypt.hash("123456", 10);
+          const [userResult] = await conn.query(
+            "INSERT INTO users (username, password, full_name, role_id, status) VALUES (?, ?, ?, 4, 'active')",
+            [candidate.email, hashedPassword, candidate.full_name]
+          );
+
+          const userId = userResult.insertId;
+
+          await conn.query(
+            `INSERT INTO employees (
+              user_id, full_name, personal_email, phone, 
+              department_id, job_title_id, hire_date, status, profile_status
+            ) VALUES (?, ?, ?, ?, ?, ?, CURDATE(), 'active', 'pending')`,
+            [
+              userId,
+              candidate.full_name,
+              candidate.email,
+              candidate.phone,
+              candidate.department_id,
+              candidate.job_title_id
+            ]
+          );
+        }
+      }
+
+      // 3. Cập nhật trạng thái ứng viên
+      await conn.query("UPDATE candidates SET status = ? WHERE id = ?", [status, candidateId]);
+
+      await conn.commit();
+
+      const [updatedCandidate] = await db.query(
+        "SELECT * FROM candidates WHERE id = ?",
+        [candidateId]
+      );
+
       res.json(toCamelCase(updatedCandidate[0]));
     } catch (error) {
+      if (conn) await conn.rollback();
       next(error);
+    } finally {
+      if (conn) conn.release();
     }
   },
 };

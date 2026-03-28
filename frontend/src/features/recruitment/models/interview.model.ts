@@ -10,6 +10,8 @@ export interface Interview {
     status: 'scheduled' | 'completed' | 'cancelled';
     result?: 'passed' | 'failed' | 'pending';
     notes?: string;
-    createdAt: string;
+    vacancyId?: string | number;
+    interviewDate?: string;
+    createdAt?: string;
     updatedAt?: string;
 }

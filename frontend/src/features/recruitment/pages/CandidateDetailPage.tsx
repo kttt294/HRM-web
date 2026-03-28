@@ -5,6 +5,7 @@ import { OfferForm } from '../components/OfferForm';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Candidate, CandidateStatus } from '../models/candidate.model';
 import { candidateApi } from '../services/candidate.api';
+import { InterviewForm } from '../components/InterviewForm';
 import { useUpdateCandidateStatus } from '../hooks/useUpdateCandidateStatus';
 import { ROUTES } from '../../../shared/constants/routes';
 import { formatDate } from '../../../shared/utils/date.util';
@@ -24,6 +25,7 @@ export function CandidateDetailPage() {
     const [candidate, setCandidate] = useState<Candidate | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [showOfferForm, setShowOfferForm] = useState(false);
+    const [showInterviewForm, setShowInterviewForm] = useState(false);
     const { updateStatus, isUpdating } = useUpdateCandidateStatus();
 
     const fetchCandidate = useCallback(async () => {
@@ -132,6 +134,12 @@ export function CandidateDetailPage() {
                     >
                         Quay lại danh sách
                     </Button>
+                    <Button 
+                        variant="secondary"
+                        onClick={() => setShowInterviewForm(true)}
+                    >
+                        Lên lịch phỏng vấn
+                    </Button>
                     <Button onClick={() => setShowOfferForm(true)}>
                         Gửi đề nghị (Offer)
                     </Button>
@@ -161,6 +169,18 @@ export function CandidateDetailPage() {
                     <InterviewSchedule candidateId={id!} />
                 </div>
             </div>
+
+            {showInterviewForm && (
+                <InterviewForm
+                    candidateId={id!}
+                    vacancyId={candidate.vacancyId}
+                    onClose={() => setShowInterviewForm(false)}
+                    onSuccess={() => {
+                        setShowInterviewForm(false);
+                        fetchCandidate();
+                    }}
+                />
+            )}
 
             {showOfferForm && (
                 <OfferForm

@@ -161,16 +161,16 @@ INSERT INTO vacancies (id, title, job_title_id, department_id, recruiter_id, des
 
 -- 11. Candidates
 INSERT INTO candidates (id, vacancy_id, full_name, email, phone, resume_url, status) VALUES
-(1, 1, 'Nguyễn Văn Ứng', 'ungnv@gmail.com', '0901000001', 'https://cv.com/ungnv.pdf', 'interviewing'),
-(2, 1, 'Trần Thị Tuyển', 'tuyentt@gmail.com', '0901000002', 'https://cv.com/tuyentt.pdf', 'screening'),
-(3, 1, 'Lê Văn Code', 'codelv@gmail.com', '0901000003', 'https://cv.com/codelv.pdf', 'new'),
-(4, 2, 'Phạm Thị Nhân', 'nhanpt@gmail.com', '0901000004', 'https://cv.com/nhanpt.pdf', 'hired'),
-(5, 2, 'Ngô Văn Sự', 'sunv@gmail.com', '0901000005', 'https://cv.com/sunv.pdf', 'rejected'),
-(6, 3, 'Vũ Thị Sales', 'salesvt@gmail.com', '0901000006', 'https://cv.com/salesvt.pdf', 'interviewing'),
-(7, 3, 'Đỗ Văn Chốt', 'chotdv@gmail.com', '0901000007', 'https://cv.com/chotdv.pdf', 'new'),
-(8, 3, 'Hoàng Thị Deal', 'dealht@gmail.com', '0901000008', 'https://cv.com/dealht.pdf', 'screening'),
-(9, 1, 'Bùi Văn Pro', 'provb@gmail.com', '0901000009', 'https://cv.com/provb.pdf', 'interviewing'),
-(10, 3, 'Đặng Thị Khách', 'khachdt@gmail.com', '0901000010', 'https://cv.com/khachdt.pdf', 'new');
+(1, 1, 'Nguyễn Văn Ứng', 'ungnv@gmail.com', '0901000001', 'https://ocd.vn/wp-content/uploads/2020/03/so-yeu-ly-lich.png', 'interviewing'),
+(2, 1, 'Trần Thị Tuyển', 'tuyentt@gmail.com', '0901000002', 'https://ocd.vn/wp-content/uploads/2020/03/so-yeu-ly-lich.png', 'screening'),
+(3, 1, 'Lê Văn Code', 'codelv@gmail.com', '0901000003', 'https://ocd.vn/wp-content/uploads/2020/03/so-yeu-ly-lich.png', 'new'),
+(4, 2, 'Phạm Thị Nhân', 'nhanpt@gmail.com', '0901000004', 'https://ocd.vn/wp-content/uploads/2020/03/so-yeu-ly-lich.png', 'hired'),
+(5, 2, 'Ngô Văn Sự', 'sunv@gmail.com', '0901000005', 'https://ocd.vn/wp-content/uploads/2020/03/so-yeu-ly-lich.png', 'rejected'),
+(6, 3, 'Vũ Thị Sales', 'salesvt@gmail.com', '0901000006', 'https://ocd.vn/wp-content/uploads/2020/03/so-yeu-ly-lich.png', 'interviewing'),
+(7, 3, 'Đỗ Văn Chốt', 'chotdv@gmail.com', '0901000007', 'https://ocd.vn/wp-content/uploads/2020/03/so-yeu-ly-lich.png', 'new'),
+(8, 3, 'Hoàng Thị Deal', 'dealht@gmail.com', '0901000008', 'https://ocd.vn/wp-content/uploads/2020/03/so-yeu-ly-lich.png', 'screening'),
+(9, 1, 'Bùi Văn Pro', 'provb@gmail.com', '0901000009', 'https://ocd.vn/wp-content/uploads/2020/03/so-yeu-ly-lich.png', 'interviewing'),
+(10, 3, 'Đặng Thị Khách', 'khachdt@gmail.com', '0901000010', 'https://ocd.vn/wp-content/uploads/2020/03/so-yeu-ly-lich.png', 'new');
 
 -- 12. Interviews
 INSERT INTO interviews (id, candidate_id, interviewer_id, interview_date, location, status, result, notes) VALUES
