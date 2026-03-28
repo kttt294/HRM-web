@@ -213,6 +213,7 @@ CREATE TABLE IF NOT EXISTS candidates (
     email VARCHAR(100) NOT NULL,
     phone VARCHAR(20),
     resume_url VARCHAR(500),
+    notes TEXT,
     status ENUM('new', 'screening', 'interviewing', 'offered', 'hired', 'rejected') DEFAULT 'new',
     applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (vacancy_id) REFERENCES vacancies(id) ON DELETE SET NULL
