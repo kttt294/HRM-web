@@ -13,6 +13,7 @@ export interface Vacancy {
     recruiterId?: string;
     recruiterName?: string;
     jobTitleId?: string;
+    departmentId?: string;
     createdAt: string;
     updatedAt?: string;
 }

@@ -71,10 +71,10 @@ export function EmployeeDetailPage() {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-        {/* THÔNG TIN CÁ NHÂN */}
+        {/* THÔNG TIN CƠ BẢN */}
         <div className="card">
           <div className="card-header">
-            <h2>Thông tin cá nhân</h2>
+            <h2>Thông tin cơ bản</h2>
           </div>
           <div className="card-body">
             <InfoGrid items={[
@@ -108,10 +108,10 @@ export function EmployeeDetailPage() {
           </div>
         </div>
 
-        {/* THÔNG TIN CÔNG VIỆC */}
+        {/* QUÁ TRÌNH LÀM VIỆC */}
         <div className="card">
           <div className="card-header">
-            <h2>Thông tin công việc</h2>
+            <h2>Quá trình làm việc</h2>
           </div>
           <div className="card-body">
             <InfoGrid items={[
@@ -172,10 +172,10 @@ export function EmployeeDetailPage() {
           </div>
         </div>
 
-        {/* BẰNG CẤP & CHỨNG CHỈ — full width */}
+        {/* QUÁ TRÌNH ĐÀO TẠO — full width */}
         <div className="card" style={{ gridColumn: 'span 2' }}>
           <div className="card-header">
-            <h2>Bằng cấp & Chứng chỉ</h2>
+            <h2>Quá trình đào tạo</h2>
           </div>
           <div className="card-body">
             {(employee.degrees && employee.degrees.length > 0) || (employee.certificates && employee.certificates.length > 0) ? (

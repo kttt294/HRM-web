@@ -248,7 +248,7 @@ export function EmployeeFormPage() {
         <form id="employee-form" onSubmit={handleSubmit}>
           {/* SECTION 1: CÁ NHÂN */}
           <section className="form-section">
-            <h2>1. Thông tin cá nhân</h2>
+            <h2>1. Thông tin cơ bản</h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '30px' }}>
               {/* Avatar Column */}
               <div style={{ textAlign: 'center' }}>
@@ -332,7 +332,7 @@ export function EmployeeFormPage() {
 
           {/* SECTION 4: CÔNG VIỆC */}
           <section className="form-section">
-            <h2>4. Thông tin công việc</h2>
+            <h2>4. Quá trình làm việc & Đào tạo</h2>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
               {isEditMode && (
                 <Input label="Mã nhân viên (ID)" value={formData.id} disabled />

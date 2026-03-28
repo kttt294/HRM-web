@@ -6,6 +6,8 @@ import { Button } from '../../../components/ui/Button';
 import { ROUTES } from '../../../shared/constants/routes';
 import { recruitmentApi } from '../services/recruitment.api';
 import { useSnackbarStore } from '../../../store/snackbar.store';
+import { departmentApi } from '../../hr/services/department.api';
+import { jobTitleApi } from '../../hr/services/jobTitle.api.ts';
 
 export function VacancyFormPage() {
   const navigate = useNavigate();
@@ -15,8 +17,8 @@ export function VacancyFormPage() {
 
   const [formData, setFormData] = useState({
     title: '',
-    jobTitle: '',
-    department: '',
+    jobTitleId: '',
+    departmentId: '',
     description: '',
     requirements: '',
     numberOfPositions: 1,
@@ -28,6 +30,13 @@ export function VacancyFormPage() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [departments, setDepartments] = useState<any[]>([]);
+  const [jobTitles, setJobTitles] = useState<any[]>([]);
+
+  useEffect(() => {
+    departmentApi.getAll().then(setDepartments).catch(console.error);
+    jobTitleApi.getAll().then(setJobTitles).catch(console.error);
+  }, []);
 
   useEffect(() => {
     if (isEditMode && id) {
@@ -47,8 +56,8 @@ export function VacancyFormPage() {
 
           setFormData({
             title: data.title || '',
-            jobTitle: data.jobTitle || '',
-            department: data.department || '',
+            jobTitleId: data.jobTitleId ? String(data.jobTitleId) : '',
+            departmentId: data.departmentId ? String(data.departmentId) : '',
             description: data.description || '',
             requirements: Array.isArray(data.requirements) 
               ? data.requirements.join(', ') 
@@ -137,34 +146,30 @@ export function VacancyFormPage() {
             <h2>Thông tin vị trí</h2>
             
             <Input
-              label="Tên vị trí"
+              label="Tên kì tuyển dụng"
               name="title"
+              placeholder="VD: Tuyển dụng lập trình viên Quý 3..."
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               required
             />
 
-            <Input
-              label="Chức danh"
-              name="jobTitle"
-              placeholder="Nhập chức danh (VD: Senior Developer, Trưởng phòng...)"
-              value={formData.jobTitle}
-              onChange={(e) => setFormData({ ...formData, jobTitle: e.target.value })}
+            <Select
+              label="Vị trí tuyển dụng (Chức danh)"
+              name="jobTitleId"
+              options={jobTitles.map((jt) => ({ value: String(jt.id), label: jt.name }))}
+              placeholder="Chọn chức danh công việc"
+              value={formData.jobTitleId}
+              onChange={(e) => setFormData({ ...formData, jobTitleId: e.target.value })}
             />
 
             <Select
               label="Phòng ban"
-              name="department"
-              options={[
-                { value: 'Công nghệ thông tin', label: 'Công nghệ thông tin' },
-                { value: 'Nhân sự', label: 'Nhân sự' },
-                { value: 'Kế toán', label: 'Kế toán' },
-                { value: 'Marketing', label: 'Marketing' },
-                { value: 'Kinh doanh', label: 'Kinh doanh' },
-              ]}
+              name="departmentId"
+              options={departments.map((d) => ({ value: String(d.id), label: d.name }))}
               placeholder="Chọn phòng ban"
-              value={formData.department}
-              onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+              value={formData.departmentId}
+              onChange={(e) => setFormData({ ...formData, departmentId: e.target.value })}
             />
 
             <Input
