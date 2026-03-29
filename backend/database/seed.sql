@@ -130,16 +130,16 @@ CROSS JOIN (SELECT 1 AS month UNION SELECT 2 UNION SELECT 3) m;
 
 -- 9. Employee Degrees
 INSERT INTO employee_degrees (employee_id, education_level, school_name, degree_classification, major, graduation_year, certificate_file_url) VALUES
-(1, 'university', 'Đại học Bách Khoa', 'excellent', 'Quản trị mạng', 2007, 'https://lambangdaihocaz.com/wp-content/uploads/2024/07/review-mua-bang-dai-hoc-tat-ca-nhung-dieu-can-biet-6684b22211804.jpg'),
-(2, 'master', 'Đại học Kinh tế Quốc dân', 'good', 'Quản trị nhân lực', 2012, 'https://lambangdaihocaz.com/wp-content/uploads/2024/07/review-mua-bang-dai-hoc-tat-ca-nhung-dieu-can-biet-6684b22211804.jpg'),
-(3, 'university', 'Đại học Công nghệ - ĐHQGHN', 'excellent', 'Công nghệ thông tin', 2010, 'https://lambangdaihocaz.com/wp-content/uploads/2024/07/review-mua-bang-dai-hoc-tat-ca-nhung-dieu-can-biet-6684b22211804.jpg'),
-(4, 'university', 'Đại học Ngoại thương', 'good', 'Kinh tế quốc tế', 2011, 'https://lambangdaihocaz.com/wp-content/uploads/2024/07/review-mua-bang-dai-hoc-tat-ca-nhung-dieu-can-biet-6684b22211804.jpg'),
-(5, 'university', 'Đại học FPT', 'average', 'Kỹ thuật phần mềm', 2018, 'https://lambangdaihocaz.com/wp-content/uploads/2024/07/review-mua-bang-dai-hoc-tat-ca-nhung-dieu-can-biet-6684b22211804.jpg'),
-(6, 'university', 'Đại học Giao thông Vận tải', 'good', 'Công nghệ thông tin', 2019, 'https://lambangdaihocaz.com/wp-content/uploads/2024/07/review-mua-bang-dai-hoc-tat-ca-nhung-dieu-can-biet-6684b22211804.jpg'),
-(7, 'university', 'Đại học Thương mại', 'good', 'Marketing', 2015, 'https://lambangdaihocaz.com/wp-content/uploads/2024/07/review-mua-bang-dai-hoc-tat-ca-nhung-dieu-can-biet-6684b22211804.jpg'),
-(8, 'university', 'Đại học Mở', 'average', 'Quản trị kinh doanh', 2016, 'https://lambangdaihocaz.com/wp-content/uploads/2024/07/review-mua-bang-dai-hoc-tat-ca-nhung-dieu-can-biet-6684b22211804.jpg'),
-(9, 'university', 'Đại học Công nghiệp', 'good', 'Quản trị văn phòng', 2020, 'https://lambangdaihocaz.com/wp-content/uploads/2024/07/review-mua-bang-dai-hoc-tat-ca-nhung-dieu-can-biet-6684b22211804.jpg'),
-(10, 'master', 'Học viện Bưu chính Viễn thông', 'excellent', 'Khoa học máy tính', 2013, 'https://lambangdaihocaz.com/wp-content/uploads/2024/07/review-mua-bang-dai-hoc-tat-ca-nhung-dieu-can-biet-6684b22211804.jpg');
+(1, 'university', 'Đại học Bách Khoa', 'excellent', 'Quản trị mạng', 2007, 'https://ou.edu.vn/wp-content/uploads/2023/11/Mau_noi_dung_van_bang_cu_nhan.png'),
+(2, 'master', 'Đại học Kinh tế Quốc dân', 'good', 'Quản trị nhân lực', 2012, 'https://ou.edu.vn/wp-content/uploads/2023/11/Mau_noi_dung_van_bang_cu_nhan.png'),
+(3, 'university', 'Đại học Công nghệ - ĐHQGHN', 'excellent', 'Công nghệ thông tin', 2010, 'https://ou.edu.vn/wp-content/uploads/2023/11/Mau_noi_dung_van_bang_cu_nhan.png'),
+(4, 'university', 'Đại học Ngoại thương', 'good', 'Kinh tế quốc tế', 2011, 'https://ou.edu.vn/wp-content/uploads/2023/11/Mau_noi_dung_van_bang_cu_nhan.png'),
+(5, 'university', 'Đại học FPT', 'average', 'Kỹ thuật phần mềm', 2018, 'https://ou.edu.vn/wp-content/uploads/2023/11/Mau_noi_dung_van_bang_cu_nhan.png'),
+(6, 'university', 'Đại học Giao thông Vận tải', 'good', 'Công nghệ thông tin', 2019, 'https://ou.edu.vn/wp-content/uploads/2023/11/Mau_noi_dung_van_bang_cu_nhan.png'),
+(7, 'university', 'Đại học Thương mại', 'good', 'Marketing', 2015, 'https://ou.edu.vn/wp-content/uploads/2023/11/Mau_noi_dung_van_bang_cu_nhan.png'),
+(8, 'university', 'Đại học Mở', 'average', 'Quản trị kinh doanh', 2016, 'https://ou.edu.vn/wp-content/uploads/2023/11/Mau_noi_dung_van_bang_cu_nhan.png'),
+(9, 'university', 'Đại học Công nghiệp', 'good', 'Quản trị văn phòng', 2020, 'https://ou.edu.vn/wp-content/uploads/2023/11/Mau_noi_dung_van_bang_cu_nhan.png'),
+(10, 'master', 'Học viện Bưu chính Viễn thông', 'excellent', 'Khoa học máy tính', 2013, 'https://ou.edu.vn/wp-content/uploads/2023/11/Mau_noi_dung_van_bang_cu_nhan.png');
 
 -- 9.5 Employee Certificates
 INSERT INTO employee_certificates (employee_id, certificate_type, score, issue_date, expiry_date, provider, certificate_file_url) VALUES
