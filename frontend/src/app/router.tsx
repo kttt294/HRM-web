@@ -53,6 +53,8 @@ import { EntryPage } from "../features/common/pages/EntryPage";
 // Admin pages
 import { UserListPage } from "../features/admin/pages/UserListPage";
 import { UserFormPage } from "../features/admin/pages/UserFormPage";
+import { AuditLogListPage } from "../features/admin/pages/AuditLogListPage";
+import { AuditLogDetailPage } from "../features/admin/pages/AuditLogDetailPage";
 import { EmployeeListPage as AdminEmployeeListPage } from "../features/admin/pages/EmployeeListPage";
 
 // HR Leave & Payroll pages
@@ -165,6 +167,22 @@ export function AppRouter() {
             element={
               <AdminRoute>
                 <AdminEmployeeListPage />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path={ROUTES.ADMIN_AUDIT_LOGS}
+            element={
+              <AdminRoute>
+                <AuditLogListPage />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path={ROUTES.ADMIN_AUDIT_LOG_DETAIL}
+            element={
+              <AdminRoute>
+                <AuditLogDetailPage />
               </AdminRoute>
             }
           />

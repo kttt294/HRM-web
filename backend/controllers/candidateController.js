@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const db = require("../config/database");
 const { toCamelCase } = require("../utils/formatters");
+const emailService = require("../utils/emailService");
 
 const candidateController = {
   // GET /api/recruitment/candidates
@@ -93,6 +94,12 @@ const candidateController = {
       }
 
       res.status(201).json(toCamelCase(newCandidate[0]));
+
+      // Ghi audit log (sau khi trả response)
+      req._auditAction = "CREATE_CANDIDATE";
+      req._auditResource = "candidates";
+      req._auditResourceId = result.insertId;
+      req._auditDetails = { fullName, email, vacancyId };
     } catch (error) {
       next(error);
     }
@@ -167,6 +174,11 @@ const candidateController = {
       }
 
       res.json({ message: "Xóa ứng viên thành công" });
+
+      // Ghi audit log
+      req._auditAction = "DELETE_CANDIDATE";
+      req._auditResource = "candidates";
+      req._auditResourceId = req.params.id;
     } catch (error) {
       next(error);
     }
@@ -247,6 +259,41 @@ const candidateController = {
       );
 
       res.json(toCamelCase(updatedCandidate[0]));
+
+      // Ghi audit log
+      req._auditAction = "UPDATE_CANDIDATE_STATUS";
+      req._auditResource = "candidates";
+      req._auditResourceId = candidateId;
+      req._auditDetails = { oldStatus: candidate.status, newStatus: status };
+
+      // Gửi email thông báo cho ứng viên
+      try {
+        if (candidate.email) {
+          // Lấy tên vị trí tuyển dụng
+          const [vacData] = await db.query(
+            "SELECT title FROM vacancies WHERE id = ?",
+            [candidate.vacancy_id]
+          );
+          await emailService.sendCandidateStatusUpdate({
+            candidateEmail: candidate.email,
+            candidateName: candidate.full_name,
+            status,
+            vacancyTitle: vacData[0]?.title || "N/A",
+          });
+
+          // Nếu được tuyển, gửi thêm email chào mừng với thông tin tài khoản
+          if (status === 'hired' && candidate.status !== 'hired') {
+            await emailService.sendWelcomeEmail({
+              employeeEmail: candidate.email,
+              employeeName: candidate.full_name,
+              username: candidate.email,
+              tempPassword: "123456",
+            });
+          }
+        }
+      } catch (emailErr) {
+        console.error("[CandidateController] Lỗi gửi email:", emailErr.message);
+      }
     } catch (error) {
       if (conn) await conn.rollback();
       next(error);

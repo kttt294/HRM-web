@@ -1,5 +1,6 @@
 const db = require("../config/database");
 const { toCamelCase } = require("../utils/formatters");
+const emailService = require("../utils/emailService");
 
 const leaveController = {
   // GET /api/leaves
@@ -235,6 +236,12 @@ const leaveController = {
         [result.insertId],
       );
 
+      // Ghi audit log
+      req._auditAction = "CREATE_LEAVE_REQUEST";
+      req._auditResource = "leave_requests";
+      req._auditResourceId = result.insertId;
+      req._auditDetails = { leaveType, startDate, endDate };
+
       res.status(201).json(toCamelCase(newRequest[0]));
     } catch (error) {
       next(error);
@@ -274,6 +281,37 @@ const leaveController = {
       params.push(id);
       await db.query(`UPDATE leave_requests SET ${updates.join(", ")} WHERE id = ?`, params);
 
+      // Ghi audit log
+      req._auditAction = "APPROVE_LEAVE";
+      req._auditResource = "leave_requests";
+      req._auditResourceId = id;
+      req._auditDetails = { employeeId: request.employee_id, days };
+
+      // Gửi email thông báo cho nhân viên
+      try {
+        const [empData] = await db.query(
+          "SELECT e.personal_email, e.full_name FROM employees e WHERE e.id = ?",
+          [request.employee_id]
+        );
+        if (empData.length > 0 && empData[0].personal_email) {
+          const [approverData] = await db.query(
+            "SELECT full_name FROM employees WHERE id = ?",
+            [employeeId]
+          );
+          await emailService.sendLeaveStatusUpdate({
+            employeeEmail: empData[0].personal_email,
+            employeeName: empData[0].full_name,
+            leaveType: request.leave_type,
+            startDate: request.start_date,
+            endDate: request.end_date,
+            status: "approved",
+            approverName: approverData[0]?.full_name || "N/A",
+          });
+        }
+      } catch (emailErr) {
+        console.error("[LeaveController] Lỗi gửi email thông báo duyệt phép:", emailErr.message);
+      }
+
       res.json({ message: "Đã duyệt đơn nghỉ phép" });
     } catch (error) {
       next(error);
@@ -296,6 +334,40 @@ const leaveController = {
 
       params.push(id);
       await db.query(`UPDATE leave_requests SET ${updates.join(", ")} WHERE id = ?`, params);
+
+      // Ghi audit log
+      req._auditAction = "REJECT_LEAVE";
+      req._auditResource = "leave_requests";
+      req._auditResourceId = id;
+
+      // Lấy thông tin đơn để gửi email
+      try {
+        const [reqData] = await db.query("SELECT * FROM leave_requests WHERE id = ?", [id]);
+        if (reqData.length > 0) {
+          const [empData] = await db.query(
+            "SELECT e.personal_email, e.full_name FROM employees e WHERE e.id = ?",
+            [reqData[0].employee_id]
+          );
+          if (empData.length > 0 && empData[0].personal_email) {
+            const [approverData] = await db.query(
+              "SELECT full_name FROM employees WHERE id = ?",
+              [employeeId]
+            );
+            await emailService.sendLeaveStatusUpdate({
+              employeeEmail: empData[0].personal_email,
+              employeeName: empData[0].full_name,
+              leaveType: reqData[0].leave_type,
+              startDate: reqData[0].start_date,
+              endDate: reqData[0].end_date,
+              status: "rejected",
+              approverName: approverData[0]?.full_name || "N/A",
+            });
+          }
+        }
+      } catch (emailErr) {
+        console.error("[LeaveController] Lỗi gửi email thông báo từ chối phép:", emailErr.message);
+      }
+
       res.json({ message: "Đã từ chối đơn nghỉ phép" });
     } catch (error) {
       next(error);
@@ -316,6 +388,11 @@ const leaveController = {
           message: "Không tìm thấy đơn hoặc chỉ có thể hủy đơn đang chờ duyệt",
         });
       }
+
+      // Ghi audit log
+      req._auditAction = "DELETE_LEAVE_REQUEST";
+      req._auditResource = "leave_requests";
+      req._auditResourceId = req.params.id;
 
       res.json({ message: "Hủy đơn nghỉ phép thành công" });
     } catch (error) {

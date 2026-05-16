@@ -1,5 +1,6 @@
 const db = require("../config/database");
 const { toCamelCase } = require("../utils/formatters");
+const emailService = require("../utils/emailService");
 
 const salaryController = {
   // GET /api/salary/my - Lấy bảng lương của user hiện tại (dùng cho My Payroll page)
@@ -230,6 +231,12 @@ const salaryController = {
         [result.insertId],
       );
 
+      // Ghi audit log
+      req._auditAction = "CREATE_SALARY";
+      req._auditResource = "salary_records";
+      req._auditResourceId = result.insertId;
+      req._auditDetails = { employeeId, month, year, netSalary };
+
       res.status(201).json(toCamelCase(newSalary[0]));
     } catch (error) {
       next(error);
@@ -284,6 +291,34 @@ const salaryController = {
       }
 
       res.json(toCamelCase(updatedSalary[0]));
+
+      // Ghi audit log
+      req._auditAction = "UPDATE_SALARY";
+      req._auditResource = "salary_records";
+      req._auditResourceId = req.params.id;
+      req._auditDetails = { updatedFields: Object.keys(updates) };
+
+      // Gửi email thông báo khi bảng lương được xác nhận (confirmed) hoặc đã thanh toán (paid)
+      if (updates.status === 'confirmed' || updates.status === 'paid') {
+        try {
+          const salary = updatedSalary[0];
+          const [empData] = await db.query(
+            "SELECT e.personal_email, e.full_name FROM employees e WHERE e.id = ?",
+            [salary.employee_id]
+          );
+          if (empData.length > 0 && empData[0].personal_email) {
+            await emailService.sendSalaryNotification({
+              employeeEmail: empData[0].personal_email,
+              employeeName: empData[0].full_name,
+              month: salary.month,
+              year: salary.year,
+              netSalary: salary.net_salary,
+            });
+          }
+        } catch (emailErr) {
+          console.error("[SalaryController] Lỗi gửi email bảng lương:", emailErr.message);
+        }
+      }
     } catch (error) {
       next(error);
     }
@@ -304,6 +339,11 @@ const salaryController = {
       }
 
       res.json({ message: "Xóa bảng lương thành công" });
+
+      // Ghi audit log
+      req._auditAction = "DELETE_SALARY";
+      req._auditResource = "salary_records";
+      req._auditResourceId = req.params.id;
     } catch (error) {
       next(error);
     }

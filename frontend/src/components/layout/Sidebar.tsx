@@ -162,6 +162,11 @@ export function Sidebar() {
                       <span className="menu-text">Tạo tài khoản mới</span>
                     </NavLink>
                   </li>
+                  <li>
+                    <NavLink to={ROUTES.ADMIN_AUDIT_LOGS}>
+                      <span className="menu-text">Lịch sử hoạt động</span>
+                    </NavLink>
+                  </li>
                 </ul>
               </li>
             </ShowForRoles>

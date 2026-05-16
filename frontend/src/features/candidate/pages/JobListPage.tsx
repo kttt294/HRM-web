@@ -10,16 +10,32 @@ export function JobListPage() {
     const navigate = useNavigate();
     const [jobs, setJobs] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
+        setIsLoading(true);
+        setError(null);
+        
         fetch('/api/recruitment/vacancies?status=open')
-            .then(res => res.json())
+            .then(async res => {
+                const data = await res.json();
+                if (!res.ok) {
+                    throw new Error(data.message || 'Không thể tải danh sách việc làm');
+                }
+                return data;
+            })
             .then(data => {
-                setJobs(data);
+                // Đảm bảo data là mảng trước khi set để tránh crash jobs.map()
+                if (Array.isArray(data)) {
+                    setJobs(data);
+                } else {
+                    setJobs([]);
+                }
                 setIsLoading(false);
             })
             .catch(err => {
                 console.error('Failed to fetch jobs:', err);
+                setError(err.message || 'Đã có lỗi xảy ra khi kết nối đến máy chủ.');
                 setIsLoading(false);
             });
     }, []);
@@ -53,6 +69,24 @@ export function JobListPage() {
 
             {isLoading ? (
                 <div style={{ textAlign: 'center', padding: '40px' }}>Đang tải danh sách việc làm...</div>
+            ) : error ? (
+                <div style={{
+                    padding: '32px',
+                    margin: '20px 0',
+                    backgroundColor: '#fff1f0',
+                    border: '1px solid #ffa39e',
+                    borderRadius: '8px',
+                    color: '#cf1322',
+                    textAlign: 'center'
+                }}>
+                    <p style={{ fontWeight: 'bold', marginBottom: '8px' }}>⚠️ Lỗi hệ thống</p>
+                    <Button 
+                        onClick={() => window.location.reload()} 
+                        style={{ marginTop: '12px', backgroundColor: '#cf1322' }}
+                    >
+                        Thử lại
+                    </Button>
+                </div>
             ) : jobs.length === 0 ? (
                 <div style={{
                     display: 'flex',

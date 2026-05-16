@@ -91,6 +91,13 @@ const authController = {
         maxAge: 7 * 24 * 60 * 60 * 1000 // 7 ngày
       });
 
+      // Ghi audit log đăng nhập
+      req.user = { id: user.id, employeeId: user.employee_id, username: user.username, name: user.name || user.username };
+      req._auditAction = "LOGIN";
+      req._auditResource = "users";
+      req._auditResourceId = user.id;
+      req._auditDetails = { role: user.role_name };
+
       // Trả về user info và Access Token (KHÔNG trả về permissions ở body nhạy cảm)
       res.json({
         user: {
@@ -124,6 +131,10 @@ const authController = {
       
       // Xóa cookie
       res.clearCookie('refreshToken');
+
+      // Ghi audit log đăng xuất
+      req._auditAction = "LOGOUT";
+      req._auditResource = "users";
       
       res.json({ message: "Đăng xuất thành công" });
     } catch (error) {
@@ -286,6 +297,11 @@ const authController = {
         `DELETE FROM refresh_tokens WHERE user_id = ?`,
         [userId]
       );
+
+      // Ghi audit log đổi mật khẩu
+      req._auditAction = "CHANGE_PASSWORD";
+      req._auditResource = "users";
+      req._auditResourceId = userId;
 
       res.json({ message: "Đổi mật khẩu thành công. Vui lòng đăng nhập lại." });
     } catch (error) {

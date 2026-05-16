@@ -8,6 +8,8 @@ export const ROUTES = {
   ADMIN_USERS_NEW: "/admin/users/new",
   ADMIN_ROLES: "/admin/roles",
   ADMIN_EMPLOYEES: "/admin/employees",
+  ADMIN_AUDIT_LOGS: "/admin/audit-logs",
+  ADMIN_AUDIT_LOG_DETAIL: "/admin/audit-logs/:id",
 
   // HR - Employee Management (PIM)
   EMPLOYEES: "/hr/employees",

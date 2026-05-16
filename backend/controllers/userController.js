@@ -1,7 +1,6 @@
 const db = require("../config/database");
 const bcrypt = require("bcryptjs");
 const { toCamelCase } = require("../utils/formatters");
-
 const userController = {
   // GET /api/users
   async getAll(req, res, next) {
@@ -108,6 +107,12 @@ const userController = {
       );
 
       res.status(201).json(toCamelCase(newUser[0]));
+
+      // Ghi audit log
+      req._auditAction = "CREATE_USER";
+      req._auditResource = "users";
+      req._auditResourceId = result.insertId;
+      req._auditDetails = { username, roleId };
     } catch (error) {
       next(error);
     }
@@ -198,6 +203,12 @@ const userController = {
       ]);
 
       res.json({ message: "Xóa tài khoản thành công" });
+
+      // Ghi audit log
+      req._auditAction = "DELETE_USER";
+      req._auditResource = "users";
+      req._auditResourceId = req.params.id;
+      req._auditDetails = { username: user[0].username };
     } catch (error) {
       next(error);
     }
@@ -219,6 +230,11 @@ const userController = {
         message: "Reset mật khẩu thành công",
         tempPassword,
       });
+
+      // Ghi audit log
+      req._auditAction = "RESET_PASSWORD";
+      req._auditResource = "users";
+      req._auditResourceId = req.params.id;
     } catch (error) {
       next(error);
     }
@@ -269,6 +285,12 @@ const userController = {
       );
 
       res.json(toCamelCase(updatedUser[0]));
+
+      // Ghi audit log
+      req._auditAction = "TOGGLE_LOCK_USER";
+      req._auditResource = "users";
+      req._auditResourceId = req.params.id;
+      req._auditDetails = { oldStatus: user.status, newStatus };
     } catch (error) {
       next(error);
     }

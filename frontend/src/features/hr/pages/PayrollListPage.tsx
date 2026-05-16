@@ -15,6 +15,7 @@ export function PayrollListPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [payrolls, setPayrolls] = useState<Payroll[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const getDefaultDate = () => {
     const date = new Date();
     date.setMonth(date.getMonth() - 1);
@@ -32,14 +33,21 @@ export function PayrollListPage() {
 
   const fetchPayrolls = async () => {
     setLoading(true);
+    setError(null);
     try {
       const result = await payrollApi.getAll({
         month: monthFilter,
         year: yearFilter,
       });
-      setPayrolls(result.payrolls);
+      if (result && Array.isArray(result.payrolls)) {
+        setPayrolls(result.payrolls);
+      } else {
+        setPayrolls([]);
+      }
     } catch (error) {
       console.error("Failed to fetch payrolls:", error);
+      setError("Không thể tải danh sách bảng lương");
+      setPayrolls([]);
     } finally {
       setLoading(false);
     }
@@ -257,6 +265,11 @@ export function PayrollListPage() {
             style={{ padding: "40px", textAlign: "center", color: "#757575" }}
           >
             Đang tải...
+          </div>
+        ) : error ? (
+          <div style={{ padding: "40px", textAlign: "center" }}>
+            <p style={{ color: "#cf1322", fontWeight: "bold", fontSize: "16px", marginBottom: "16px" }}>⚠️ Lỗi hệ thống</p>
+            <Button onClick={fetchPayrolls}>Thử lại</Button>
           </div>
         ) : payrolls.length === 0 ? (
           <div

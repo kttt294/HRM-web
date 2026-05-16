@@ -23,8 +23,17 @@ export function CandidateFormPage() {
   useEffect(() => {
     fetch('/api/recruitment/vacancies')
       .then(res => res.json())
-      .then(data => setVacancies(data))
-      .catch(err => console.error('Failed to fetch vacancies:', err));
+      .then(data => {
+        if (Array.isArray(data)) {
+          setVacancies(data);
+        } else {
+          setVacancies([]);
+        }
+      })
+      .catch(err => {
+        console.error('Failed to fetch vacancies:', err);
+        setVacancies([]);
+      });
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {

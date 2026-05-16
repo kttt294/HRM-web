@@ -12,7 +12,11 @@ async function initDatabase() {
             port: process.env.DB_PORT,
             user: process.env.DB_USER,
             password: process.env.DB_PASSWORD,
-            multipleStatements: true
+            multipleStatements: true,
+            ssl: {
+                ca: fs.readFileSync(path.join(__dirname, '../certs/ca.pem')),
+                rejectUnauthorized: true
+            }
         });
 
         console.log('-- Kết nối MySQL thành công');

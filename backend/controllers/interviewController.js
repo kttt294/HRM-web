@@ -1,5 +1,6 @@
 const db = require("../config/database");
 const { toCamelCase } = require("../utils/formatters");
+const emailService = require("../utils/emailService");
 
 const interviewController = {
   // GET /api/recruitment/interviews
@@ -101,6 +102,34 @@ const interviewController = {
         [result.insertId],
       );
 
+      // Ghi audit log
+      req._auditAction = "CREATE_INTERVIEW";
+      req._auditResource = "interviews";
+      req._auditResourceId = result.insertId;
+      req._auditDetails = { candidateId, interviewDate, location };
+
+      // Gửi email lịch phỏng vấn cho ứng viên
+      try {
+        const [candData] = await db.query(
+          `SELECT c.email, c.full_name, v.title as vacancy_title
+           FROM candidates c LEFT JOIN vacancies v ON c.vacancy_id = v.id
+           WHERE c.id = ?`,
+          [candidateId]
+        );
+        if (candData.length > 0 && candData[0].email) {
+          await emailService.sendInterviewSchedule({
+            candidateEmail: candData[0].email,
+            candidateName: candData[0].full_name,
+            interviewDate,
+            location,
+            vacancyTitle: candData[0].vacancy_title,
+            notes,
+          });
+        }
+      } catch (emailErr) {
+        console.error("[InterviewController] Lỗi gửi email lịch PV:", emailErr.message);
+      }
+
       res.status(201).json(toCamelCase(newInterview[0]));
     } catch (error) {
       next(error);
@@ -155,6 +184,12 @@ const interviewController = {
       }
 
       res.json(toCamelCase(updatedInterview[0]));
+
+      // Ghi audit log (sau khi trả về response)
+      req._auditAction = "UPDATE_INTERVIEW";
+      req._auditResource = "interviews";
+      req._auditResourceId = req.params.id;
+      req._auditDetails = { updatedFields: Object.keys(updates) };
     } catch (error) {
       next(error);
     }
@@ -174,6 +209,11 @@ const interviewController = {
       }
 
       res.json({ message: "Xóa lịch phỏng vấn thành công" });
+
+      // Ghi audit log
+      req._auditAction = "DELETE_INTERVIEW";
+      req._auditResource = "interviews";
+      req._auditResourceId = req.params.id;
     } catch (error) {
       next(error);
     }

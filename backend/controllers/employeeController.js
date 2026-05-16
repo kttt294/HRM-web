@@ -257,6 +257,12 @@ const employeeController = {
       );
 
       res.json(toCamelCase(newProfile[0]));
+
+      // [Fix 2C] Ghi audit log khi nhân viên tự gửi yêu cầu cập nhật hồ sơ
+      req._auditAction = "REQUEST_PROFILE_UPDATE";
+      req._auditResource = "profile_updates";
+      req._auditResourceId = employeeId;
+      req._auditDetails = { updatedFields: Object.keys(dataToUpdate) };
     } catch (error) {
       next(error);
     }
@@ -409,6 +415,13 @@ const employeeController = {
       }
 
       await connection.commit();
+
+      // Ghi audit log
+      req._auditAction = "CREATE_EMPLOYEE";
+      req._auditResource = "employees";
+      req._auditResourceId = newEmployeeId;
+      req._auditDetails = { fullName, departmentId, jobTitleId, status: status || "active" };
+
       res.status(201).json({ id: newEmployeeId, message: "Tạo nhân viên thành công" });
     } catch (error) {
       await connection.rollback();
@@ -518,6 +531,13 @@ const employeeController = {
       }
 
       await connection.commit();
+
+      // Ghi audit log
+      req._auditAction = "UPDATE_EMPLOYEE";
+      req._auditResource = "employees";
+      req._auditResourceId = req.params.id;
+      req._auditDetails = { updatedFields: Object.keys(updates) };
+
       res.json({ message: "Cập nhật nhân viên thành công" });
     } catch (error) {
       await connection.rollback();
@@ -537,6 +557,12 @@ const employeeController = {
         "UPDATE employees SET profile_status = 'verified', verified_by = ? WHERE id = ?",
         [verifiedBy, id]
       );
+
+      // Ghi audit log
+      req._auditAction = "VERIFY_PROFILE";
+      req._auditResource = "employees";
+      req._auditResourceId = id;
+      req._auditDetails = { verifiedBy };
 
       res.json({ message: "Đã xác thực hồ sơ nhân viên" });
     } catch (error) {
@@ -568,6 +594,12 @@ const employeeController = {
 
       // Cập nhật role_id trong bảng users
       await db.query("UPDATE users SET role_id = ? WHERE id = ?", [roleId, userId]);
+
+      // Ghi audit log
+      req._auditAction = "CHANGE_ROLE";
+      req._auditResource = "employees";
+      req._auditResourceId = id;
+      req._auditDetails = { newRoleId: roleId, userId };
 
       res.json({ message: "Cập nhật vai trò hệ thống thành công" });
     } catch (error) {

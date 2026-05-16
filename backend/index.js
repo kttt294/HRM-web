@@ -44,6 +44,10 @@ app.use(
   }),
 );
 
+// Audit Middleware — Tự động ghi log các request có xác thực (POST/PUT/PATCH/DELETE)
+const auditMiddleware = require("./middleware/auditMiddleware");
+app.use(auditMiddleware);
+
 // Import routes
 const authRoutes = require("./routes/auth.routes.js");
 const employeeRoutes = require("./routes/employee.routes.js");
@@ -57,6 +61,7 @@ const userRoutes = require("./routes/user.routes.js");
 const jobTitleRoutes = require("./routes/jobTitle.routes.js");
 const chatbotRoutes = require("./routes/chatbot.routes.js");
 const employeeDegreeRoutes = require("./routes/employeeDegree.routes");
+const auditLogRoutes = require("./routes/auditLog.routes.js");
 
 // API routes
 app.use("/api/auth", authRoutes);
@@ -71,9 +76,14 @@ app.use("/api/users", userRoutes);
 app.use("/api/job-titles", jobTitleRoutes);
 app.use("/api/chatbot", chatbotRoutes);
 app.use("/api/employee-degrees", employeeDegreeRoutes);
+app.use("/api/audit-logs", auditLogRoutes);
 
 app.use(errorHandler);
 
+// [Fix 1C] Khởi động cron job tự động xóa audit log cũ
+const { startLogCleanupJob } = require("./utils/logCleanupJob");
+
 app.listen(PORT, () => {
   console.log(`---->>> Server đang chạy tại http://localhost:${PORT}`);
+  startLogCleanupJob();
 });

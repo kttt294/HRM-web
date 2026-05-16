@@ -68,9 +68,14 @@ export function JobTitlesManagePage() {
     setLoading(true);
     try {
       const data = await fetchJobTitles();
-      setJobTitles(data);
+      if (Array.isArray(data)) {
+        setJobTitles(data);
+      } else {
+        setJobTitles([]);
+      }
     } catch {
       showSnackbar("Không thể tải danh sách chức vụ", "error");
+      setJobTitles([]);
     } finally {
       setLoading(false);
     }

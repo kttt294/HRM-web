@@ -34,10 +34,14 @@ export function EmployeeListPage() {
       setIsLoading(true);
       setError(null);
       const data = await adminEmployeeApi.getAll();
-      setEmployees(data);
+      if (Array.isArray(data)) {
+        setEmployees(data);
+      } else {
+        setEmployees([]);
+      }
     } catch (err: any) {
       console.error("Failed to load employees:", err);
-      setError(err.message || "Không thể tải danh sách nhân viên");
+      setError("Không thể tải danh sách nhân viên");
     } finally {
       setIsLoading(false);
     }
@@ -107,8 +111,8 @@ export function EmployeeListPage() {
   if (error) {
     return (
       <div className="card">
-        <div className="card-body">
-          <p style={{ color: "red" }}>{error}</p>
+        <div className="card-body" style={{ textAlign: "center", padding: "32px" }}>
+          <p style={{ color: "#cf1322", fontWeight: "bold", fontSize: "16px", marginBottom: "16px" }}>⚠️ Lỗi hệ thống</p>
           <Button onClick={loadEmployees}>Thử lại</Button>
         </div>
       </div>

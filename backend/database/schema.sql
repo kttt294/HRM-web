@@ -1,6 +1,31 @@
 -- Set charset thành UTF-8
 ALTER DATABASE defaultdb CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
+-- Vô hiệu hóa kiểm tra khóa ngoại để có thể DROP/CREATE lại sạch sẽ
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- Xóa các bảng cũ nếu tồn tại (theo thứ tự ngược lại hoặc dùng FOREIGN_KEY_CHECKS=0)
+DROP TABLE IF EXISTS audit_logs;
+DROP TABLE IF EXISTS employee_certificates;
+DROP TABLE IF EXISTS employee_degrees;
+DROP TABLE IF EXISTS profile_updates;
+DROP TABLE IF EXISTS interviews;
+DROP TABLE IF EXISTS candidates;
+DROP TABLE IF EXISTS vacancies;
+DROP TABLE IF EXISTS salary_records;
+DROP TABLE IF EXISTS leave_requests;
+DROP TABLE IF EXISTS employees;
+DROP TABLE IF EXISTS refresh_tokens;
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS departments;
+DROP TABLE IF EXISTS job_titles;
+DROP TABLE IF EXISTS role_permissions;
+DROP TABLE IF EXISTS permissions;
+DROP TABLE IF EXISTS roles;
+
+-- Kích hoạt lại kiểm tra khóa ngoại
+SET FOREIGN_KEY_CHECKS = 1;
+
 -- 1. Bảng Roles (Admin, HR, Manager, Employee)
 CREATE TABLE IF NOT EXISTS roles (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -280,4 +305,31 @@ CREATE TABLE IF NOT EXISTS employee_certificates (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     
     FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE
+);
+
+-- 18. Bảng Audit Logs (Lịch sử hoạt động)
+CREATE TABLE IF NOT EXISTS audit_logs (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NULL,
+    employee_id INT(5) ZEROFILL NULL,
+    username VARCHAR(50),                -- Lưu username tại thời điểm thực hiện
+    full_name VARCHAR(100),              -- Lưu tên nhân viên tại thời điểm thực hiện
+    action VARCHAR(100) NOT NULL,        -- VD: LOGIN, CREATE_EMPLOYEE, UPDATE_SALARY...
+    resource VARCHAR(100),               -- VD: employees, salary_records, departments...
+    resource_id VARCHAR(50),             -- ID của bản ghi bị tác động
+    details JSON,                        -- Chi tiết thay đổi (old_value, new_value)
+    ip_address VARCHAR(45),              -- IPv4 hoặc IPv6
+    user_agent TEXT,                     -- Thông tin trình duyệt/thiết bị
+    method VARCHAR(10),                  -- HTTP Method (GET, POST, PUT, DELETE)
+    endpoint VARCHAR(500),               -- URL endpoint được truy cập
+    status_code INT,                     -- HTTP Response Status Code
+    response_time INT,                   -- Thời gian xử lý request (ms)
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    INDEX idx_user_id (user_id),
+    INDEX idx_action (action),
+    INDEX idx_resource (resource),
+    INDEX idx_created_at (created_at),
+    INDEX idx_status_code (status_code),
+    INDEX idx_method (method)
 );
