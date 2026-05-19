@@ -60,7 +60,7 @@ export function AuditLogListPage() {
   }, [loading, logs]);
 
   const handleFilterChange = (key: keyof AuditLogFilters, value: any) => {
-    setFilters((prev) => ({ ...prev, [key]: value, page: 1 })); // Reset to page 1 on filter change
+    setFilters((prev) => ({ ...prev, [key]: value, ...(key !== 'page' && { page: 1 }) })); // Reset to page 1 on filter change except when changing page
   };
 
   const getMethodColor = (method: string | null) => {
